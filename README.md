@@ -2,7 +2,7 @@
 
 ## Goals
 - First and foremost, this is a project to learn about Rust and Linux
-- Secondly, try to improve upon AdnanHodzic's already amazing auto-cpufreq
+- Secondly, try to improve upon AdnanHodzic's already amazing [auto-cpufreq](https://github.com/AdnanHodzic/auto-cpufreq)
     - Add options to display raw output of governors, clockspeed, turbo, battery, etc. for use in scripts or display panels like polybar.
 
 ## Install

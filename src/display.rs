@@ -23,7 +23,10 @@ pub fn print_turbo(t: bool, raw: bool) {
 
 pub fn print_available_governors(a: Vec<String>, raw: bool) {
     if raw {
+        for x in a.iter() {
+            println!("{}", x);
+        }
+    } else {
         println!("{:?}", a);
     }
-    println!("{:?}", a)
 }

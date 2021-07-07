@@ -42,7 +42,7 @@ fn main() {
 // TODO: Move this to it's own file
 fn get_cpu_freq() -> Result<i32, Error> {
     let mut cpu_info = String::new();
-    File::open("/proc/cpuinfo")?.read_to_string(&mut cpu_info);
+    File::open("/proc/cpuinfo")?.read_to_string(&mut cpu_info)?;
 
     // Find all lines that begin with cpu MHz
     let find_cpu_mhz = cpu_info.split('\n').find(|line|

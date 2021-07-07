@@ -12,27 +12,46 @@ pub mod system;
 )]
 enum Command {
     #[structopt(name = "get-freq")]
-    GetFreq,
+    GetFreq {
+        #[structopt(short, long)]
+        raw: bool,
+    },
 
     #[structopt(name = "get-turbo")]
-    GetTurbo,
+    GetTurbo {
+        #[structopt(short, long)]
+        raw: bool,
+    },
 }
 
 fn main() {
     match Command::from_args() {
-        Command::GetFreq {} => match check_cpu_freq() {
-            Ok(f) => println!("CPU freq is {} MHz", f),
+        Command::GetFreq { raw } => match check_cpu_freq() {
+            Ok(f) => {
+                if raw {
+                    println!("{}", f);
+                } else {
+                    println!("CPU freq is {} MHz", f)
+                }
+            }
             Err(_) => println!("Failed"),
         },
-        Command::GetTurbo {} => match check_turbo_enabled() {
-            Ok(a) => println!(
-                "{}",
-                if a {
-                    "Turbo is enabled"
-                } else {
-                    "Turbo is not enabled"
+        Command::GetTurbo { raw } => match check_turbo_enabled() {
+            Ok(a) => {
+                if raw {
+                    println!("{}", a);
+                    return;
                 }
-            ),
+
+                println!(
+                    "{}",
+                    if a {
+                        "Turbo is enabled"
+                    } else {
+                        "Turbo is not enabled"
+                    }
+                )
+            }
             Err(_) => println!("Failed"),
         },
     }

@@ -1,9 +1,11 @@
 use error::Error;
 use structopt::StructOpt;
-use system::{check_cpu_freq, check_turbo_enabled};
+use system::{check_available_governors, check_cpu_freq, check_turbo_enabled};
+use display::{print_freq, print_turbo, print_available_governors};
 
 pub mod error;
 pub mod system;
+pub mod display;
 
 #[derive(StructOpt)]
 #[structopt(
@@ -22,36 +24,27 @@ enum Command {
         #[structopt(short, long)]
         raw: bool,
     },
+
+    #[structopt(name = "get-governors")]
+    GetAvailableGovernors {
+        #[structopt(short, long)]
+        raw: bool,
+    },
 }
 
 fn main() {
     match Command::from_args() {
         Command::GetFreq { raw } => match check_cpu_freq() {
-            Ok(f) => {
-                if raw {
-                    println!("{}", f);
-                } else {
-                    println!("CPU freq is {} MHz", f)
-                }
-            }
-            Err(_) => println!("Failed"),
+            Ok(f) => print_freq(f, raw),
+            Err(_) => eprintln!("Failed"),
         },
         Command::GetTurbo { raw } => match check_turbo_enabled() {
-            Ok(a) => {
-                if raw {
-                    println!("{}", a);
-                    return;
-                }
+            Ok(a) => print_turbo(a, raw),
+            Err(_) => println!("Failed"),
+        },
 
-                println!(
-                    "{}",
-                    if a {
-                        "Turbo is enabled"
-                    } else {
-                        "Turbo is not enabled"
-                    }
-                )
-            }
+        Command::GetAvailableGovernors { raw } => match check_available_governors() {
+            Ok(a) => print_available_governors(a, raw),
             Err(_) => println!("Failed"),
         },
     }

@@ -38,3 +38,16 @@ pub fn check_turbo_enabled() -> Result<bool, Error> {
         Ok(a) => Ok(a == 0),
     }
 }
+
+pub fn check_available_governors() -> Result<Vec<String>, Error> {
+    let mut governors_string: String = String::new();
+    let governors_path: &str = "/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors";
+    File::open(governors_path)?.read_to_string(&mut governors_string)?;
+    governors_string.pop();
+    let governors: Vec<String> = governors_string
+        .split(" ")
+        .into_iter()
+        .map(|x| x.to_owned())
+        .collect();
+    return Ok(governors);
+}

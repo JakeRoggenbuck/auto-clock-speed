@@ -18,6 +18,7 @@ FLAGS:
 
 SUBCOMMANDS:
     get-freq
+    get-governors
     get-turbo
-    help         Prints this message or the help of the given subcommand(s)
+    help             Prints this message or the help of the given subcommand(s)
 ```

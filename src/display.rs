@@ -1,5 +1,5 @@
-use std::fmt::Display;
 use super::cpu;
+use std::fmt::Display;
 
 pub fn print_freq(f: i32, raw: bool) {
     if raw {
@@ -42,9 +42,9 @@ pub fn print_available_governors(available_governors: Vec<String>, raw: bool) {
     print_vec(available_governors, raw);
 }
 
-pub fn print_cpus(cpus: Vec<cpu::CPU>, raw: bool) {
+pub fn print_cpus(cpus: Vec<cpu::CPU>) {
     for x in cpus {
-        println!("{}", x.name);        
+        println!("{}", x.name);
     }
 }
 

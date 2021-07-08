@@ -1,4 +1,5 @@
 # Auto Clock Speed ![Rust](https://img.shields.io/github/workflow/status/jakeroggenbuck/auto-clock-speed/Rust?style=for-the-badge)
+ A utility to check stats about your CPU, and auto regulate clock speeds to help with either performance or battery life
 
 ## Goals
 - First and foremost, this is a project to learn about Rust and Linux
@@ -23,11 +24,14 @@ FLAGS:
     -V, --version    Prints version information
 
 SUBCOMMANDS:
-    get-cpus          The names of the core
-    get-cpus-speed    The speed of the individual cores
-    get-freq          The overall frequency of your cpu
-    get-governors
+    get-available-governors
+    get-cpu-governors          The governors of the individual cores
+    get-cpu-speeds             The speed of the individual cores
+    get-cpus                   The names of the core
+    get-freq                   The overall frequency of your cpu
     get-turbo
-    help              Prints this message or the help of the given subcommand(s)
+    help                       Prints this message or the help of the given subcommand(s)
+    list-possible-governors    The possible governors
+    run                        Run the daemon
 
 ```

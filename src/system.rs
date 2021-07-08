@@ -1,9 +1,9 @@
+use super::cpu;
 use super::Error;
+use crate::cpu::Speed;
 use regex::Regex;
 use std::fs::{read_dir, File};
 use std::io::Read;
-use crate::cpu::Speed;
-use super::cpu;
 use std::string::String;
 
 // https://docs.rs/sys-info/0.7.0/src/sys_info/lib.rs.html#367-406
@@ -91,20 +91,19 @@ pub fn list_cpus() -> Result<Vec<cpu::CPU>, Error> {
 
     let mut to_return: Vec<cpu::CPU> = Vec::<cpu::CPU>::new();
 
-    for b in cpus {
-
+    for cpu in cpus {
         let mut new = cpu::CPU {
-            name: b,
+            name: cpu,
             max_freq: 0,
             min_freq: 0,
             cur_freq: 0,
+            // Temporary initial value
             gov: "Unknown".to_string(),
         };
 
         new.update();
 
         to_return.push(new)
-
     }
 
     Ok(to_return)

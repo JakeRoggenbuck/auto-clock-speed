@@ -17,20 +17,22 @@ pub struct Daemon {
 
 impl Checker for Daemon {
     fn run(&mut self) {
-        let five_seconds = time::Duration::from_secs(self.delay);
+        let timeout = time::Duration::from_secs(self.delay);
 
         loop {
-            // Update all the speed from the cpus before they may get displayed or used
+            // Update all the values for each cpu before they get used
             self.update_all();
 
+            // Print the each cpu, each iteration
             if self.verbose {
                 self.print();
             }
 
-            thread::sleep(five_seconds);
+            thread::sleep(timeout);
         }
     }
 
+    /// Calls update on each cpu to update the state of each one
     fn update_all(&mut self) {
         for cpu in self.cpus.iter_mut() {
             cpu.update();
@@ -54,7 +56,10 @@ pub fn daemon_init(verbose: bool, delay: u64) -> Result<Daemon, Error> {
     };
 
     if verbose {
-        println!("Daemon has been initialized with a delay of {} seconds\n\n", delay);
+        println!(
+            "Daemon has been initialized with a delay of {} seconds\n\n",
+            delay
+        );
     }
 
     // Make a cpu struct for each cpu listed

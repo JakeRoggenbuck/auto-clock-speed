@@ -10,12 +10,11 @@ use system::{
     list_cpu_speeds, list_cpus,
 };
 
+pub mod cpu;
 pub mod daemon;
 pub mod display;
-pub mod cpu;
 pub mod error;
 pub mod system;
-
 
 const GOVERNORS: [&str; 6] = [
     "performance",
@@ -53,10 +52,7 @@ enum Command {
 
     /// The names of the core
     #[structopt(name = "get-cpus")]
-    GetCPUS {
-        #[structopt(short, long)]
-        raw: bool,
-    },
+    GetCPUS {},
 
     /// The speed of the individual cores
     #[structopt(name = "get-cpu-speeds")]
@@ -88,10 +84,6 @@ enum Command {
 }
 
 fn main() {
-
-    // Init CPU here bruv 
-
-
     match Command::from_args() {
         Command::GetFreq { raw } => match check_cpu_freq() {
             Ok(f) => print_freq(f, raw),
@@ -105,8 +97,8 @@ fn main() {
             Ok(available_governors) => print_available_governors(available_governors, raw),
             Err(_) => println!("Failed to get available governors"),
         },
-        Command::GetCPUS { raw } => match list_cpus() {
-            Ok(cpus) => print_cpus(cpus, raw),
+        Command::GetCPUS {} => match list_cpus() {
+            Ok(cpus) => print_cpus(cpus),
             Err(_) => println!("Failed get list of cpus"),
         },
         Command::GetSpeeds { raw } => match list_cpu_speeds() {

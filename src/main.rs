@@ -12,6 +12,7 @@ use system::{
 pub mod display;
 pub mod error;
 pub mod system;
+pub mod cpu;
 
 const GOVERNORS: [&str; 6] = [
     "performance",

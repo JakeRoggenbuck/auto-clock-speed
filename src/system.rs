@@ -28,10 +28,8 @@ pub fn check_cpu_freq() -> Result<i32, Error> {
 
 pub fn check_speed_by_cpu(cpu: String) -> Result<i32, Error> {
     let mut speed: String = String::new();
-    let cpu_speed_path: String = format!(
-        "/sys/devices/system/cpu/{}/cpufreq/scaling_cur_freq",
-        cpu
-    );
+    let cpu_speed_path: String =
+        format!("/sys/devices/system/cpu/{}/cpufreq/scaling_cur_freq", cpu);
 
     File::open(cpu_speed_path)?.read_to_string(&mut speed)?;
 
@@ -43,7 +41,6 @@ pub fn check_speed_by_cpu(cpu: String) -> Result<i32, Error> {
         Ok(a) => Ok(a),
     }
 }
-
 
 pub fn check_turbo_enabled() -> Result<bool, Error> {
     let mut is_turbo: String = String::new();

@@ -13,6 +13,15 @@ pub mod display;
 pub mod error;
 pub mod system;
 
+const GOVERNORS: [&str; 6] = [
+    "performance",
+    "powersave",
+    "userspace",
+    "ondemand",
+    "conservative",
+    "schedutil",
+];
+
 #[derive(StructOpt)]
 #[structopt(
     name = "autoclockspeed",
@@ -32,7 +41,7 @@ enum Command {
         raw: bool,
     },
 
-    #[structopt(name = "get-governors")]
+    #[structopt(name = "get-available-governors")]
     GetAvailableGovernors {
         #[structopt(short, long)]
         raw: bool,

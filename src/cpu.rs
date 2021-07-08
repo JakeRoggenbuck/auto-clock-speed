@@ -58,6 +58,7 @@ impl Speed for CPU {
         self.get_max();
         self.get_min();
         self.get_cur();
+        self.get_gov();
     }
 
     fn init_cpu(&mut self) {

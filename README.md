@@ -23,6 +23,7 @@ FLAGS:
     -V, --version    Prints version information
 
 SUBCOMMANDS:
+    get-cpus
     get-freq
     get-governors
     get-turbo

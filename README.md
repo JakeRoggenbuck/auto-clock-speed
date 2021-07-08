@@ -1,4 +1,5 @@
 # Auto Clock Speed ![Rust](https://img.shields.io/github/workflow/status/jakeroggenbuck/auto-clock-speed/Rust?style=for-the-badge)
+ A utility to check stats about your CPU, and auto regulate clock speeds to help with either performance or battery life
 
 ## Goals
 - First and foremost, this is a project to learn about Rust and Linux

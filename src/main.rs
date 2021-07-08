@@ -1,11 +1,11 @@
+use display::{print_available_governors, print_cpus, print_freq, print_turbo};
 use error::Error;
 use structopt::StructOpt;
-use system::{check_available_governors, check_cpu_freq, check_turbo_enabled};
-use display::{print_freq, print_turbo, print_available_governors};
+use system::{check_available_governors, check_cpu_freq, check_turbo_enabled, list_cpus};
 
+pub mod display;
 pub mod error;
 pub mod system;
-pub mod display;
 
 #[derive(StructOpt)]
 #[structopt(
@@ -30,6 +30,12 @@ enum Command {
         #[structopt(short, long)]
         raw: bool,
     },
+
+    #[structopt(name = "get-cpus")]
+    GetCPUS {
+        #[structopt(short, long)]
+        raw: bool,
+    },
 }
 
 fn main() {
@@ -42,9 +48,12 @@ fn main() {
             Ok(a) => print_turbo(a, raw),
             Err(_) => println!("Failed"),
         },
-
         Command::GetAvailableGovernors { raw } => match check_available_governors() {
             Ok(a) => print_available_governors(a, raw),
+            Err(_) => println!("Failed"),
+        },
+        Command::GetCPUS { raw } => match list_cpus() {
+            Ok(a) => print_cpus(a, raw),
             Err(_) => println!("Failed"),
         },
     }

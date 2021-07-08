@@ -1,6 +1,8 @@
 use super::Error;
-use std::fs::File;
+use regex::Regex;
+use std::fs::{read_dir, File};
 use std::io::Read;
+use std::string::String;
 
 // https://docs.rs/sys-info/0.7.0/src/sys_info/lib.rs.html#367-406
 pub fn check_cpu_freq() -> Result<i32, Error> {
@@ -43,11 +45,43 @@ pub fn check_available_governors() -> Result<Vec<String>, Error> {
     let mut governors_string: String = String::new();
     let governors_path: &str = "/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors";
     File::open(governors_path)?.read_to_string(&mut governors_string)?;
+
+    // Remove the newline at the end
     governors_string.pop();
     let governors: Vec<String> = governors_string
+        // Governors are in the file separated by a space
         .split(" ")
         .into_iter()
         .map(|x| x.to_owned())
         .collect();
     return Ok(governors);
+}
+
+pub fn list_cpus() -> Result<Vec<String>, Error> {
+    let mut cpus: Vec<String> = Vec::<String>::new();
+    // The string "cpu" followed by a digit
+    let cpu = Regex::new(r"cpu\d").unwrap();
+
+    // Get each item in the cpu directory
+    for a in read_dir("/sys/devices/system/cpu")? {
+        let path_string: String = format!("{:?}", a?.path()).to_string();
+        let path: String = path_string
+            .chars()
+            // Skip the characters that are before the cpu name
+            .skip(25)
+            // Take only the characters that are apart of the name
+            .take(path_string.len() - 26)
+            .collect::<String>();
+
+        cpus.push(path)
+    }
+
+    cpus = cpus
+        .iter()
+        // Check if the file is actually a cpu, meaning it matches that regex
+        .filter(|x| cpu.is_match(x))
+        .map(|x| x.to_owned())
+        .collect();
+
+    Ok(cpus)
 }

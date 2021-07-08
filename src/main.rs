@@ -1,3 +1,4 @@
+use daemon::{daemon_init, Checker};
 use display::{
     print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpus, print_freq,
     print_turbo,
@@ -9,6 +10,8 @@ use system::{
     list_cpu_speeds, list_cpus,
 };
 
+pub mod cpu;
+pub mod daemon;
 pub mod display;
 pub mod error;
 pub mod system;
@@ -70,7 +73,14 @@ enum Command {
 
     /// The possible governors
     #[structopt(name = "list-possible-governors")]
-    GetPossibleGovernorsList { },
+    GetPossibleGovernorsList {},
+
+    /// Run the daemon
+    #[structopt(name = "run")]
+    Run {
+        #[structopt(short, long)]
+        verbose: bool,
+    },
 }
 
 fn main() {
@@ -99,10 +109,16 @@ fn main() {
             Ok(cpu_governors) => print_cpu_governors(cpu_governors, raw),
             Err(_) => println!("Failed to get list of cpu governors"),
         },
-        Command::GetPossibleGovernorsList { } => {
+        Command::GetPossibleGovernorsList {} => {
             for governor in GOVERNORS.iter() {
                 println!("{}", governor);
             }
+        }
+        Command::Run { verbose } => match daemon_init(verbose) {
+            Ok(mut d) => {
+                d.run();
+            }
+            Err(_) => {}
         },
     }
 }

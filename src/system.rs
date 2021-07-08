@@ -5,6 +5,7 @@ use std::io::Read;
 use std::string::String;
 
 // https://docs.rs/sys-info/0.7.0/src/sys_info/lib.rs.html#367-406
+/// Check the frequency of the cpu
 pub fn check_cpu_freq() -> Result<i32, Error> {
     let mut cpu_info: String = String::new();
     File::open("/proc/cpuinfo")?.read_to_string(&mut cpu_info)?;
@@ -26,6 +27,7 @@ pub fn check_cpu_freq() -> Result<i32, Error> {
         .ok_or(Error::Unknown)
 }
 
+/// Check the speed for a single cpu (single core)
 pub fn check_speed_by_cpu(cpu: String) -> Result<i32, Error> {
     let mut speed: String = String::new();
     let cpu_speed_path: String =
@@ -42,6 +44,7 @@ pub fn check_speed_by_cpu(cpu: String) -> Result<i32, Error> {
     }
 }
 
+/// Check the governor of a single cpu (single core)
 pub fn check_governor_by_cpu(cpu: String) -> Result<String, Error> {
     let mut governor: String = String::new();
     let cpu_governor_path: String =
@@ -57,6 +60,7 @@ pub fn check_governor_by_cpu(cpu: String) -> Result<String, Error> {
     }
 }
 
+/// Check if turbo is enabled for the machine, (enabled in bios)
 pub fn check_turbo_enabled() -> Result<bool, Error> {
     let mut is_turbo: String = String::new();
     let turbo_path: &str = "/sys/devices/system/cpu/intel_pstate/no_turbo";
@@ -72,6 +76,7 @@ pub fn check_turbo_enabled() -> Result<bool, Error> {
     }
 }
 
+/// Check the governors available for the cpu
 pub fn check_available_governors() -> Result<Vec<String>, Error> {
     let mut governors_string: String = String::new();
     let governors_path: &str = "/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors";
@@ -88,6 +93,7 @@ pub fn check_available_governors() -> Result<Vec<String>, Error> {
     return Ok(governors);
 }
 
+/// Get all the cpus (cores), returns cpus from 0 to the (amount of cores -1) the machine has
 pub fn list_cpus() -> Result<Vec<String>, Error> {
     let mut cpus: Vec<String> = Vec::<String>::new();
     // The string "cpu" followed by a digit
@@ -117,6 +123,7 @@ pub fn list_cpus() -> Result<Vec<String>, Error> {
     Ok(cpus)
 }
 
+/// Get a vector of speeds reported from each cpu from list_cpus
 pub fn list_cpu_speeds() -> Result<Vec<i32>, Error> {
     let cpus = list_cpus()?;
     let mut speeds = Vec::<i32>::new();
@@ -128,6 +135,7 @@ pub fn list_cpu_speeds() -> Result<Vec<i32>, Error> {
     Ok(speeds)
 }
 
+/// Get a vector of the governors that the cpus from list_cpus
 pub fn list_cpu_governors() -> Result<Vec<String>, Error> {
     let cpus = list_cpus()?;
     let mut governors = Vec::<String>::new();

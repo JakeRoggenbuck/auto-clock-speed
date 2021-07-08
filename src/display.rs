@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 pub fn print_freq(f: i32, raw: bool) {
     if raw {
         println!("{}", f);
@@ -21,25 +23,17 @@ pub fn print_turbo(t: bool, raw: bool) {
     }
 }
 
-
-// TODO: figure out how to get this to print generic types
-fn print_vec(a: Vec<String>, raw: bool) {
+fn print_vec<T:Display>(t: Vec<T>, raw: bool) {
     if raw {
-        for x in a.iter() {
+        for x in t {
             println!("{}", x);
         }
     } else {
-        println!("{:?}", a);
-    }
-}
-
-fn print_vec_i32(a: Vec<i32>, raw: bool) {
-    if raw {
-        for x in a.iter() {
-            println!("{}", x);
+        print!("[ ");
+        for x in t {
+            print!("\"{}\" ", x);
         }
-    } else {
-        println!("{:?}", a);
+        print!("]");
     }
 }
 
@@ -52,5 +46,5 @@ pub fn print_cpus(a: Vec<String>, raw: bool) {
 }
 
 pub fn print_cpu_speeds(a: Vec<i32>, raw: bool) {
-    print_vec_i32(a, raw);
+    print_vec(a, raw);
 }

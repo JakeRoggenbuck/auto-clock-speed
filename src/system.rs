@@ -42,6 +42,21 @@ pub fn check_speed_by_cpu(cpu: String) -> Result<i32, Error> {
     }
 }
 
+pub fn check_governor_by_cpu(cpu: String) -> Result<String, Error> {
+    let mut governor: String = String::new();
+    let cpu_governor_path: String =
+        format!("/sys/devices/system/cpu/{}/cpufreq/scaling_governor", cpu);
+
+    File::open(cpu_governor_path)?.read_to_string(&mut governor)?;
+
+    // Remove the last character (the newline)
+    governor.pop();
+    match governor.parse::<String>() {
+        Err(e) => panic!("{}", e),
+        Ok(a) => Ok(a),
+    }
+}
+
 pub fn check_turbo_enabled() -> Result<bool, Error> {
     let mut is_turbo: String = String::new();
     let turbo_path: &str = "/sys/devices/system/cpu/intel_pstate/no_turbo";
@@ -111,4 +126,15 @@ pub fn list_cpu_speeds() -> Result<Vec<i32>, Error> {
         speeds.push(speed)
     }
     Ok(speeds)
+}
+
+pub fn list_cpu_governors() -> Result<Vec<String>, Error> {
+    let cpus = list_cpus()?;
+    let mut governors = Vec::<String>::new();
+
+    for cpu in cpus {
+        let governor = check_governor_by_cpu(cpu)?;
+        governors.push(governor)
+    }
+    Ok(governors)
 }

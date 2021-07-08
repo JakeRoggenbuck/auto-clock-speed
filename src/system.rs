@@ -30,8 +30,7 @@ pub fn check_cpu_freq() -> Result<i32, Error> {
 /// A generic function to take a path and a single cpu (single core) and get an i32
 pub fn get_some_cpu_int_by_path(cpu: String, sub_path: String) -> Result<i32, Error> {
     let mut info: String = String::new();
-    let cpu_info_path: String =
-        format!("/sys/devices/system/cpu/{}/{}", cpu, sub_path);
+    let cpu_info_path: String = format!("/sys/devices/system/cpu/{}/{}", cpu, sub_path);
 
     File::open(cpu_info_path)?.read_to_string(&mut info)?;
 
@@ -45,17 +44,26 @@ pub fn get_some_cpu_int_by_path(cpu: String, sub_path: String) -> Result<i32, Er
 
 /// Check the speed for a single cpu (single core)
 pub fn check_speed_by_cpu(cpu: String) -> Result<i32, Error> {
-    Ok(get_some_cpu_int_by_path(cpu, "cpufreq/scaling_cur_freq".to_string())?)
+    Ok(get_some_cpu_int_by_path(
+        cpu,
+        "cpufreq/scaling_cur_freq".to_string(),
+    )?)
 }
 
 /// Check the max speed for a single cpu (single core)
 pub fn check_max_speed_by_cpu(cpu: String) -> Result<i32, Error> {
-    Ok(get_some_cpu_int_by_path(cpu, "/cpufreq/scaling_max_freq".to_string())?)
+    Ok(get_some_cpu_int_by_path(
+        cpu,
+        "/cpufreq/scaling_max_freq".to_string(),
+    )?)
 }
 
 /// Check the min speed for a single cpu (single core)
 pub fn check_min_speed_by_cpu(cpu: String) -> Result<i32, Error> {
-    Ok(get_some_cpu_int_by_path(cpu, "cpufreq/scaling_min_freq".to_string())?)
+    Ok(get_some_cpu_int_by_path(
+        cpu,
+        "cpufreq/scaling_min_freq".to_string(),
+    )?)
 }
 
 /// Check the governor of a single cpu (single core)

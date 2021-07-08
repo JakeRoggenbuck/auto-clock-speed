@@ -1,3 +1,4 @@
+use daemon::{daemon_init, Checker};
 use display::{
     print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpus, print_freq,
     print_turbo,
@@ -8,7 +9,6 @@ use system::{
     check_available_governors, check_cpu_freq, check_turbo_enabled, list_cpu_governors,
     list_cpu_speeds, list_cpus,
 };
-use daemon::{daemon_init, Checker};
 
 pub mod cpu;
 pub mod daemon;
@@ -114,13 +114,11 @@ fn main() {
                 println!("{}", governor);
             }
         }
-        Command::Run { verbose } => {
-            match daemon_init(verbose) {
-                Ok(mut d) => {
-                    d.run();
-                },
-                Err(_) => {},
+        Command::Run { verbose } => match daemon_init(verbose) {
+            Ok(mut d) => {
+                d.run();
             }
-        }
+            Err(_) => {}
+        },
     }
 }

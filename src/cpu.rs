@@ -10,10 +10,10 @@ trait Speed {
 }
 
 pub struct CPU {
-    name: String,
-    max_freq: i32,
-    min_freq: i32,
-    cur_freq: i32,
+    pub name: String,
+    pub max_freq: i32,
+    pub min_freq: i32,
+    pub cur_freq: i32,
 }
 
 impl Speed for CPU {

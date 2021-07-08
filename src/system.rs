@@ -26,6 +26,25 @@ pub fn check_cpu_freq() -> Result<i32, Error> {
         .ok_or(Error::Unknown)
 }
 
+pub fn check_speed_by_cpu(cpu: String) -> Result<i32, Error> {
+    let mut speed: String = String::new();
+    let cpu_speed_path: String = format!(
+        "/sys/devices/system/cpu/{}/cpufreq/scaling_cur_freq",
+        cpu
+    );
+
+    File::open(cpu_speed_path)?.read_to_string(&mut speed)?;
+
+    // Remove the last character (the newline)
+    speed.pop();
+    match speed.parse::<i32>() {
+        Err(e) => panic!("{}", e),
+        // Zero means turbo is enabled, so return true
+        Ok(a) => Ok(a),
+    }
+}
+
+
 pub fn check_turbo_enabled() -> Result<bool, Error> {
     let mut is_turbo: String = String::new();
     let turbo_path: &str = "/sys/devices/system/cpu/intel_pstate/no_turbo";
@@ -84,4 +103,15 @@ pub fn list_cpus() -> Result<Vec<String>, Error> {
         .collect();
 
     Ok(cpus)
+}
+
+pub fn list_cpu_speeds() -> Result<Vec<i32>, Error> {
+    let cpus = list_cpus()?;
+    let mut speeds = Vec::<i32>::new();
+
+    for cpu in cpus {
+        let speed = check_speed_by_cpu(cpu)?;
+        speeds.push(speed)
+    }
+    Ok(speeds)
 }

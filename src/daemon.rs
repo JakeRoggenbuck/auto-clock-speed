@@ -31,18 +31,17 @@ impl Checker for Daemon {
         }
     }
 
+    fn update_all(&mut self) {
+        for cpu in self.cpus.iter_mut() {
+            cpu.update();
+        }
+    }
+
     /// Output the values from each cpu
     fn print(&self) {
         for cpu in &self.cpus {
             cpu.print();
         }
-    }
-
-    fn update_all(&mut self) {
-        // TODO: find a way to go through self.cpus and run update() on each one
-        // for mut cpu in self.cpus {
-        //     cpu.update();
-        // }
     }
 }
 

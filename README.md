@@ -23,11 +23,14 @@ FLAGS:
     -V, --version    Prints version information
 
 SUBCOMMANDS:
-    get-cpus          The names of the core
-    get-cpus-speed    The speed of the individual cores
-    get-freq          The overall frequency of your cpu
-    get-governors
+    get-available-governors
+    get-cpu-governors          The governors of the individual cores
+    get-cpu-speeds             The speed of the individual cores
+    get-cpus                   The names of the core
+    get-freq                   The overall frequency of your cpu
     get-turbo
-    help              Prints this message or the help of the given subcommand(s)
+    help                       Prints this message or the help of the given subcommand(s)
+    list-possible-governors    The possible governors
+    run                        Run the daemon
 
 ```

@@ -53,23 +53,23 @@ fn main() {
     match Command::from_args() {
         Command::GetFreq { raw } => match check_cpu_freq() {
             Ok(f) => print_freq(f, raw),
-            Err(_) => eprintln!("Failed"),
+            Err(_) => eprintln!("Faild to get cpu frequency"),
         },
         Command::GetTurbo { raw } => match check_turbo_enabled() {
-            Ok(a) => print_turbo(a, raw),
-            Err(_) => println!("Failed"),
+            Ok(turbo_enabled) => print_turbo(turbo_enabled, raw),
+            Err(_) => println!("Failed to get turbo status"),
         },
         Command::GetAvailableGovernors { raw } => match check_available_governors() {
-            Ok(a) => print_available_governors(a, raw),
-            Err(_) => println!("Failed"),
+            Ok(available_governors) => print_available_governors(available_governors, raw),
+            Err(_) => println!("Failed to get available governors"),
         },
         Command::GetCPUS { raw } => match list_cpus() {
-            Ok(a) => print_cpus(a, raw),
-            Err(_) => println!("Failed"),
+            Ok(cpus) => print_cpus(cpus, raw),
+            Err(_) => println!("Failed get list of cpus"),
         },
         Command::GetSpeeds { raw } => match list_cpu_speeds() {
-            Ok(a) => print_cpu_speeds(a, raw),
-            Err(_) => println!("Failed"),
+            Ok(cpu_speeds) => print_cpu_speeds(cpu_speeds, raw),
+            Err(_) => println!("Failed to get list of cpu speeds"),
         },
     }
 }

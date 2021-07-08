@@ -67,6 +67,10 @@ enum Command {
         #[structopt(short, long)]
         raw: bool,
     },
+
+    /// The possible governors
+    #[structopt(name = "list-possible-governors")]
+    GetPossibleGovernorsList { },
 }
 
 fn main() {
@@ -94,6 +98,11 @@ fn main() {
         Command::GetGovernors { raw } => match list_cpu_governors() {
             Ok(cpu_governors) => print_cpu_governors(cpu_governors, raw),
             Err(_) => println!("Failed to get list of cpu governors"),
+        },
+        Command::GetPossibleGovernorsList { } => {
+            for governor in GOVERNORS.iter() {
+                println!("{}", governor);
+            }
         },
     }
 }

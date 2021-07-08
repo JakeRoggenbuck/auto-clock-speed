@@ -12,11 +12,12 @@ pub trait Checker {
 pub struct Daemon {
     pub cpus: Vec<CPU>,
     pub verbose: bool,
+    pub delay: u64,
 }
 
 impl Checker for Daemon {
     fn run(&mut self) {
-        let five_seconds = time::Duration::from_secs(5);
+        let five_seconds = time::Duration::from_secs(self.delay);
 
         loop {
             // Update all the speed from the cpus before they may get displayed or used
@@ -45,12 +46,17 @@ impl Checker for Daemon {
     }
 }
 
-pub fn daemon_init(verbose: bool) -> Result<Daemon, Error> {
+pub fn daemon_init(verbose: bool, delay: u64) -> Result<Daemon, Error> {
     // Create a new Daemon
     let mut daemon: Daemon = Daemon {
         cpus: Vec::<CPU>::new(),
         verbose,
+        delay,
     };
+
+    if verbose {
+        println!("Daemon has been initialized with a delay of {} seconds\n\n", delay);
+    }
 
     // Make a cpu struct for each cpu listed
     for cpu in list_cpus()? {

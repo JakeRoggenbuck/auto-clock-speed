@@ -9,10 +9,11 @@ use system::{
     list_cpu_speeds, list_cpus,
 };
 
+pub mod cpu;
+pub mod daemon;
 pub mod display;
 pub mod error;
 pub mod system;
-pub mod cpu;
 
 const GOVERNORS: [&str; 6] = [
     "performance",
@@ -71,7 +72,7 @@ enum Command {
 
     /// The possible governors
     #[structopt(name = "list-possible-governors")]
-    GetPossibleGovernorsList { },
+    GetPossibleGovernorsList {},
 }
 
 fn main() {
@@ -100,10 +101,10 @@ fn main() {
             Ok(cpu_governors) => print_cpu_governors(cpu_governors, raw),
             Err(_) => println!("Failed to get list of cpu governors"),
         },
-        Command::GetPossibleGovernorsList { } => {
+        Command::GetPossibleGovernorsList {} => {
             for governor in GOVERNORS.iter() {
                 println!("{}", governor);
             }
-        },
+        }
     }
 }

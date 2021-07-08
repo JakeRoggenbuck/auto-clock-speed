@@ -1,4 +1,4 @@
-use super::cpu::CPU;
+use super::cpu::{CPU, Speed};
 use super::system::list_cpus;
 use super::Error;
 
@@ -12,12 +12,13 @@ pub fn daemon_init() -> Result<Daemon, Error> {
     };
 
     for cpu in list_cpus()? {
-        let new = CPU {
+        let mut new = CPU {
             name: cpu,
             max_freq: 0,
             min_freq: 0,
             cur_freq: 0,
         };
+        new.init_cpu();
         daemon.cpus.push(new);
     }
 

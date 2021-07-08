@@ -1,6 +1,7 @@
 use super::Error;
 use std::fs::File;
 use std::io::Read;
+use super::display::print_cpu;
 
 pub trait Speed {
     fn read_int(&mut self, sub_path: String) -> Result<i32, Error>;
@@ -110,6 +111,6 @@ impl Speed for CPU {
     }
 
     fn print(&self) {
-        println!("{:?}", self);
+        print_cpu(self);
     }
 }

@@ -1,4 +1,4 @@
-use super::cpu;
+use super::cpu::CPU;
 use std::fmt::Display;
 
 pub fn print_freq(f: i32, raw: bool) {
@@ -42,10 +42,17 @@ pub fn print_available_governors(available_governors: Vec<String>, raw: bool) {
     print_vec(available_governors, raw);
 }
 
-pub fn print_cpus(cpus: Vec<cpu::CPU>) {
+pub fn print_cpus(cpus: Vec<CPU>) {
     for x in cpus {
         println!("{}", x.name);
     }
+}
+
+pub fn print_cpu(cpu: &CPU) {
+    println!(
+        "{}: {}\t{}\t{}\t{}",
+        cpu.name, cpu.max_freq, cpu.min_freq, cpu.cur_freq, cpu.gov
+    );
 }
 
 pub fn print_cpu_speeds(cpu_speeds: Vec<i32>, raw: bool) {

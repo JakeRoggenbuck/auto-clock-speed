@@ -9,6 +9,7 @@ trait Speed {
     fn get_cur(&mut self);
 }
 
+#[derive(Debug)]
 pub struct CPU {
     pub name: String,
     pub max_freq: i32,

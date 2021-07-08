@@ -8,6 +8,7 @@ use system::{
     check_available_governors, check_cpu_freq, check_turbo_enabled, list_cpu_governors,
     list_cpu_speeds, list_cpus,
 };
+use daemon::daemon_init;
 
 pub mod cpu;
 pub mod daemon;
@@ -76,6 +77,13 @@ enum Command {
 }
 
 fn main() {
+    match daemon_init() {
+        Ok(d) => {
+            println!("{:?}", d.cpus);
+        },
+        Err(_) => {},
+    }
+
     match Command::from_args() {
         Command::GetFreq { raw } => match check_cpu_freq() {
             Ok(f) => print_freq(f, raw),

@@ -2,13 +2,13 @@ use super::cpu::CPU;
 use super::system::list_cpus;
 use super::Error;
 
-struct Daemon {
-    cpus: Vec<CPU>,
+pub struct Daemon {
+    pub cpus: Vec<CPU>,
 }
 
-pub fn daemon_init() ->  Result<(), Error>{
+pub fn daemon_init() -> Result<Daemon, Error> {
     let mut daemon: Daemon = Daemon {
-        cpus: Vec::<CPU>::new()
+        cpus: Vec::<CPU>::new(),
     };
 
     for cpu in list_cpus()? {
@@ -21,5 +21,5 @@ pub fn daemon_init() ->  Result<(), Error>{
         daemon.cpus.push(new);
     }
 
-    Ok(())
+    Ok(daemon)
 }

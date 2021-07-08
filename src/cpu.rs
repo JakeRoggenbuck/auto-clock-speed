@@ -1,5 +1,5 @@
 use super::Error;
-use std::fs::{read_dir, File};
+use std::fs::File;
 use std::io::Read;
 
 pub trait Speed {

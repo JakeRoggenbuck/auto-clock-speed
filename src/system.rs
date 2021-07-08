@@ -44,6 +44,40 @@ pub fn check_speed_by_cpu(cpu: String) -> Result<i32, Error> {
     }
 }
 
+/// Check the max speed for a single cpu (single core)
+pub fn check_max_speed_by_cpu(cpu: String) -> Result<i32, Error> {
+    let mut speed: String = String::new();
+    let cpu_speed_path: String =
+        format!("/sys/devices/system/cpu/{}/cpufreq/scaling_max_freq", cpu);
+
+    File::open(cpu_speed_path)?.read_to_string(&mut speed)?;
+
+    // Remove the last character (the newline)
+    speed.pop();
+    match speed.parse::<i32>() {
+        Err(e) => panic!("{}", e),
+        // Zero means turbo is enabled, so return true
+        Ok(a) => Ok(a),
+    }
+}
+
+/// Check the min speed for a single cpu (single core)
+pub fn check_min_speed_by_cpu(cpu: String) -> Result<i32, Error> {
+    let mut speed: String = String::new();
+    let cpu_speed_path: String =
+        format!("/sys/devices/system/cpu/{}/cpufreq/scaling_min_freq", cpu);
+
+    File::open(cpu_speed_path)?.read_to_string(&mut speed)?;
+
+    // Remove the last character (the newline)
+    speed.pop();
+    match speed.parse::<i32>() {
+        Err(e) => panic!("{}", e),
+        // Zero means turbo is enabled, so return true
+        Ok(a) => Ok(a),
+    }
+}
+
 /// Check the governor of a single cpu (single core)
 pub fn check_governor_by_cpu(cpu: String) -> Result<String, Error> {
     let mut governor: String = String::new();

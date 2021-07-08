@@ -114,6 +114,7 @@ pub fn list_cpus() -> Result<Vec<cpu::CPU>, Error> {
             max_freq: 0,
             min_freq: 0,
             cur_freq: 0,
+            gov: "Unknown".to_string(),
         };
 
         new.update();

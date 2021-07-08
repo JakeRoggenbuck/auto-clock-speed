@@ -8,7 +8,7 @@ use system::{
     check_available_governors, check_cpu_freq, check_turbo_enabled, list_cpu_governors,
     list_cpu_speeds, list_cpus,
 };
-use daemon::daemon_init;
+use daemon::{daemon_init, Checker};
 
 pub mod cpu;
 pub mod daemon;
@@ -115,11 +115,9 @@ fn main() {
             }
         }
         Command::Run { verbose } => {
-            match daemon_init() {
-                Ok(d) => {
-                    for c in d.cpus {
-                        println!("{:?}", c);
-                    }
+            match daemon_init(verbose) {
+                Ok(mut d) => {
+                    d.run();
                 },
                 Err(_) => {},
             }

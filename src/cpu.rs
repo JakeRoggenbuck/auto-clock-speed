@@ -13,8 +13,6 @@ struct CPU {
     max_freq: i32,
     min_freq: i32,
     cur_freq: i32,
-    base_freq: i32,
-    turbo: bool,
 }
 
 impl Speed for CPU {

@@ -2,6 +2,7 @@ use super::Error;
 use regex::Regex;
 use std::fs::{read_dir, File};
 use std::io::Read;
+use super::cpu;
 use std::string::String;
 
 // https://docs.rs/sys-info/0.7.0/src/sys_info/lib.rs.html#367-406
@@ -27,42 +28,26 @@ pub fn check_cpu_freq() -> Result<i32, Error> {
         .ok_or(Error::Unknown)
 }
 
-/// A generic function to take a path and a single cpu (single core) and get an i32
-pub fn get_some_cpu_int_by_path(cpu: String, sub_path: String) -> Result<i32, Error> {
-    let mut info: String = String::new();
-    let cpu_info_path: String =
-        format!("/sys/devices/system/cpu/{}/{}", cpu, sub_path);
-
-    File::open(cpu_info_path)?.read_to_string(&mut info)?;
-
-    // Remove the last character (the newline)
-    info.pop();
-    match info.parse::<i32>() {
-        Err(e) => panic!("{}", e),
-        Ok(a) => Ok(a),
-    }
-}
-
 /// Check the speed for a single cpu (single core)
-pub fn check_speed_by_cpu(cpu: String) -> Result<i32, Error> {
-    Ok(get_some_cpu_int_by_path(cpu, "cpufreq/scaling_cur_freq".to_string())?)
+pub fn check_speed_by_cpu(cpu: cpu::Cpu) -> Result<i32, Error> {
+    Ok(cpu.read_value("cpufreq/scaling_cur_freq".to_string())?)
 }
 
 /// Check the max speed for a single cpu (single core)
-pub fn check_max_speed_by_cpu(cpu: String) -> Result<i32, Error> {
-    Ok(get_some_cpu_int_by_path(cpu, "/cpufreq/scaling_max_freq".to_string())?)
+pub fn check_max_speed_by_cpu(cpu: cpu::Cpu) -> Result<i32, Error> {
+    Ok(cpu.read_value("/cpufreq/scaling_max_freq".to_string())?)
 }
 
 /// Check the min speed for a single cpu (single core)
-pub fn check_min_speed_by_cpu(cpu: String) -> Result<i32, Error> {
-    Ok(get_some_cpu_int_by_path(cpu, "cpufreq/scaling_min_freq".to_string())?)
+pub fn check_min_speed_by_cpu(cpu: cpu::Cpu) -> Result<i32, Error> {
+    Ok(cpu.read_value("cpufreq/scaling_min_freq".to_string())?)
 }
 
 /// Check the governor of a single cpu (single core)
-pub fn check_governor_by_cpu(cpu: String) -> Result<String, Error> {
+pub fn check_governor_by_cpu(cpu: cpu::Cpu) -> Result<String, Error> {
     let mut governor: String = String::new();
     let cpu_governor_path: String =
-        format!("/sys/devices/system/cpu/{}/cpufreq/scaling_governor", cpu);
+        format!("/sys/devices/system/cpu/{}/cpufreq/scaling_governor", cpu.name);
 
     File::open(cpu_governor_path)?.read_to_string(&mut governor)?;
 
@@ -108,8 +93,8 @@ pub fn check_available_governors() -> Result<Vec<String>, Error> {
 }
 
 /// Get all the cpus (cores), returns cpus from 0 to the (amount of cores -1) the machine has
-pub fn list_cpus() -> Result<Vec<String>, Error> {
-    let mut cpus: Vec<String> = Vec::<String>::new();
+pub fn list_cpus() -> Result<Vec<cpu::Cpu>, Error> {
+    let mut cpus: Vec<cpu::Cpu> = Vec::<cpu::Cpu>::new();
     // The string "cpu" followed by a digit
     let cpu = Regex::new(r"cpu\d").unwrap();
 
@@ -124,15 +109,14 @@ pub fn list_cpus() -> Result<Vec<String>, Error> {
             .take(path_string.len() - 26)
             .collect::<String>();
 
-        cpus.push(path)
+        cpus.push(cpu::Cpu::new(&path))
     }
 
-    cpus = cpus
-        .iter()
-        // Check if the file is actually a cpu, meaning it matches that regex
-        .filter(|x| cpu.is_match(x))
-        .map(|x| x.to_owned())
-        .collect();
+//    cpus = cpus
+//        .iter()
+//        // Check if the file is actually a cpu, meaning it matches that regex
+//        .filter(|x| cpu.is_match(&x.name))
+//        .collect();
 
     Ok(cpus)
 }

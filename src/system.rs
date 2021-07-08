@@ -1,9 +1,9 @@
+use super::cpu;
 use super::Error;
+use crate::cpu::Speed;
 use regex::Regex;
 use std::fs::{read_dir, File};
 use std::io::Read;
-use crate::cpu::Speed;
-use super::cpu;
 use std::string::String;
 
 // https://docs.rs/sys-info/0.7.0/src/sys_info/lib.rs.html#367-406
@@ -104,7 +104,6 @@ pub fn list_cpus() -> Result<Vec<cpu::CPU>, Error> {
         new.update();
 
         to_return.push(new)
-
     }
 
     Ok(to_return)

@@ -56,7 +56,10 @@ pub fn daemon_init(verbose: bool, delay: u64) -> Result<Daemon, Error> {
     };
 
     if verbose {
-        println!("Daemon has been initialized with a delay of {} seconds\n\n", delay);
+        println!(
+            "Daemon has been initialized with a delay of {} seconds\n\n",
+            delay
+        );
     }
 
     // Make a cpu struct for each cpu listed

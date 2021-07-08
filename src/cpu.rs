@@ -30,11 +30,10 @@ impl Speed for CPU {
     /// A generic function to take a path and a single cpu (single core) and get an i32
     fn read_int(&mut self, sub_path: String) -> Result<i32, Error> {
         let mut info: String = String::new();
-        let cpu_info_path: String =
-            format!("/sys/devices/system/cpu/{}/{}", self.name, sub_path);
-    
+        let cpu_info_path: String = format!("/sys/devices/system/cpu/{}/{}", self.name, sub_path);
+
         File::open(cpu_info_path)?.read_to_string(&mut info)?;
-    
+
         // Remove the last character (the newline)
         info.pop();
         match info.parse::<i32>() {
@@ -45,11 +44,10 @@ impl Speed for CPU {
 
     fn read_str(&mut self, sub_path: String) -> Result<String, Error> {
         let mut info: String = String::new();
-        let cpu_info_path: String =
-            format!("/sys/devices/system/cpu/{}/{}", self.name, sub_path);
-    
+        let cpu_info_path: String = format!("/sys/devices/system/cpu/{}/{}", self.name, sub_path);
+
         File::open(cpu_info_path)?.read_to_string(&mut info)?;
-    
+
         // Remove the last character (the newline)
         info.pop();
         Ok(info)
@@ -77,9 +75,7 @@ impl Speed for CPU {
     }
 
     fn get_max(&mut self) {
-        match self.read_int(
-            "cpufreq/scaling_max_freq".to_string(),
-        ) {
+        match self.read_int("cpufreq/scaling_max_freq".to_string()) {
             Ok(a) => {
                 self.max_freq = a;
             }
@@ -88,9 +84,7 @@ impl Speed for CPU {
     }
 
     fn get_min(&mut self) {
-        match self.read_int(
-            "cpufreq/scaling_min_freq".to_string(),
-        ) {
+        match self.read_int("cpufreq/scaling_min_freq".to_string()) {
             Ok(a) => {
                 self.min_freq = a;
             }
@@ -99,9 +93,7 @@ impl Speed for CPU {
     }
 
     fn get_cur(&mut self) {
-        match self.read_int(
-            "cpufreq/scaling_cur_freq".to_string(),
-        ) {
+        match self.read_int("cpufreq/scaling_cur_freq".to_string()) {
             Ok(a) => {
                 self.cur_freq = a;
             }
@@ -109,9 +101,7 @@ impl Speed for CPU {
         }
     }
     fn get_gov(&mut self) {
-        match self.read_str(
-            "cpufreq/scaling_governor".to_string(),
-        ) {
+        match self.read_str("cpufreq/scaling_governor".to_string()) {
             Ok(a) => {
                 self.gov = a;
             }

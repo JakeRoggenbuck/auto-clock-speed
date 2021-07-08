@@ -1,8 +1,12 @@
-use display::{print_available_governors, print_cpu_speeds, print_cpus, print_freq, print_turbo};
+use display::{
+    print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpus, print_freq,
+    print_turbo,
+};
 use error::Error;
 use structopt::StructOpt;
 use system::{
-    check_available_governors, check_cpu_freq, check_turbo_enabled, list_cpu_speeds, list_cpus,
+    check_available_governors, check_cpu_freq, check_turbo_enabled, list_cpu_governors,
+    list_cpu_speeds, list_cpus,
 };
 
 pub mod display;
@@ -42,8 +46,15 @@ enum Command {
     },
 
     /// The speed of the individual cores
-    #[structopt(name = "get-cpus-speed")]
+    #[structopt(name = "get-cpu-speeds")]
     GetSpeeds {
+        #[structopt(short, long)]
+        raw: bool,
+    },
+
+    /// The governors of the individual cores
+    #[structopt(name = "get-cpu-governors")]
+    GetGovernors {
         #[structopt(short, long)]
         raw: bool,
     },
@@ -70,6 +81,10 @@ fn main() {
         Command::GetSpeeds { raw } => match list_cpu_speeds() {
             Ok(cpu_speeds) => print_cpu_speeds(cpu_speeds, raw),
             Err(_) => println!("Failed to get list of cpu speeds"),
+        },
+        Command::GetGovernors { raw } => match list_cpu_governors() {
+            Ok(cpu_governors) => print_cpu_governors(cpu_governors, raw),
+            Err(_) => println!("Failed to get list of cpu governors"),
         },
     }
 }

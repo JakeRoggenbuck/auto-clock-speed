@@ -48,3 +48,7 @@ pub fn print_cpus(cpus: Vec<String>, raw: bool) {
 pub fn print_cpu_speeds(cpu_speeds: Vec<i32>, raw: bool) {
     print_vec(cpu_speeds, raw);
 }
+
+pub fn print_cpu_governors(cpu_governors: Vec<String>, raw: bool) {
+    print_vec(cpu_governors, raw);
+}

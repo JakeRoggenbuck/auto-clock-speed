@@ -23,7 +23,7 @@ pub fn print_turbo(t: bool, raw: bool) {
     }
 }
 
-fn print_vec<T:Display>(t: Vec<T>, raw: bool) {
+fn print_vec<T: Display>(t: Vec<T>, raw: bool) {
     if raw {
         for x in t {
             println!("{}", x);

@@ -38,4 +38,3 @@ pub fn print_available_governors(a: Vec<String>, raw: bool) {
 pub fn print_cpus(a: Vec<String>, raw: bool) {
     print_vec(a, raw);
 }
-

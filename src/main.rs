@@ -1,11 +1,11 @@
+use display::{print_available_governors, print_cpus, print_freq, print_turbo};
 use error::Error;
 use structopt::StructOpt;
 use system::{check_available_governors, check_cpu_freq, check_turbo_enabled, list_cpus};
-use display::{print_freq, print_turbo, print_available_governors, print_cpus};
 
+pub mod display;
 pub mod error;
 pub mod system;
-pub mod display;
 
 #[derive(StructOpt)]
 #[structopt(

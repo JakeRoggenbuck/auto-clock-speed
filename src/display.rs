@@ -37,14 +37,14 @@ fn print_vec<T: Display>(t: Vec<T>, raw: bool) {
     }
 }
 
-pub fn print_available_governors(a: Vec<String>, raw: bool) {
-    print_vec(a, raw);
+pub fn print_available_governors(available_governors: Vec<String>, raw: bool) {
+    print_vec(available_governors, raw);
 }
 
-pub fn print_cpus(a: Vec<String>, raw: bool) {
-    print_vec(a, raw);
+pub fn print_cpus(cpus: Vec<String>, raw: bool) {
+    print_vec(cpus, raw);
 }
 
-pub fn print_cpu_speeds(a: Vec<i32>, raw: bool) {
-    print_vec(a, raw);
+pub fn print_cpu_speeds(cpu_speeds: Vec<i32>, raw: bool) {
+    print_vec(cpu_speeds, raw);
 }

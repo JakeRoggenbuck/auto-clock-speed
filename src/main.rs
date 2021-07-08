@@ -56,19 +56,19 @@ fn main() {
             Err(_) => eprintln!("Failed"),
         },
         Command::GetTurbo { raw } => match check_turbo_enabled() {
-            Ok(a) => print_turbo(a, raw),
+            Ok(turbo_enabled) => print_turbo(turbo_enabled, raw),
             Err(_) => println!("Failed"),
         },
         Command::GetAvailableGovernors { raw } => match check_available_governors() {
-            Ok(a) => print_available_governors(a, raw),
+            Ok(available_governors) => print_available_governors(available_governors, raw),
             Err(_) => println!("Failed"),
         },
         Command::GetCPUS { raw } => match list_cpus() {
-            Ok(a) => print_cpus(a, raw),
+            Ok(cpus) => print_cpus(cpus, raw),
             Err(_) => println!("Failed"),
         },
         Command::GetSpeeds { raw } => match list_cpu_speeds() {
-            Ok(a) => print_cpu_speeds(a, raw),
+            Ok(cpu_speeds) => print_cpu_speeds(cpu_speeds, raw),
             Err(_) => println!("Failed"),
         },
     }

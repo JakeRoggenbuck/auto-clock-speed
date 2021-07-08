@@ -77,6 +77,9 @@ enum Command {
     Run {
         #[structopt(short, long)]
         verbose: bool,
+
+        #[structopt(short, long, default_value = "5")]
+        delay: u64,
     },
 }
 
@@ -111,7 +114,7 @@ fn main() {
                 println!("{}", governor);
             }
         }
-        Command::Run { verbose } => match daemon_init(verbose) {
+        Command::Run { verbose, delay } => match daemon_init(verbose, delay) {
             Ok(mut d) => {
                 d.run();
             }

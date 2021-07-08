@@ -2,6 +2,7 @@ use super::Error;
 use regex::Regex;
 use std::fs::{read_dir, File};
 use std::io::Read;
+use crate::cpu::Speed;
 use super::cpu;
 use std::string::String;
 
@@ -28,23 +29,8 @@ pub fn check_cpu_freq() -> Result<i32, Error> {
         .ok_or(Error::Unknown)
 }
 
-/// Check the speed for a single cpu (single core)
-pub fn check_speed_by_cpu(cpu: cpu::Cpu) -> Result<i32, Error> {
-    Ok(cpu.read_value("cpufreq/scaling_cur_freq".to_string())?)
-}
-
-/// Check the max speed for a single cpu (single core)
-pub fn check_max_speed_by_cpu(cpu: cpu::Cpu) -> Result<i32, Error> {
-    Ok(cpu.read_value("/cpufreq/scaling_max_freq".to_string())?)
-}
-
-/// Check the min speed for a single cpu (single core)
-pub fn check_min_speed_by_cpu(cpu: cpu::Cpu) -> Result<i32, Error> {
-    Ok(cpu.read_value("cpufreq/scaling_min_freq".to_string())?)
-}
-
 /// Check the governor of a single cpu (single core)
-pub fn check_governor_by_cpu(cpu: cpu::Cpu) -> Result<String, Error> {
+pub fn check_governor_by_cpu(cpu: cpu::CPU) -> Result<String, Error> {
     let mut governor: String = String::new();
     let cpu_governor_path: String =
         format!("/sys/devices/system/cpu/{}/cpufreq/scaling_governor", cpu.name);
@@ -93,8 +79,8 @@ pub fn check_available_governors() -> Result<Vec<String>, Error> {
 }
 
 /// Get all the cpus (cores), returns cpus from 0 to the (amount of cores -1) the machine has
-pub fn list_cpus() -> Result<Vec<cpu::Cpu>, Error> {
-    let mut cpus: Vec<cpu::Cpu> = Vec::<cpu::Cpu>::new();
+pub fn list_cpus() -> Result<Vec<cpu::CPU>, Error> {
+    let mut cpus: Vec<String> = Vec::<String>::new();
     // The string "cpu" followed by a digit
     let cpu = Regex::new(r"cpu\d").unwrap();
 
@@ -109,16 +95,34 @@ pub fn list_cpus() -> Result<Vec<cpu::Cpu>, Error> {
             .take(path_string.len() - 26)
             .collect::<String>();
 
-        cpus.push(cpu::Cpu::new(&path))
+        cpus.push(path);
     }
 
-//    cpus = cpus
-//        .iter()
-//        // Check if the file is actually a cpu, meaning it matches that regex
-//        .filter(|x| cpu.is_match(&x.name))
-//        .collect();
+    cpus = cpus
+        .iter()
+        // Check if the file is actually a cpu, meaning it matches that regex
+        .filter(|x| cpu.is_match(x))
+        .map(|x| x.to_owned())
+        .collect();
 
-    Ok(cpus)
+    let mut to_return: Vec<cpu::CPU> = Vec::<cpu::CPU>::new();
+
+    for b in cpus {
+
+        let mut new = cpu::CPU {
+            name: b,
+            max_freq: 0,
+            min_freq: 0,
+            cur_freq: 0,
+        };
+
+        new.update();
+
+        to_return.push(new)
+
+    }
+
+    Ok(to_return)
 }
 
 /// Get a vector of speeds reported from each cpu from list_cpus
@@ -127,7 +131,7 @@ pub fn list_cpu_speeds() -> Result<Vec<i32>, Error> {
     let mut speeds = Vec::<i32>::new();
 
     for cpu in cpus {
-        let speed = check_speed_by_cpu(cpu)?;
+        let speed = cpu.cur_freq;
         speeds.push(speed)
     }
     Ok(speeds)

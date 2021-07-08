@@ -26,6 +26,7 @@ pub struct CPU {
 }
 
 impl Speed for CPU {
+    // TODO: Make this function and the next take and return a generic value
     /// A generic function to take a path and a single cpu (single core) and get an i32
     fn read_int(&mut self, sub_path: String) -> Result<i32, Error> {
         let mut info: String = String::new();

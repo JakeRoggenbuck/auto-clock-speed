@@ -91,13 +91,13 @@ pub fn list_cpus() -> Result<Vec<cpu::CPU>, Error> {
 
     let mut to_return: Vec<cpu::CPU> = Vec::<cpu::CPU>::new();
 
-    for b in cpus {
-
+    for cpu in cpus {
         let mut new = cpu::CPU {
-            name: b,
+            name: cpu,
             max_freq: 0,
             min_freq: 0,
             cur_freq: 0,
+            // Temporary initial value
             gov: "Unknown".to_string(),
         };
 

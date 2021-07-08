@@ -8,6 +8,7 @@ pub trait Speed {
     fn get_max(&mut self);
     fn get_min(&mut self);
     fn get_cur(&mut self);
+    fn print(&self);
 }
 
 #[derive(Debug)]
@@ -40,7 +41,7 @@ impl Speed for CPU {
     }
 
     fn get_max(&mut self) {
-        match get_some_cpu_int_by_path(self.name.clone(), "cpufreq/scaling_max_freq".to_string()) {
+        match get_some_cpu_int_by_path(self.name.clone().to_string(), "cpufreq/scaling_max_freq".to_string()) {
             Ok(a) => {
                 self.max_freq = a;
             }
@@ -49,7 +50,7 @@ impl Speed for CPU {
     }
 
     fn get_min(&mut self) {
-        match get_some_cpu_int_by_path(self.name.clone(), "cpufreq/scaling_min_freq".to_string()) {
+        match get_some_cpu_int_by_path(self.name.clone().to_string(), "cpufreq/scaling_min_freq".to_string()) {
             Ok(a) => {
                 self.min_freq = a;
             }
@@ -58,11 +59,15 @@ impl Speed for CPU {
     }
 
     fn get_cur(&mut self) {
-        match get_some_cpu_int_by_path(self.name.clone(), "cpufreq/scaling_cur_freq".to_string()) {
+        match get_some_cpu_int_by_path(self.name.clone().to_string(), "cpufreq/scaling_cur_freq".to_string()) {
             Ok(a) => {
                 self.cur_freq = a;
             }
             Err(_) => eprint!("Failed"),
         }
+    }
+
+    fn print(&self) {
+        println!("{:?}", self);
     }
 }

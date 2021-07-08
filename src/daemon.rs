@@ -5,8 +5,8 @@ use std::{thread, time};
 
 pub trait Checker {
     fn run(&mut self);
-    fn print(&mut self);
     fn update_all(&mut self);
+    fn print(&self);
 }
 
 pub struct Daemon {
@@ -31,14 +31,17 @@ impl Checker for Daemon {
     }
 
     /// Output the values from each cpu
-    fn print(&mut self) {
+    fn print(&self) {
         for cpu in &self.cpus {
-            println!("{:?}", cpu);
+            cpu.print();
         }
     }
 
     fn update_all(&mut self) {
         // TODO: find a way to go through self.cpus and run update() on each one
+        // for mut cpu in self.cpus {
+        //     cpu.update();
+        // }
     }
 }
 

@@ -23,9 +23,11 @@ FLAGS:
     -V, --version    Prints version information
 
 SUBCOMMANDS:
-    get-cpus
-    get-freq
+    get-cpus          The names of the core
+    get-cpus-speed    The speed of the individual cores
+    get-freq          The overall frequency of your cpu
     get-governors
     get-turbo
-    help             Prints this message or the help of the given subcommand(s)
+    help              Prints this message or the help of the given subcommand(s)
+
 ```

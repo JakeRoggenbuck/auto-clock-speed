@@ -74,16 +74,16 @@ enum Command {
     /// The possible governors
     #[structopt(name = "list-possible-governors")]
     GetPossibleGovernorsList {},
+
+    /// Run the daemon
+    #[structopt(name = "run")]
+    Run {
+        #[structopt(short, long)]
+        verbose: bool,
+    },
 }
 
 fn main() {
-    match daemon_init() {
-        Ok(d) => {
-            println!("{:?}", d.cpus);
-        },
-        Err(_) => {},
-    }
-
     match Command::from_args() {
         Command::GetFreq { raw } => match check_cpu_freq() {
             Ok(f) => print_freq(f, raw),
@@ -112,6 +112,16 @@ fn main() {
         Command::GetPossibleGovernorsList {} => {
             for governor in GOVERNORS.iter() {
                 println!("{}", governor);
+            }
+        }
+        Command::Run { verbose } => {
+            match daemon_init() {
+                Ok(d) => {
+                    for c in d.cpus {
+                        println!("{:?}", c);
+                    }
+                },
+                Err(_) => {},
             }
         }
     }

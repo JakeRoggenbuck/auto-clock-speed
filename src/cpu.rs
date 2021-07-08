@@ -1,6 +1,7 @@
 use super::system::get_some_cpu_int_by_path;
 
 pub trait Speed {
+    fn update(&mut self);
     fn init_cpu(&mut self);
     fn set_max(&mut self, max: i32);
     fn set_min(&mut self, min: i32);
@@ -18,10 +19,14 @@ pub struct CPU {
 }
 
 impl Speed for CPU {
-    fn init_cpu(&mut self) {
+    fn update(&mut self) {
         self.get_max();
         self.get_min();
         self.get_cur();
+    }
+
+    fn init_cpu(&mut self) {
+        self.update();
     }
 
     fn set_max(&mut self, max: i32) {

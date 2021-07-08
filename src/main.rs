@@ -10,11 +10,12 @@ use system::{
     list_cpu_speeds, list_cpus,
 };
 
-pub mod cpu;
 pub mod daemon;
 pub mod display;
+pub mod cpu;
 pub mod error;
 pub mod system;
+
 
 const GOVERNORS: [&str; 6] = [
     "performance",
@@ -84,6 +85,10 @@ enum Command {
 }
 
 fn main() {
+
+    // Init CPU here bruv 
+
+
     match Command::from_args() {
         Command::GetFreq { raw } => match check_cpu_freq() {
             Ok(f) => print_freq(f, raw),

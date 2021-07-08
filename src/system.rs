@@ -2,6 +2,8 @@ use super::Error;
 use regex::Regex;
 use std::fs::{read_dir, File};
 use std::io::Read;
+use crate::cpu::Speed;
+use super::cpu;
 use std::string::String;
 
 // https://docs.rs/sys-info/0.7.0/src/sys_info/lib.rs.html#367-406
@@ -25,61 +27,6 @@ pub fn check_cpu_freq() -> Result<i32, Error> {
         .and_then(|val| val.replace("MHz", "").trim().parse::<f64>().ok())
         .map(|speed| speed as i32)
         .ok_or(Error::Unknown)
-}
-
-/// A generic function to take a path and a single cpu (single core) and get an i32
-pub fn get_some_cpu_int_by_path(cpu: String, sub_path: String) -> Result<i32, Error> {
-    let mut info: String = String::new();
-    let cpu_info_path: String = format!("/sys/devices/system/cpu/{}/{}", cpu, sub_path);
-
-    File::open(cpu_info_path)?.read_to_string(&mut info)?;
-
-    // Remove the last character (the newline)
-    info.pop();
-    match info.parse::<i32>() {
-        Err(e) => panic!("{}", e),
-        Ok(a) => Ok(a),
-    }
-}
-
-/// Check the speed for a single cpu (single core)
-pub fn check_speed_by_cpu(cpu: String) -> Result<i32, Error> {
-    Ok(get_some_cpu_int_by_path(
-        cpu,
-        "cpufreq/scaling_cur_freq".to_string(),
-    )?)
-}
-
-/// Check the max speed for a single cpu (single core)
-pub fn check_max_speed_by_cpu(cpu: String) -> Result<i32, Error> {
-    Ok(get_some_cpu_int_by_path(
-        cpu,
-        "/cpufreq/scaling_max_freq".to_string(),
-    )?)
-}
-
-/// Check the min speed for a single cpu (single core)
-pub fn check_min_speed_by_cpu(cpu: String) -> Result<i32, Error> {
-    Ok(get_some_cpu_int_by_path(
-        cpu,
-        "cpufreq/scaling_min_freq".to_string(),
-    )?)
-}
-
-/// Check the governor of a single cpu (single core)
-pub fn check_governor_by_cpu(cpu: String) -> Result<String, Error> {
-    let mut governor: String = String::new();
-    let cpu_governor_path: String =
-        format!("/sys/devices/system/cpu/{}/cpufreq/scaling_governor", cpu);
-
-    File::open(cpu_governor_path)?.read_to_string(&mut governor)?;
-
-    // Remove the last character (the newline)
-    governor.pop();
-    match governor.parse::<String>() {
-        Err(e) => panic!("{}", e),
-        Ok(a) => Ok(a),
-    }
 }
 
 /// Check if turbo is enabled for the machine, (enabled in bios)
@@ -116,7 +63,7 @@ pub fn check_available_governors() -> Result<Vec<String>, Error> {
 }
 
 /// Get all the cpus (cores), returns cpus from 0 to the (amount of cores -1) the machine has
-pub fn list_cpus() -> Result<Vec<String>, Error> {
+pub fn list_cpus() -> Result<Vec<cpu::CPU>, Error> {
     let mut cpus: Vec<String> = Vec::<String>::new();
     // The string "cpu" followed by a digit
     let cpu = Regex::new(r"cpu\d").unwrap();
@@ -132,7 +79,7 @@ pub fn list_cpus() -> Result<Vec<String>, Error> {
             .take(path_string.len() - 26)
             .collect::<String>();
 
-        cpus.push(path)
+        cpus.push(path);
     }
 
     cpus = cpus
@@ -142,7 +89,25 @@ pub fn list_cpus() -> Result<Vec<String>, Error> {
         .map(|x| x.to_owned())
         .collect();
 
-    Ok(cpus)
+    let mut to_return: Vec<cpu::CPU> = Vec::<cpu::CPU>::new();
+
+    for b in cpus {
+
+        let mut new = cpu::CPU {
+            name: b,
+            max_freq: 0,
+            min_freq: 0,
+            cur_freq: 0,
+            gov: "Unknown".to_string(),
+        };
+
+        new.update();
+
+        to_return.push(new)
+
+    }
+
+    Ok(to_return)
 }
 
 /// Get a vector of speeds reported from each cpu from list_cpus
@@ -151,7 +116,7 @@ pub fn list_cpu_speeds() -> Result<Vec<i32>, Error> {
     let mut speeds = Vec::<i32>::new();
 
     for cpu in cpus {
-        let speed = check_speed_by_cpu(cpu)?;
+        let speed = cpu.cur_freq;
         speeds.push(speed)
     }
     Ok(speeds)
@@ -163,8 +128,7 @@ pub fn list_cpu_governors() -> Result<Vec<String>, Error> {
     let mut governors = Vec::<String>::new();
 
     for cpu in cpus {
-        let governor = check_governor_by_cpu(cpu)?;
-        governors.push(governor)
+        governors.push(cpu.gov)
     }
     Ok(governors)
 }

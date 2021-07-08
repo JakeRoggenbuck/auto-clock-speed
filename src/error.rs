@@ -8,3 +8,4 @@ impl From<std::io::Error> for Error {
         Error::IO(e)
     }
 }
+

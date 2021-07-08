@@ -53,16 +53,10 @@ pub fn daemon_init(verbose: bool) -> Result<Daemon, Error> {
     };
 
     // Make a cpu struct for each cpu listed
-    for cpu in list_cpus()? {
-        let mut new = CPU {
-            name: cpu,
-            max_freq: 0,
-            min_freq: 0,
-            cur_freq: 0,
-        };
+    for mut cpu in list_cpus()? {
         // Fill that value that were zero with real values
-        new.init_cpu();
-        daemon.cpus.push(new);
+        cpu.init_cpu();
+        daemon.cpus.push(cpu);
     }
 
     Ok(daemon)

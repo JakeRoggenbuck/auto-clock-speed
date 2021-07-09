@@ -168,13 +168,12 @@ impl Speed for CPU {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     fn make_cpu() -> CPU {
-       CPU {
+        CPU {
             name: "cpu0".to_string(),
             max_freq: 0,
             min_freq: 0,
@@ -184,12 +183,10 @@ mod tests {
     }
 
     #[test]
-    fn set_max() {
-    }
+    fn set_max() {}
 
     #[test]
-    fn set_min() {
-    }
+    fn set_min() {}
 
     #[test]
     fn get_max() {
@@ -224,6 +221,5 @@ mod tests {
     }
 
     #[test]
-    fn set_gov() {
-    }
+    fn set_gov() {}
 }

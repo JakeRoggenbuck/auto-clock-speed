@@ -1,13 +1,13 @@
 use super::display::print_cpu;
 use super::Error;
 use std::fs::File;
-use std::io::Read;
+use std::io::{Read, Write};
 use std::panic;
 
 pub trait Speed {
     fn read_int(&mut self, sub_path: String) -> Result<i32, Error>;
     fn read_str(&mut self, sub_path: String) -> Result<String, Error>;
-    fn write_value(&mut self, value: WritableValue);
+    fn write_value(&mut self, value: WritableValue) -> Result<(), Error>;
     fn update(&mut self);
     fn init_cpu(&mut self);
     fn set_max(&mut self, max: i32);
@@ -62,16 +62,30 @@ impl Speed for CPU {
         Ok(info)
     }
 
-    fn write_value(&mut self, value: WritableValue) {
+    fn write_value(&mut self, value: WritableValue) -> Result<(), Error> {
+        let sub_path: &str;
+        let to_write: String;
 
-        let sub_path = match value {
-            WritableValue::Max => "cpufreq/scaling_max_freq",
-            WritableValue::Min => "cpufreq/scaling_min_freq",
-            WritableValue::Gov => "cpufreq/scaling_governor",
-        };
+        match value {
+            WritableValue::Max => {
+                sub_path = "cpufreq/scaling_max_freq";
+                to_write = self.max_freq.to_string();
+            }
+            WritableValue::Min => {
+                sub_path = "cpufreq/scaling_min_freq";
+                to_write = self.min_freq.to_string();
+            }
+            WritableValue::Gov => {
+                sub_path = "cpufreq/scaling_governor";
+                to_write = self.gov.to_string();
+            }
+        }
 
         let path: String = format!("/sys/devices/system/cpu/{}/{}", self.name, sub_path);
+        let mut buffer = File::create(path)?;
+        buffer.write(&to_write.as_bytes())?;
 
+        Ok(())
     }
 
     fn update(&mut self) {

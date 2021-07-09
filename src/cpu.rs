@@ -103,7 +103,7 @@ impl Speed for CPU {
     fn set_max(&mut self, max: i32) {
         self.max_freq = max;
         match self.write_value(WritableValue::Max) {
-            Err(_) => eprint!("Could not write {} as max", max),
+            Err(_) => panic!("Could not write {} as max", max),
             Ok(_) => (),
         };
     }
@@ -111,7 +111,7 @@ impl Speed for CPU {
     fn set_min(&mut self, min: i32) {
         self.min_freq = min;
         match self.write_value(WritableValue::Min) {
-            Err(_) => eprint!("Could not write {} as min", min),
+            Err(_) => panic!("Could not write {} as min", min),
             Ok(_) => (),
         };
     }
@@ -158,7 +158,7 @@ impl Speed for CPU {
     fn set_gov(&mut self, gov: String) {
         self.gov = gov.clone();
         match self.write_value(WritableValue::Gov) {
-            Err(_) => eprint!("Could not write {} as gov", gov),
+            Err(_) => panic!("Could not write {} as gov", gov),
             Ok(_) => (),
         };
     }
@@ -183,10 +183,22 @@ mod tests {
     }
 
     #[test]
-    fn set_max() {}
+    #[should_panic]
+    fn set_max() {
+        let mut cpu = make_cpu();
+        assert_eq!(cpu.max_freq, 0);
+        cpu.set_max(4000020);
+        assert_eq!(cpu.max_freq, 4000020);
+    }
 
     #[test]
-    fn set_min() {}
+    #[should_panic]
+    fn set_min() {
+        let mut cpu = make_cpu();
+        assert_eq!(cpu.min_freq, 0);
+        cpu.set_min(800020);
+        assert_eq!(cpu.min_freq, 800020);
+    }
 
     #[test]
     fn get_max() {
@@ -221,5 +233,11 @@ mod tests {
     }
 
     #[test]
-    fn set_gov() {}
+    #[should_panic]
+    fn set_gov() {
+        let mut cpu = make_cpu();
+        assert_eq!(cpu.gov, "Unknown");
+        cpu.set_gov("powersave".to_string());
+        assert_eq!(cpu.gov, "powersave");
+    }
 }

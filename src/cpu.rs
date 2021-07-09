@@ -7,6 +7,7 @@ use std::panic;
 pub trait Speed {
     fn read_int(&mut self, sub_path: String) -> Result<i32, Error>;
     fn read_str(&mut self, sub_path: String) -> Result<String, Error>;
+    fn write_value(&mut self, value: WritableValue);
     fn update(&mut self);
     fn init_cpu(&mut self);
     fn set_max(&mut self, max: i32);
@@ -27,8 +28,14 @@ pub struct CPU {
     pub gov: String,
 }
 
+#[derive(PartialEq)]
+pub enum WritableValue {
+    Min,
+    Max,
+    Gov,
+}
+
 impl Speed for CPU {
-    // TODO: Make this function and the next take and return a generic value
     /// A generic function to take a path and a single cpu (single core) and get an i32
     fn read_int(&mut self, sub_path: String) -> Result<i32, Error> {
         let mut info: String = String::new();
@@ -53,6 +60,18 @@ impl Speed for CPU {
         // Remove the last character (the newline)
         info.pop();
         Ok(info)
+    }
+
+    fn write_value(&mut self, value: WritableValue) {
+
+        let sub_path = match value {
+            WritableValue::Max => "cpufreq/scaling_max_freq",
+            WritableValue::Min => "cpufreq/scaling_min_freq",
+            WritableValue::Gov => "cpufreq/scaling_governor",
+        };
+
+        let path: String = format!("/sys/devices/system/cpu/{}/{}", self.name, sub_path);
+
     }
 
     fn update(&mut self) {

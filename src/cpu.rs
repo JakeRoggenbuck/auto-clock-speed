@@ -16,6 +16,7 @@ pub trait Speed {
     fn get_min(&mut self);
     fn get_cur(&mut self);
     fn get_gov(&mut self);
+    fn set_gov(&mut self, gov: String);
     fn print(&self);
 }
 
@@ -100,13 +101,19 @@ impl Speed for CPU {
     }
 
     fn set_max(&mut self, max: i32) {
-        // TODO: change the file with the speed
         self.max_freq = max;
+        match self.write_value(WritableValue::Max) {
+            Err(_) => eprint!("Could not write {} as max", max),
+            Ok(_) => ()
+        };
     }
 
     fn set_min(&mut self, min: i32) {
-        // TODO: change the file with the speed
         self.min_freq = min;
+        match self.write_value(WritableValue::Min) {
+            Err(_) => eprint!("Could not write {} as min", min),
+            Ok(_) => ()
+        };
     }
 
     fn get_max(&mut self) {
@@ -146,6 +153,14 @@ impl Speed for CPU {
             }
             Err(_) => panic!("Could not read {} for {}", path, self.name),
         }
+    }
+
+    fn set_gov(&mut self, gov: String) {
+        self.gov = gov.clone();
+        match self.write_value(WritableValue::Gov) {
+            Err(_) => eprint!("Could not write {} as gov", gov),
+            Ok(_) => ()
+        };
     }
 
     fn print(&self) {

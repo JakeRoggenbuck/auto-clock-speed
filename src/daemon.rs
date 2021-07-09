@@ -17,7 +17,7 @@ pub struct Daemon {
 
 impl Checker for Daemon {
     fn run(&mut self) {
-        let timeout = time::Duration::from_secs(self.delay);
+        let timeout = time::Duration::from_millis(self.delay);
 
         loop {
             // Update all the values for each cpu before they get used
@@ -41,6 +41,7 @@ impl Checker for Daemon {
 
     /// Output the values from each cpu
     fn print(&self) {
+        println!("");
         for cpu in &self.cpus {
             cpu.print();
         }
@@ -57,7 +58,7 @@ pub fn daemon_init(verbose: bool, delay: u64) -> Result<Daemon, Error> {
 
     if verbose {
         println!(
-            "Daemon has been initialized with a delay of {} seconds\n\n",
+            "Daemon has been initialized with a delay of {} seconds\n",
             delay
         );
     }

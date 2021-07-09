@@ -78,7 +78,8 @@ enum Command {
         #[structopt(short, long)]
         verbose: bool,
 
-        #[structopt(short, long, default_value = "5")]
+        /// Milliseconds between update
+        #[structopt(short, long, default_value = "5000")]
         delay: u64,
     },
 }

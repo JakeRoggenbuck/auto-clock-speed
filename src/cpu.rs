@@ -1,6 +1,8 @@
+use super::display::print_cpu;
 use super::Error;
 use std::fs::File;
 use std::io::Read;
+use std::panic;
 
 pub trait Speed {
     fn read_int(&mut self, sub_path: String) -> Result<i32, Error>;
@@ -75,41 +77,45 @@ impl Speed for CPU {
     }
 
     fn get_max(&mut self) {
-        match self.read_int("cpufreq/scaling_max_freq".to_string()) {
+        let path = "cpufreq/scaling_max_freq";
+        match self.read_int(path.to_string()) {
             Ok(a) => {
                 self.max_freq = a;
             }
-            Err(_) => eprint!("Failed"),
+            Err(_) => panic!("Could not read {} for {}", path, self.name),
         }
     }
 
     fn get_min(&mut self) {
-        match self.read_int("cpufreq/scaling_min_freq".to_string()) {
+        let path = "cpufreq/scaling_min_freq";
+        match self.read_int(path.to_string()) {
             Ok(a) => {
                 self.min_freq = a;
             }
-            Err(_) => eprint!("Failed"),
+            Err(_) => panic!("Could not read {} for {}", path, self.name),
         }
     }
 
     fn get_cur(&mut self) {
-        match self.read_int("cpufreq/scaling_cur_freq".to_string()) {
+        let path = "cpufreq/scaling_cur_freq";
+        match self.read_int(path.to_string()) {
             Ok(a) => {
                 self.cur_freq = a;
             }
-            Err(_) => eprint!("Failed"),
+            Err(_) => panic!("Could not read {} for {}", path, self.name),
         }
     }
     fn get_gov(&mut self) {
-        match self.read_str("cpufreq/scaling_governor".to_string()) {
+        let path = "cpufreq/scaling_governor";
+        match self.read_str(path.to_string()) {
             Ok(a) => {
                 self.gov = a;
             }
-            Err(_) => eprint!("Failed"),
+            Err(_) => panic!("Could not read {} for {}", path, self.name),
         }
     }
 
     fn print(&self) {
-        println!("{:?}", self);
+        print_cpu(self);
     }
 }

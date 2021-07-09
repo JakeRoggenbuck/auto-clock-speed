@@ -104,7 +104,7 @@ impl Speed for CPU {
         self.max_freq = max;
         match self.write_value(WritableValue::Max) {
             Err(_) => eprint!("Could not write {} as max", max),
-            Ok(_) => ()
+            Ok(_) => (),
         };
     }
 
@@ -112,7 +112,7 @@ impl Speed for CPU {
         self.min_freq = min;
         match self.write_value(WritableValue::Min) {
             Err(_) => eprint!("Could not write {} as min", min),
-            Ok(_) => ()
+            Ok(_) => (),
         };
     }
 
@@ -159,7 +159,7 @@ impl Speed for CPU {
         self.gov = gov.clone();
         match self.write_value(WritableValue::Gov) {
             Err(_) => eprint!("Could not write {} as gov", gov),
-            Ok(_) => ()
+            Ok(_) => (),
         };
     }
 

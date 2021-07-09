@@ -167,3 +167,63 @@ impl Speed for CPU {
         print_cpu(self);
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_cpu() -> CPU {
+       CPU {
+            name: "cpu0".to_string(),
+            max_freq: 0,
+            min_freq: 0,
+            cur_freq: 0,
+            gov: "Unknown".to_string(),
+        }
+    }
+
+    #[test]
+    fn set_max() {
+    }
+
+    #[test]
+    fn set_min() {
+    }
+
+    #[test]
+    fn get_max() {
+        let mut cpu = make_cpu();
+        assert_eq!(cpu.max_freq, 0);
+        cpu.get_max();
+        assert_ne!(cpu.max_freq, 0);
+    }
+
+    #[test]
+    fn get_min() {
+        let mut cpu = make_cpu();
+        assert_eq!(cpu.min_freq, 0);
+        cpu.get_min();
+        assert_ne!(cpu.min_freq, 0);
+    }
+
+    #[test]
+    fn get_cur() {
+        let mut cpu = make_cpu();
+        assert_eq!(cpu.cur_freq, 0);
+        cpu.get_cur();
+        assert_ne!(cpu.cur_freq, 0);
+    }
+
+    #[test]
+    fn get_gov() {
+        let mut cpu = make_cpu();
+        assert_eq!(cpu.gov, "Unknown");
+        cpu.get_gov();
+        assert_ne!(cpu.gov, "Unknown");
+    }
+
+    #[test]
+    fn set_gov() {
+    }
+}

@@ -17,7 +17,7 @@ pub struct Daemon {
 
 impl Checker for Daemon {
     fn run(&mut self) {
-        let timeout = time::Duration::from_secs(self.delay);
+        let timeout = time::Duration::from_millis(self.delay);
 
         loop {
             // Update all the values for each cpu before they get used

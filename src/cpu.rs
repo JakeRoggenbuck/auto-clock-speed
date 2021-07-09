@@ -87,7 +87,7 @@ impl Speed for CPU {
     }
 
     fn get_min(&mut self) {
-        let path = "cpufreq/scaling_max_freq";
+        let path = "cpufreq/scaling_min_freq";
         match self.read_int(path.to_string()) {
             Ok(a) => {
                 self.min_freq = a;

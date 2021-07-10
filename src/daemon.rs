@@ -62,6 +62,29 @@ impl Checker for Daemon {
     }
 }
 
+fn format_message(edit: bool, started_as_edit: bool, forced_reason: String, delay: u64) -> String {
+    // Create the message for why it force switched to monitor mode
+    let force = if started_as_edit != edit {
+        format!(
+            "\n{}Forced to monitor mode because {}!{}",
+            color::Fg(color::Red),
+            forced_reason,
+            style::Reset
+        )
+    } else {
+        "".to_string()
+    };
+
+    // Format the original message with mode and delay, along with the forced message if it
+    // was forced to switched modes
+    format!(
+        "Auto Clock Speed daemon has been initialized in {} mode with a delay of {} seconds{}\n",
+        if edit { "edit" } else { "monitor" },
+        delay,
+        force
+    )
+}
+
 pub fn daemon_init(verbose: bool, delay: u64, mut edit: bool) -> Result<Daemon, Error> {
     let started_as_edit = edit;
     let mut forced_reason: String = String::new();
@@ -78,22 +101,7 @@ pub fn daemon_init(verbose: bool, delay: u64, mut edit: bool) -> Result<Daemon, 
 
     // TODO: Check if the executable has permission to edit speeds, otherwise for to monitor mode
 
-    let message = format!(
-        "Auto Clock Speed daemon has been initialized in {} mode with a delay of {} seconds{}\n",
-        if edit { "edit" } else { "monitor" },
-        delay,
-        if started_as_edit != edit {
-            format!(
-                "\n{}Forced to monitor mode because {}!{}",
-                color::Fg(color::Red),
-                forced_reason,
-                style::Reset
-            )
-        } else {
-            "".to_string()
-        }
-    );
-
+    let message = format_message(edit, started_as_edit, forced_reason, delay);
     // Create a new Daemon
     let mut daemon: Daemon = Daemon {
         cpus: Vec::<CPU>::new(),

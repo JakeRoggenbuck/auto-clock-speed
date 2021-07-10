@@ -1,5 +1,6 @@
 use super::cpu::CPU;
 use std::fmt::Display;
+use termion::{color, style};
 
 pub fn print_freq(f: i32, raw: bool) {
     if raw {
@@ -51,8 +52,16 @@ pub fn print_cpus(cpus: Vec<CPU>, name: String) {
 
 pub fn print_cpu(cpu: &CPU) {
     println!(
-        "{}: {}\t{}\t{}\t{}",
-        cpu.name, cpu.max_freq, cpu.min_freq, cpu.cur_freq, cpu.gov
+        "{}{}:{} {}\t{}\t{}{}{}\t{}",
+        style::Bold,
+        cpu.name,
+        style::Reset,
+        cpu.max_freq,
+        cpu.min_freq,
+        color::Fg(color::Green),
+        cpu.cur_freq,
+        style::Reset,
+        cpu.gov
     );
 }
 

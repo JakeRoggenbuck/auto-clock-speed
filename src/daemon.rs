@@ -14,6 +14,7 @@ pub struct Daemon {
     pub verbose: bool,
     pub delay: u64,
     pub edit: bool,
+    pub message: String,
 }
 
 impl Checker for Daemon {
@@ -46,29 +47,33 @@ impl Checker for Daemon {
 
     /// Output the values from each cpu
     fn print(&self) {
-        println!("");
+        println!(
+            "{}\n\n{}{}",
+            termion::clear::All,
+            termion::cursor::Goto(1, 1),
+            self.message,
+        );
         for cpu in &self.cpus {
             cpu.print();
         }
+        println!("\n\nctrl+c to quit")
     }
 }
 
 pub fn daemon_init(verbose: bool, delay: u64, edit: bool) -> Result<Daemon, Error> {
     // Create a new Daemon
+    let message = format!(
+        "Auto Clock Speed daemon has been initialized in {} mode with a delay of {} seconds\n",
+        if edit { "edit" } else { "monitor" },
+        delay
+    );
     let mut daemon: Daemon = Daemon {
         cpus: Vec::<CPU>::new(),
         verbose,
         delay,
         edit,
+        message,
     };
-
-    if verbose {
-        println!(
-            "Daemon has been initialized in {} mode with a delay of {} seconds\n",
-            if edit { "edit" } else { "monitor" },
-            delay
-        );
-    }
 
     // Make a cpu struct for each cpu listed
     for mut cpu in list_cpus()? {

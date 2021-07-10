@@ -3,13 +3,15 @@ use display::{
     print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpus, print_freq,
     print_turbo,
 };
-use error::Error;
+use error::{
+    Error, GovGetError, GovSetError, SpeedGetError, SpeedSetError,
+};
+use std::process::exit;
 use structopt::StructOpt;
 use system::{
     check_available_governors, check_cpu_freq, check_turbo_enabled, list_cpu_governors,
     list_cpu_speeds, list_cpus,
 };
-use std::process::exit;
 
 pub mod cpu;
 pub mod daemon;

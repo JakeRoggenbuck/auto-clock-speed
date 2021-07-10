@@ -1,6 +1,8 @@
 use super::display::print_cpu;
 use super::exit;
-use super::Error;
+use super::{
+    Error, GovGetError, GovSetError, SpeedGetError, SpeedSetError,
+};
 use std::fs::File;
 use std::io::{Read, Write};
 
@@ -107,7 +109,7 @@ impl Speed for CPU {
         self.max_freq = max;
         match self.write_value(WritableValue::Max) {
             Err(_) => {
-                eprint!("Could not write {} to path for max", max);
+                eprint!("{}", SpeedSetError);
                 exit(1);
             }
             Ok(_) => (),
@@ -118,7 +120,7 @@ impl Speed for CPU {
         self.min_freq = min;
         match self.write_value(WritableValue::Min) {
             Err(_) => {
-                eprint!("Could not write {} to path for min", min);
+                eprint!("{}", SpeedSetError);
                 exit(1);
             }
             Ok(_) => (),
@@ -132,7 +134,7 @@ impl Speed for CPU {
                 self.max_freq = a;
             }
             Err(_) => {
-                eprint!("Could not read {} for {}", path, self.name);
+                eprint!("{}", SpeedGetError);
                 exit(1);
             }
         }
@@ -145,7 +147,7 @@ impl Speed for CPU {
                 self.min_freq = a;
             }
             Err(_) => {
-                eprint!("Could not read {} for {}", path, self.name);
+                eprint!("{}", SpeedGetError);
                 exit(1)
             }
         }
@@ -158,7 +160,7 @@ impl Speed for CPU {
                 self.cur_freq = a;
             }
             Err(_) => {
-                eprint!("Could not read {} for {}", path, self.name);
+                eprint!("{}", SpeedGetError);
                 exit(1)
             }
         }
@@ -170,7 +172,7 @@ impl Speed for CPU {
                 self.gov = a;
             }
             Err(_) => {
-                eprint!("Could not read {} for {}", path, self.name);
+                eprint!("{}", GovGetError);
                 exit(1)
             }
         }
@@ -180,7 +182,7 @@ impl Speed for CPU {
         self.gov = gov.clone();
         match self.write_value(WritableValue::Gov) {
             Err(_) => {
-                eprint!("Could not write {} to path for gov", gov);
+                eprint!("{}", GovSetError);
                 exit(1)
             }
             Ok(_) => (),

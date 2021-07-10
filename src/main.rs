@@ -12,7 +12,7 @@ use system::{
     check_available_governors, check_cpu_name, check_cpu_freq, check_turbo_enabled, list_cpu_governors,
     list_cpu_speeds, list_cpus,
 };
-use power::{read_lid_state};
+use power::{read_lid_state, read_battery_charge, read_power_source};
 
 pub mod cpu;
 pub mod daemon;
@@ -107,7 +107,20 @@ fn main() {
             Err(_) => eprintln!("Faild to get cpu frequency"),
         },
         Command::Power {} => match read_lid_state() {
-            Ok(f) => println!("{}", f),
+            Ok(f) => {
+                match read_battery_charge() {
+                    Ok(c) => {
+                        match read_power_source() {
+                            Ok(p) => {
+                                println!("Lid: {} Bat: {} Plugged in: {}", f, c, p)
+                            },
+                            Err(_) => eprintln!("Faild to get read power source"),
+                        }
+                    },
+                    Err(_) => eprintln!("Faild to get read battery charger"),
+                }
+
+            },
             Err(_) => eprintln!("Faild to get read lid state"),
         },
         Command::GetTurbo { raw } => match check_turbo_enabled() {

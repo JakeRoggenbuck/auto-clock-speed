@@ -1,8 +1,6 @@
 use super::display::print_cpu;
 use super::exit;
-use super::{
-    Error, GovGetError, GovSetError, SpeedGetError, SpeedSetError,
-};
+use super::{Error, GovGetError, GovSetError, SpeedGetError, SpeedSetError};
 use std::fs::File;
 use std::io::{Read, Write};
 

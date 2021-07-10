@@ -11,10 +11,10 @@ pub fn check_cpu_freq() -> Result<i32, Error> {
     let mut total = 0;
     let mut count = 0;
     for cpu in list_cpus()? {
-        count+=1;
-        total+=cpu.cur_freq;
+        count += 1;
+        total += cpu.cur_freq;
     }
-    Ok((total as f32/count as f32) as i32)
+    Ok((total as f32 / count as f32) as i32)
 }
 
 pub fn check_cpu_name() -> Result<String, Error> {
@@ -22,9 +22,9 @@ pub fn check_cpu_name() -> Result<String, Error> {
     File::open("/proc/cpuinfo")?.read_to_string(&mut cpu_info)?;
 
     // Find all lines that begin with cpu MHz
-    let find_cpu_mhz = cpu_info.split('\n').find(|line| {
-        line.starts_with("model name\t")
-    });
+    let find_cpu_mhz = cpu_info
+        .split('\n')
+        .find(|line| line.starts_with("model name\t"));
 
     // For each line that starts with the clock speed identifier return the number after : as a 32
     // bit integer

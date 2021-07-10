@@ -116,13 +116,13 @@ fn main() {
             Ok(mut d) => {
                 d.run();
             }
-            Err(_) => {}
+            Err(_) => eprint!("Could not run daemon in edit mode"),
         },
         Command::Monitor { delay } => match daemon_init(true, delay, false) {
             Ok(mut d) => {
                 d.run();
             }
-            Err(_) => {}
+            Err(_) => eprint!("Could not run daemon in monitor mode"),
         },
     }
 }

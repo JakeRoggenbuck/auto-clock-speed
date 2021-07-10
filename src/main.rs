@@ -4,20 +4,20 @@ use display::{
     print_turbo,
 };
 use error::{Error, GovGetError, GovSetError, SpeedGetError, SpeedSetError};
+use power::{read_battery_charge, read_lid_state, read_power_source};
 use std::process::exit;
 use structopt::StructOpt;
 use system::{
     check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
     list_cpu_governors, list_cpu_speeds, list_cpus,
 };
-use power::{read_lid_state, read_battery_charge, read_power_source};
 
 pub mod cpu;
 pub mod daemon;
 pub mod display;
 pub mod error;
-pub mod system;
 pub mod power;
+pub mod system;
 
 #[derive(StructOpt)]
 #[structopt(
@@ -33,8 +33,7 @@ enum Command {
     },
 
     #[structopt(name = "power")]
-    Power {
-    },
+    Power {},
 
     /// Get whether turbo is enabled or not
     #[structopt(name = "get-turbo")]
@@ -96,19 +95,14 @@ fn main() {
             Err(_) => eprintln!("Faild to get cpu frequency"),
         },
         Command::Power {} => match read_lid_state() {
-            Ok(f) => {
-                match read_battery_charge() {
-                    Ok(c) => {
-                        match read_power_source() {
-                            Ok(p) => {
-                                println!("Lid: {} Bat: {} Plugged in: {}", f, c, p)
-                            },
-                            Err(_) => eprintln!("Faild to get read power source"),
-                        }
-                    },
-                    Err(_) => eprintln!("Faild to get read battery charger"),
-                }
-
+            Ok(f) => match read_battery_charge() {
+                Ok(c) => match read_power_source() {
+                    Ok(p) => {
+                        println!("Lid: {} Bat: {} Plugged in: {}", f, c, p)
+                    }
+                    Err(_) => eprintln!("Faild to get read power source"),
+                },
+                Err(_) => eprintln!("Faild to get read battery charger"),
             },
             Err(_) => eprintln!("Faild to get read lid state"),
         },

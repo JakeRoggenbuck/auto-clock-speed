@@ -1,7 +1,9 @@
 use super::cpu::{Speed, CPU};
+use super::power::has_battery;
 use super::system::list_cpus;
 use super::Error;
 use std::{thread, time};
+use termion::{color, style};
 
 pub trait Checker {
     fn run(&mut self);
@@ -60,13 +62,39 @@ impl Checker for Daemon {
     }
 }
 
-pub fn daemon_init(verbose: bool, delay: u64, edit: bool) -> Result<Daemon, Error> {
-    // Create a new Daemon
+pub fn daemon_init(verbose: bool, delay: u64, mut edit: bool) -> Result<Daemon, Error> {
+    let started_as_edit = edit;
+    let mut forced_reason: String = String::new();
+    // Check if the device has a battery, otherwise force it to monitor mode
+    match has_battery() {
+        Ok(a) => {
+            if !a {
+                edit = false;
+                forced_reason = "the device has no battery".to_string();
+            }
+        }
+        Err(_) => eprintln!("Could not check battery"),
+    }
+
+    // TODO: Check if the executable has permission to edit speeds, otherwise for to monitor mode
+
     let message = format!(
-        "Auto Clock Speed daemon has been initialized in {} mode with a delay of {} seconds\n",
+        "Auto Clock Speed daemon has been initialized in {} mode with a delay of {} seconds{}\n",
         if edit { "edit" } else { "monitor" },
-        delay
+        delay,
+        if started_as_edit != edit {
+            format!(
+                "\n{}Forced to monitor mode because {}!{}",
+                color::Fg(color::Red),
+                forced_reason,
+                style::Reset
+            )
+        } else {
+            "".to_string()
+        }
     );
+
+    // Create a new Daemon
     let mut daemon: Daemon = Daemon {
         cpus: Vec::<CPU>::new(),
         verbose,

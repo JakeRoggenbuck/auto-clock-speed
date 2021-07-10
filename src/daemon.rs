@@ -37,7 +37,7 @@ impl Checker for Daemon {
     fn update_all(&mut self) {
         for cpu in self.cpus.iter_mut() {
             if self.edit {
-                cpu.set_max(cpu.max_freq - 10);
+                // TODO: Place to update cpu speed
             }
             cpu.update();
         }

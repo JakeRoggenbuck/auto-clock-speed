@@ -12,12 +12,14 @@ use system::{
     check_available_governors, check_cpu_name, check_cpu_freq, check_turbo_enabled, list_cpu_governors,
     list_cpu_speeds, list_cpus,
 };
+use power::{read_lid_state};
 
 pub mod cpu;
 pub mod daemon;
 pub mod display;
 pub mod error;
 pub mod system;
+pub mod power;
 
 const GOVERNORS: [&str; 6] = [
     "performance",
@@ -39,6 +41,10 @@ enum Command {
     GetFreq {
         #[structopt(short, long)]
         raw: bool,
+    },
+
+    #[structopt(name = "power")]
+    Power {
     },
 
     #[structopt(name = "get-turbo")]
@@ -99,6 +105,10 @@ fn main() {
         Command::GetFreq { raw } => match check_cpu_freq() {
             Ok(f) => print_freq(f, raw),
             Err(_) => eprintln!("Faild to get cpu frequency"),
+        },
+        Command::Power {} => match read_lid_state() {
+            Ok(f) => println!("{}", f),
+            Err(_) => eprintln!("Faild to get read lid state"),
         },
         Command::GetTurbo { raw } => match check_turbo_enabled() {
             Ok(turbo_enabled) => print_turbo(turbo_enabled, raw),

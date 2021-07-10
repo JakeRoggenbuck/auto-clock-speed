@@ -13,6 +13,7 @@ pub struct Daemon {
     pub cpus: Vec<CPU>,
     pub verbose: bool,
     pub delay: u64,
+    pub edit: bool,
 }
 
 impl Checker for Daemon {
@@ -35,6 +36,9 @@ impl Checker for Daemon {
     /// Calls update on each cpu to update the state of each one
     fn update_all(&mut self) {
         for cpu in self.cpus.iter_mut() {
+            if self.edit {
+                // TODO: Place to update cpu speed
+            }
             cpu.update();
         }
     }
@@ -48,17 +52,19 @@ impl Checker for Daemon {
     }
 }
 
-pub fn daemon_init(verbose: bool, delay: u64) -> Result<Daemon, Error> {
+pub fn daemon_init(verbose: bool, delay: u64, edit: bool) -> Result<Daemon, Error> {
     // Create a new Daemon
     let mut daemon: Daemon = Daemon {
         cpus: Vec::<CPU>::new(),
         verbose,
         delay,
+        edit,
     };
 
     if verbose {
         println!(
-            "Daemon has been initialized with a delay of {} seconds\n",
+            "Daemon has been initialized in {} mode with a delay of {} seconds\n",
+            if edit { "edit" } else { "monitor" },
             delay
         );
     }

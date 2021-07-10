@@ -3,7 +3,10 @@ use display::{
     print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpus, print_freq,
     print_turbo,
 };
-use error::Error;
+use error::{
+    Error, GovGetError, GovSetError, SpeedGetError, SpeedSetError,
+};
+use std::process::exit;
 use structopt::StructOpt;
 use system::{
     check_available_governors, check_cpu_name, check_cpu_freq, check_turbo_enabled, list_cpu_governors,
@@ -82,6 +85,13 @@ enum Command {
         #[structopt(short, long, default_value = "5000")]
         delay: u64,
     },
+
+    #[structopt(name = "monitor")]
+    Monitor {
+        /// Milliseconds between update
+        #[structopt(short, long, default_value = "5000")]
+        delay: u64,
+    },
 }
 
 fn main() {
@@ -120,7 +130,13 @@ fn main() {
                 println!("{}", governor);
             }
         }
-        Command::Run { verbose, delay } => match daemon_init(verbose, delay) {
+        Command::Run { verbose, delay } => match daemon_init(verbose, delay, true) {
+            Ok(mut d) => {
+                d.run();
+            }
+            Err(_) => {}
+        },
+        Command::Monitor { delay } => match daemon_init(true, delay, false) {
             Ok(mut d) => {
                 d.run();
             }

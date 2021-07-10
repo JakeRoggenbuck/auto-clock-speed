@@ -1,8 +1,6 @@
 use super::display::print_cpu;
 use super::exit;
-use super::{
-    Error, GovGetError, GovSetError, SpeedGetError, SpeedSetError,
-};
+use super::{Error, GovGetError, GovSetError, SpeedGetError, SpeedSetError};
 use std::fs::File;
 use std::io::{Read, Write};
 
@@ -94,6 +92,8 @@ impl Speed for CPU {
         Ok(())
     }
 
+    /// Get all the attributes of a cpu
+    /// These get methods write the value returned
     fn update(&mut self) {
         self.get_max();
         self.get_min();

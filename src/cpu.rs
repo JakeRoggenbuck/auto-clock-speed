@@ -1,8 +1,8 @@
 use super::display::print_cpu;
+use super::exit;
 use super::Error;
 use std::fs::File;
 use std::io::{Read, Write};
-use std::panic;
 
 pub trait Speed {
     fn read_int(&mut self, sub_path: String) -> Result<i32, Error>;
@@ -47,7 +47,10 @@ impl Speed for CPU {
         // Remove the last character (the newline)
         info.pop();
         match info.parse::<i32>() {
-            Err(e) => panic!("{}", e),
+            Err(_) => {
+                eprintln!("Could not read {}", sub_path);
+                exit(1);
+            }
             Ok(a) => Ok(a),
         }
     }
@@ -103,7 +106,10 @@ impl Speed for CPU {
     fn set_max(&mut self, max: i32) {
         self.max_freq = max;
         match self.write_value(WritableValue::Max) {
-            Err(_) => panic!("Could not write {} as max", max),
+            Err(_) => {
+                eprint!("Could not write {} to path for max", max);
+                exit(1);
+            }
             Ok(_) => (),
         };
     }
@@ -111,7 +117,10 @@ impl Speed for CPU {
     fn set_min(&mut self, min: i32) {
         self.min_freq = min;
         match self.write_value(WritableValue::Min) {
-            Err(_) => panic!("Could not write {} as min", min),
+            Err(_) => {
+                eprint!("Could not write {} to path for min", min);
+                exit(1);
+            }
             Ok(_) => (),
         };
     }
@@ -122,7 +131,10 @@ impl Speed for CPU {
             Ok(a) => {
                 self.max_freq = a;
             }
-            Err(_) => panic!("Could not read {} for {}", path, self.name),
+            Err(_) => {
+                eprint!("Could not read {} for {}", path, self.name);
+                exit(1);
+            }
         }
     }
 
@@ -132,7 +144,10 @@ impl Speed for CPU {
             Ok(a) => {
                 self.min_freq = a;
             }
-            Err(_) => panic!("Could not read {} for {}", path, self.name),
+            Err(_) => {
+                eprint!("Could not read {} for {}", path, self.name);
+                exit(1)
+            }
         }
     }
 
@@ -142,7 +157,10 @@ impl Speed for CPU {
             Ok(a) => {
                 self.cur_freq = a;
             }
-            Err(_) => panic!("Could not read {} for {}", path, self.name),
+            Err(_) => {
+                eprint!("Could not read {} for {}", path, self.name);
+                exit(1)
+            }
         }
     }
     fn get_gov(&mut self) {
@@ -151,14 +169,20 @@ impl Speed for CPU {
             Ok(a) => {
                 self.gov = a;
             }
-            Err(_) => panic!("Could not read {} for {}", path, self.name),
+            Err(_) => {
+                eprint!("Could not read {} for {}", path, self.name);
+                exit(1)
+            }
         }
     }
 
     fn set_gov(&mut self, gov: String) {
         self.gov = gov.clone();
         match self.write_value(WritableValue::Gov) {
-            Err(_) => panic!("Could not write {} as gov", gov),
+            Err(_) => {
+                eprint!("Could not write {} to path for gov", gov);
+                exit(1)
+            }
             Ok(_) => (),
         };
     }

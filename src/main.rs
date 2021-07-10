@@ -9,6 +9,7 @@ use system::{
     check_available_governors, check_cpu_freq, check_turbo_enabled, list_cpu_governors,
     list_cpu_speeds, list_cpus,
 };
+use std::process::exit;
 
 pub mod cpu;
 pub mod daemon;

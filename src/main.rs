@@ -6,7 +6,7 @@ use display::{
 use error::Error;
 use structopt::StructOpt;
 use system::{
-    check_available_governors, check_cpu_freq, check_turbo_enabled, list_cpu_governors,
+    check_available_governors, check_cpu_name, check_cpu_freq, check_turbo_enabled, list_cpu_governors,
     list_cpu_speeds, list_cpus,
 };
 
@@ -99,7 +99,12 @@ fn main() {
             Err(_) => println!("Failed to get available governors"),
         },
         Command::GetCPUS {} => match list_cpus() {
-            Ok(cpus) => print_cpus(cpus),
+            Ok(cpus) => {
+                match check_cpu_name() {
+                    Ok(name) => print_cpus(cpus, name),
+                    Err(_) => println!("Failed get list of cpus"),
+                }
+            },
             Err(_) => println!("Failed get list of cpus"),
         },
         Command::GetSpeeds { raw } => match list_cpu_speeds() {

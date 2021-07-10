@@ -1,4 +1,5 @@
 use super::cpu::{Speed, CPU};
+use super::power::has_battery;
 use super::system::list_cpus;
 use super::Error;
 use std::{thread, time};
@@ -60,13 +61,23 @@ impl Checker for Daemon {
     }
 }
 
-pub fn daemon_init(verbose: bool, delay: u64, edit: bool) -> Result<Daemon, Error> {
-    // Create a new Daemon
+pub fn daemon_init(verbose: bool, delay: u64, mut edit: bool) -> Result<Daemon, Error> {
+    match has_battery() {
+        Ok(a) => {
+            if !a {
+                edit = false;
+            }
+        }
+        Err(_) => eprintln!("Could not check battery"),
+    }
+
     let message = format!(
         "Auto Clock Speed daemon has been initialized in {} mode with a delay of {} seconds\n",
         if edit { "edit" } else { "monitor" },
         delay
     );
+
+    // Create a new Daemon
     let mut daemon: Daemon = Daemon {
         cpus: Vec::<CPU>::new(),
         verbose,

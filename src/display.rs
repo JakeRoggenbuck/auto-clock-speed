@@ -5,7 +5,7 @@ pub fn print_freq(f: i32, raw: bool) {
     if raw {
         println!("{}", f);
     } else {
-        println!("CPU freq is {} MHz", f)
+        println!("CPU freq is {} MHz", f/1000)
     }
 }
 
@@ -42,9 +42,10 @@ pub fn print_available_governors(available_governors: Vec<String>, raw: bool) {
     print_vec(available_governors, raw);
 }
 
-pub fn print_cpus(cpus: Vec<CPU>) {
+pub fn print_cpus(cpus: Vec<CPU>, name: String) {
+    println!("Name:{}", name);
     for x in cpus {
-        println!("{}", x.name);
+        println!("{} is currently @ {} MHz", x.name, x.cur_freq/1000);    
     }
 }
 

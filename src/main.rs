@@ -3,14 +3,12 @@ use display::{
     print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpus, print_freq,
     print_turbo,
 };
-use error::{
-    Error, GovGetError, GovSetError, SpeedGetError, SpeedSetError,
-};
+use error::{Error, GovGetError, GovSetError, SpeedGetError, SpeedSetError};
 use std::process::exit;
 use structopt::StructOpt;
 use system::{
-    check_available_governors, check_cpu_name, check_cpu_freq, check_turbo_enabled, list_cpu_governors,
-    list_cpu_speeds, list_cpus,
+    check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
+    list_cpu_governors, list_cpu_speeds, list_cpus,
 };
 use power::{read_lid_state, read_battery_charge, read_power_source};
 
@@ -20,15 +18,6 @@ pub mod display;
 pub mod error;
 pub mod system;
 pub mod power;
-
-const GOVERNORS: [&str; 6] = [
-    "performance",
-    "powersave",
-    "userspace",
-    "ondemand",
-    "conservative",
-    "schedutil",
-];
 
 #[derive(StructOpt)]
 #[structopt(
@@ -47,12 +36,14 @@ enum Command {
     Power {
     },
 
+    /// Get whether turbo is enabled or not
     #[structopt(name = "get-turbo")]
     GetTurbo {
         #[structopt(short, long)]
         raw: bool,
     },
 
+    /// Get the available governor
     #[structopt(name = "get-available-governors")]
     GetAvailableGovernors {
         #[structopt(short, long)]
@@ -61,7 +52,7 @@ enum Command {
 
     /// The names of the core
     #[structopt(name = "get-cpus")]
-    GetCPUS {},
+    GetCPUS,
 
     /// The speed of the individual cores
     #[structopt(name = "get-cpu-speeds")]
@@ -77,13 +68,10 @@ enum Command {
         raw: bool,
     },
 
-    /// The possible governors
-    #[structopt(name = "list-possible-governors")]
-    GetPossibleGovernorsList {},
-
-    /// Run the daemon
+    /// Run the daemon, this checks and edit your cpu's speed
     #[structopt(name = "run")]
     Run {
+        /// Show the information the monitor sub-command outputs
         #[structopt(short, long)]
         verbose: bool,
 
@@ -92,6 +80,7 @@ enum Command {
         delay: u64,
     },
 
+    /// Monitor each cpu, it's min, max, and current speed, along with the governor
     #[structopt(name = "monitor")]
     Monitor {
         /// Milliseconds between update
@@ -132,11 +121,9 @@ fn main() {
             Err(_) => println!("Failed to get available governors"),
         },
         Command::GetCPUS {} => match list_cpus() {
-            Ok(cpus) => {
-                match check_cpu_name() {
-                    Ok(name) => print_cpus(cpus, name),
-                    Err(_) => println!("Failed get list of cpus"),
-                }
+            Ok(cpus) => match check_cpu_name() {
+                Ok(name) => print_cpus(cpus, name),
+                Err(_) => println!("Failed get list of cpus"),
             },
             Err(_) => println!("Failed get list of cpus"),
         },
@@ -148,22 +135,17 @@ fn main() {
             Ok(cpu_governors) => print_cpu_governors(cpu_governors, raw),
             Err(_) => println!("Failed to get list of cpu governors"),
         },
-        Command::GetPossibleGovernorsList {} => {
-            for governor in GOVERNORS.iter() {
-                println!("{}", governor);
-            }
-        }
         Command::Run { verbose, delay } => match daemon_init(verbose, delay, true) {
             Ok(mut d) => {
                 d.run();
             }
-            Err(_) => {}
+            Err(_) => eprint!("Could not run daemon in edit mode"),
         },
         Command::Monitor { delay } => match daemon_init(true, delay, false) {
             Ok(mut d) => {
                 d.run();
             }
-            Err(_) => {}
+            Err(_) => eprint!("Could not run daemon in monitor mode"),
         },
     }
 }

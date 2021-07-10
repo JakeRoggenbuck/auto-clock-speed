@@ -10,12 +10,14 @@ use system::{
     check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
     list_cpu_governors, list_cpu_speeds, list_cpus,
 };
+use power::{read_lid_state, read_battery_charge, read_power_source};
 
 pub mod cpu;
 pub mod daemon;
 pub mod display;
 pub mod error;
 pub mod system;
+pub mod power;
 
 #[derive(StructOpt)]
 #[structopt(
@@ -28,6 +30,10 @@ enum Command {
     GetFreq {
         #[structopt(short, long)]
         raw: bool,
+    },
+
+    #[structopt(name = "power")]
+    Power {
     },
 
     /// Get whether turbo is enabled or not
@@ -88,6 +94,23 @@ fn main() {
         Command::GetFreq { raw } => match check_cpu_freq() {
             Ok(f) => print_freq(f, raw),
             Err(_) => eprintln!("Faild to get cpu frequency"),
+        },
+        Command::Power {} => match read_lid_state() {
+            Ok(f) => {
+                match read_battery_charge() {
+                    Ok(c) => {
+                        match read_power_source() {
+                            Ok(p) => {
+                                println!("Lid: {} Bat: {} Plugged in: {}", f, c, p)
+                            },
+                            Err(_) => eprintln!("Faild to get read power source"),
+                        }
+                    },
+                    Err(_) => eprintln!("Faild to get read battery charger"),
+                }
+
+            },
+            Err(_) => eprintln!("Faild to get read lid state"),
         },
         Command::GetTurbo { raw } => match check_turbo_enabled() {
             Ok(turbo_enabled) => print_turbo(turbo_enabled, raw),

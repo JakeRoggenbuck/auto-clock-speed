@@ -1,5 +1,8 @@
 # Auto Clock Speed ![Rust](https://img.shields.io/github/workflow/status/jakeroggenbuck/auto-clock-speed/Rust?style=for-the-badge)
  A utility to check stats about your CPU, and auto regulate clock speeds to help with either performance or battery life
+ 
+ ![image](https://user-images.githubusercontent.com/35516367/125171808-0a91a700-e16b-11eb-8137-7abd142a57be.png)
+
 
 ## Goals
 - First and foremost, this is a project to learn about Rust and Linux
@@ -13,6 +16,25 @@ cargo install --path auto-clock-speed
 ```
 
 ## Usage
+### Monitor
+```sh
+# Show the min, max, and current cpu frequency along with the cpu governor
+clockspeed monitor
+
+# A delay (in milliseconds) can be set for both monitor and run
+clockspeed monitor --delay 1000
+```
+
+### Run
+```sh
+# Runs behind the scenes with no output
+clockspeed run
+
+# Shows exactly what monitor does, while editing speeds
+clockspeed run --verbose
+```
+
+## Help
 ```
 Automatic CPU frequency scaler and power saver
 
@@ -24,14 +46,13 @@ FLAGS:
     -V, --version    Prints version information
 
 SUBCOMMANDS:
-    get-available-governors
+    get-available-governors    Get the available governor
     get-cpu-governors          The governors of the individual cores
     get-cpu-speeds             The speed of the individual cores
     get-cpus                   The names of the core
     get-freq                   The overall frequency of your cpu
-    get-turbo
+    get-turbo                  Get whether turbo is enabled or not
     help                       Prints this message or the help of the given subcommand(s)
-    list-possible-governors    The possible governors
-    run                        Run the daemon
-
+    monitor                    Monitor each cpu, it's min, max, and current speed, along with the governor
+    run                        Run the daemon, this checks and edit your cpu's speed
 ```

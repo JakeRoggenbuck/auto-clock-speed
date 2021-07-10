@@ -25,6 +25,10 @@ impl Checker for Daemon {
             // Update all the values for each cpu before they get used
             self.update_all();
 
+            if self.edit {
+                // TODO: Logic to check battery, charge, etc. and set max, min, and gov accordingly
+            }
+
             // Print the each cpu, each iteration
             if self.verbose {
                 self.print();
@@ -37,9 +41,6 @@ impl Checker for Daemon {
     /// Calls update on each cpu to update the state of each one
     fn update_all(&mut self) {
         for cpu in self.cpus.iter_mut() {
-            if self.edit {
-                // TODO: Place to update cpu speed
-            }
             cpu.update();
         }
     }

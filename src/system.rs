@@ -1,4 +1,4 @@
-use super::cpu;
+use super::cpu::CPU;
 use super::Error;
 use crate::cpu::Speed;
 use regex::Regex;
@@ -68,7 +68,7 @@ pub fn check_available_governors() -> Result<Vec<String>, Error> {
 }
 
 /// Get all the cpus (cores), returns cpus from 0 to the (amount of cores -1) the machine has
-pub fn list_cpus() -> Result<Vec<cpu::CPU>, Error> {
+pub fn list_cpus() -> Result<Vec<CPU>, Error> {
     let mut cpus: Vec<String> = Vec::<String>::new();
     // The string "cpu" followed by a digit
     let cpu = Regex::new(r"cpu\d").unwrap();
@@ -94,15 +94,16 @@ pub fn list_cpus() -> Result<Vec<cpu::CPU>, Error> {
         .map(|x| x.to_owned())
         .collect();
 
-    let mut to_return: Vec<cpu::CPU> = Vec::<cpu::CPU>::new();
+    let mut to_return: Vec<CPU> = Vec::<CPU>::new();
 
     for cpu in cpus {
-        let mut new = cpu::CPU {
+        // Make a new cpu
+        let mut new = CPU {
             name: cpu,
+            // Temporary initial values
             max_freq: 0,
             min_freq: 0,
             cur_freq: 0,
-            // Temporary initial value
             gov: "Unknown".to_string(),
         };
 

@@ -92,6 +92,8 @@ impl Speed for CPU {
         Ok(())
     }
 
+    /// Get all the attributes of a cpu
+    /// These get methods write the value returned
     fn update(&mut self) {
         self.get_max();
         self.get_min();

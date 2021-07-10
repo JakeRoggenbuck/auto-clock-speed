@@ -8,3 +8,4 @@ edition = "2018"
 [dependencies]
 structopt = { version = "0.3", default-features = false }
 regex = "1.5.4"
+termion = "1.5.3"

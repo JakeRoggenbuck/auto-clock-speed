@@ -45,7 +45,7 @@ impl Checker for Daemon {
 
     /// Output the values from each cpu
     fn print(&self) {
-        println!("");
+        println!("{}{}", termion::clear::All, termion::cursor::Goto(1, 1));
         for cpu in &self.cpus {
             cpu.print();
         }

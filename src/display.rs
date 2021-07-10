@@ -1,5 +1,6 @@
 use super::cpu::CPU;
 use std::fmt::Display;
+use termion::{color, style};
 
 pub fn print_freq(f: i32, raw: bool) {
     if raw {

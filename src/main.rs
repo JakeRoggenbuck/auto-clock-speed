@@ -80,7 +80,7 @@ enum Command {
     },
 
     /// Monitor each cpu, it's min, max, and current speed, along with the governor
-    #[structopt(name = "monitor")]
+    #[structopt(name = "monitor", alias = "monit")]
     Monitor {
         /// Milliseconds between update
         #[structopt(short, long, default_value = "1000")]

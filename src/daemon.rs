@@ -55,10 +55,11 @@ impl Checker for Daemon {
             termion::cursor::Goto(1, 1),
             self.message,
         );
+        println!("{}Name  Max\tMin\tFreq\tGoverner", style::Bold);
         for cpu in &self.cpus {
             cpu.print();
         }
-        println!("\n\nctrl+c to quit")
+        println!("\nctrl+c to stop monitoring")
     }
 }
 

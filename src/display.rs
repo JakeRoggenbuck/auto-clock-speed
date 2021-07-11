@@ -52,14 +52,14 @@ pub fn print_cpus(cpus: Vec<CPU>, name: String) {
 
 pub fn print_cpu(cpu: &CPU) {
     println!(
-        "{}{}:{} {}\t{}\t{}{}{}\t{}",
+        "{}{}:{} {}Hz\t{}Hz\t{}{}Hz{}\t{}",
         style::Bold,
         cpu.name,
         style::Reset,
-        cpu.max_freq,
-        cpu.min_freq,
+        cpu.max_freq/1000,
+        cpu.min_freq/1000,
         color::Fg(color::Green),
-        cpu.cur_freq,
+        cpu.cur_freq/1000,
         style::Reset,
         cpu.gov
     );

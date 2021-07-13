@@ -1,5 +1,5 @@
-# Auto Clock Speed ![Rust](https://img.shields.io/github/workflow/status/jakeroggenbuck/auto-clock-speed/Rust?style=for-the-badge)
- A utility to check stats about your CPU, and auto regulate clock speeds to help with either performance or battery life
+# Auto Clock Speed (acs) ![Rust](https://img.shields.io/github/workflow/status/jakeroggenbuck/auto-clock-speed/Rust?style=for-the-badge)
+ A utility to check stats about your CPU, and auto regulate clock speeds to help with either performance or battery life.
  
  ![image](https://user-images.githubusercontent.com/35516367/125171808-0a91a700-e16b-11eb-8137-7abd142a57be.png)
 
@@ -19,19 +19,19 @@ cargo install --path auto-clock-speed
 ### Monitor
 ```sh
 # Show the min, max, and current cpu frequency along with the cpu governor
-clockspeed monitor
+acs monitor
 
 # A delay (in milliseconds) can be set for both monitor and run
-clockspeed monitor --delay 1000
+acs monitor --delay 1000
 ```
 
 ### Run
 ```sh
 # Runs behind the scenes with no output
-clockspeed run
+acs run
 
 # Shows exactly what monitor does, while editing speeds
-clockspeed run --verbose
+acs run --verbose
 ```
 
 ## Help
@@ -39,7 +39,7 @@ clockspeed run --verbose
 Automatic CPU frequency scaler and power saver
 
 USAGE:
-    clockspeed <SUBCOMMAND>
+    acs <SUBCOMMAND>
 
 FLAGS:
     -h, --help       Prints help information

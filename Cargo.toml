@@ -1,5 +1,5 @@
 [package]
-name = "clockspeed"
+name = "autoclockspeed"
 version = "0.1.1"
 edition = "2018"
 
@@ -9,3 +9,7 @@ edition = "2018"
 structopt = { version = "0.3", default-features = false }
 regex = "1.5.4"
 termion = "1.5.3"
+
+[[bin]]
+name = "acs"
+path = "src/main.rs"

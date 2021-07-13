@@ -13,6 +13,9 @@
 ```
 git clone https://github.com/JakeRoggenbuck/auto-clock-speed
 cargo install --path auto-clock-speed
+
+# Move the excecutable so sudo can access it
+sudo cp ~/.cargo/bin/acs /bin/acs
 ```
 
 ## Usage
@@ -27,11 +30,13 @@ acs monitor --delay 1000
 
 ### Run
 ```sh
+# Run requires sudo because it edits the cpu's frequency
+
 # Runs behind the scenes with no output
-acs run
+sudo acs run
 
 # Shows exactly what monitor does, while editing speeds
-acs run --verbose
+sudo acs run --verbose
 ```
 
 ## Help

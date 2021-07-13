@@ -2,8 +2,11 @@
 name = "autoclockspeed"
 version = "0.1.1"
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "MIT"
+description = " A utility to check stats about your CPU, and auto regulate clock speeds to help with either performance or battery life."
+homepage = "https://github.com/JakeRoggenbuck/auto-clock-speed"
+repository = "https://github.com/JakeRoggenbuck/auto-clock-speed"
+readme = "README.md"
 
 [dependencies]
 structopt = { version = "0.3", default-features = false }

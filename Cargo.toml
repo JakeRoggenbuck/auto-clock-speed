@@ -7,6 +7,8 @@ description = " A utility to check stats about your CPU, and auto regulate clock
 homepage = "https://github.com/JakeRoggenbuck/auto-clock-speed"
 repository = "https://github.com/JakeRoggenbuck/auto-clock-speed"
 readme = "README.md"
+categories = ["command-line-utilities", "hardware-support"]
+keywords = ["clockspeed", "cpu", "battery"]
 
 [dependencies]
 structopt = { version = "0.3", default-features = false }

@@ -131,13 +131,13 @@ fn main() {
         },
         Command::Run { verbose, delay } => match daemon_init(verbose, delay, true) {
             Ok(mut d) => {
-                d.run();
+                d.run().unwrap_err();
             }
             Err(_) => eprint!("Could not run daemon in edit mode"),
         },
         Command::Monitor { delay } => match daemon_init(true, delay, false) {
             Ok(mut d) => {
-                d.run();
+                d.run().unwrap_err();
             }
             Err(_) => eprint!("Could not run daemon in monitor mode"),
         },

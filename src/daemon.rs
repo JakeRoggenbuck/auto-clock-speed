@@ -34,6 +34,9 @@ impl Checker for Daemon {
 
                 // If the lid just closed, turn on powersave
                 if read_lid_state()? == LidState::Closed && self.lid_state != LidState::Closed {
+                    if self.verbose {
+                        println!("Governor set to powersave because lid closed");
+                    }
                     for cpu in self.cpus.iter_mut() {
                         cpu.set_gov("powersave".to_string())
                     }
@@ -41,6 +44,9 @@ impl Checker for Daemon {
 
                 // If the battery life is below 20%, set gov to powersave
                 if read_battery_charge()? < 20 {
+                    if self.verbose {
+                        println!("Governor set to powersave because battery was less than 20");
+                    }
                     for cpu in self.cpus.iter_mut() {
                         cpu.set_gov("powersave".to_string())
                     }

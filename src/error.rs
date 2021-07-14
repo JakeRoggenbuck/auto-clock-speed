@@ -22,7 +22,7 @@ impl fmt::Display for GovSetError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "Could not set the governor, check permission of the executable"
+            "Didn't have permission to set the governor, try running with sudo"
         )
     }
 }
@@ -31,7 +31,7 @@ impl fmt::Display for SpeedSetError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "Could not set the speed, check permission of the executable"
+            "Didn't have permission to set the speed, try running with sudo"
         )
     }
 }

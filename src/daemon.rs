@@ -6,7 +6,7 @@ use std::{thread, time};
 use termion::{color, style};
 
 pub trait Checker {
-    fn run(&mut self);
+    fn run(&mut self) -> Result<(), Error>;
     fn update_all(&mut self);
     fn print(&self);
 }
@@ -17,10 +17,12 @@ pub struct Daemon {
     pub delay: u64,
     pub edit: bool,
     pub message: String,
+    pub lid_state: LidState,
+    pub charging: bool,
 }
 
 impl Checker for Daemon {
-    fn run(&mut self) {
+    fn run(&mut self) -> Result<(), Error> {
         let timeout = time::Duration::from_millis(self.delay);
 
         loop {
@@ -28,19 +30,15 @@ impl Checker for Daemon {
             self.update_all();
 
             if self.edit {
-                // If the lid is closed, change the governor to powersave
-                match read_lid_state() {
-                    Ok(l) => {
-                        if l == LidState::Closed {
-                            for cpu in self.cpus.iter_mut() {
-                                cpu.set_gov("powersave".to_string())
-                            }
-                        }
+                // TODO: Logic to check battery, charge, etc. and set max, min, and gov accordingly
+
+                // If the lid just closed, turn on powersave
+                if read_lid_state()? == LidState::Closed && self.lid_state != LidState::Closed {
+                    for cpu in self.cpus.iter_mut() {
+                        cpu.set_gov("powersave".to_string())
                     }
-                    Err(_) => {}
                 }
 
-                // TODO: Logic to check battery, charge, etc. and set max, min, and gov accordingly
             }
 
             // Print the each cpu, each iteration
@@ -126,6 +124,8 @@ pub fn daemon_init(verbose: bool, delay: u64, mut edit: bool) -> Result<Daemon, 
         delay,
         edit,
         message,
+        lid_state: LidState::Unknown,
+        charging: false,
     };
 
     // Make a cpu struct for each cpu listed

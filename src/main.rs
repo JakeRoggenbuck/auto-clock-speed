@@ -9,7 +9,7 @@ use std::process::exit;
 use structopt::StructOpt;
 use system::{
     check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
-    list_cpu_governors, list_cpu_speeds, list_cpus, was_run_as_root
+    list_cpu_governors, list_cpu_speeds, list_cpus
 };
 
 pub mod cpu;
@@ -89,8 +89,6 @@ enum Command {
 }
 
 fn main() {
-    println!("Root '{}'", was_run_as_root());
-
     match Command::from_args() {
         Command::GetFreq { raw } => match check_cpu_freq() {
             Ok(f) => print_freq(f, raw),

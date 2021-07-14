@@ -39,6 +39,12 @@ impl Checker for Daemon {
                     }
                 }
 
+                // If the battery life is below 20%, set gov to powersave
+                if read_battery_charge()? < 20 {
+                    for cpu in self.cpus.iter_mut() {
+                        cpu.set_gov("powersave".to_string())
+                    }
+                }
             }
 
             // Print the each cpu, each iteration
@@ -124,8 +130,11 @@ pub fn daemon_init(verbose: bool, delay: u64, mut edit: bool) -> Result<Daemon, 
         delay,
         edit,
         message,
+        // TODO: Get the lid state if possible or set to Unknown if not
         lid_state: LidState::Unknown,
-        charging: false,
+        // If edit is still true, then there is definitely a bool result to read_power_source
+        // otherwise, there is a real problem, because there should be a power source possible
+        charging: if edit { read_power_source()? } else { false },
     };
 
     // Make a cpu struct for each cpu listed

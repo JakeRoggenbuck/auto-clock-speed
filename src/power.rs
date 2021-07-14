@@ -54,6 +54,7 @@ pub fn read_lid_state() -> Result<LidState, Error> {
 
 pub fn read_battery_charge() -> Result<i8, Error> {
     if !Path::new("/sys/class/power_supply/BAT0/capacity").exists() {
+        // If the power source does not exist, then it's plugged in, so 100%
         return Ok(100);
     }
 

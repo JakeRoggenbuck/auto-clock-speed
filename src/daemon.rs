@@ -1,5 +1,5 @@
 use super::cpu::{Speed, CPU};
-use super::power::has_battery;
+use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
 use super::system::list_cpus;
 use super::Error;
 use std::{thread, time};
@@ -28,6 +28,18 @@ impl Checker for Daemon {
             self.update_all();
 
             if self.edit {
+                // If the lid is closed, change the governor to powersave
+                match read_lid_state() {
+                    Ok(l) => {
+                        if l == LidState::Closed {
+                            for cpu in self.cpus.iter_mut() {
+                                cpu.set_gov("powersave".to_string())
+                            }
+                        }
+                    }
+                    Err(_) => {}
+                }
+
                 // TODO: Logic to check battery, charge, etc. and set max, min, and gov accordingly
             }
 

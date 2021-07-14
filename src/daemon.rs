@@ -67,7 +67,7 @@ impl Checker for Daemon {
             termion::cursor::Goto(1, 1),
             self.message,
         );
-        println!("{}Name  Max\tMin\tFreq\tGoverner", style::Bold);
+        println!("{}Name  Max\tMin\tFreq\tGovernor", style::Bold);
         for cpu in &self.cpus {
             cpu.print();
         }

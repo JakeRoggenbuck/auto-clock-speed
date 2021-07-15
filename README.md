@@ -32,11 +32,11 @@ acs monitor --delay 1000
 ```sh
 # Run requires sudo because it edits the cpu's frequency
 
-# Runs behind the scenes with no output
+# Edit speeds and shows exactly what monitor does
 sudo acs run
 
-# Shows exactly what monitor does, while editing speeds
-sudo acs run --verbose
+# Shows no output but still edits speeds
+sudo acs run --quiet
 ```
 
 ## Help

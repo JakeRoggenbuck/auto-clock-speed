@@ -33,7 +33,7 @@ enum Command {
     },
 
     #[structopt(name = "power")]
-    Power {},
+    Power,
 
     /// Get whether turbo is enabled or not
     #[structopt(name = "get-turbo")]
@@ -72,7 +72,7 @@ enum Command {
     Run {
         /// Show the information the monitor sub-command outputs
         #[structopt(short, long)]
-        verbose: bool,
+        quiet: bool,
 
         /// Milliseconds between update
         #[structopt(short, long, default_value = "1000")]
@@ -129,7 +129,7 @@ fn main() {
             Ok(cpu_governors) => print_cpu_governors(cpu_governors, raw),
             Err(_) => println!("Failed to get list of cpu governors"),
         },
-        Command::Run { verbose, delay } => match daemon_init(verbose, delay, true) {
+        Command::Run { quiet, delay } => match daemon_init(!quiet, delay, true) {
             Ok(mut d) => {
                 d.run().unwrap_err();
             }

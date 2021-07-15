@@ -21,6 +21,7 @@ pub struct Daemon {
     pub message: String,
     pub lid_state: LidState,
     pub charging: bool,
+    pub logs: Vec<String>,
 }
 
 fn make_gov_powersave(cpu: &mut CPU) {
@@ -31,7 +32,7 @@ impl Checker for Daemon {
     // TODO: Change this to append message after cpu display
     fn log(&mut self, message: &str) {
         if self.verbose {
-            println!("{}", message);
+            self.logs.push(message.to_string());
         }
     }
 
@@ -83,6 +84,8 @@ impl Checker for Daemon {
     fn print(&self) {
         println!(
             "{}\n\n{}{}",
+            // TODO: Don't clear each print
+            // clear at start and replace the first lines
             termion::clear::All,
             termion::cursor::Goto(1, 1),
             self.message,
@@ -91,7 +94,12 @@ impl Checker for Daemon {
         for cpu in &self.cpus {
             cpu.print();
         }
-        println!("\nctrl+c to stop monitoring")
+        println!("\nctrl+c to stop monitoring\n\n");
+        if self.verbose {
+            for log in &self.logs {
+                println!("{}", log)
+            }
+        }
     }
 }
 
@@ -151,6 +159,7 @@ pub fn daemon_init(verbose: bool, delay: u64, mut edit: bool) -> Result<Daemon, 
         // If edit is still true, then there is definitely a bool result to read_power_source
         // otherwise, there is a real problem, because there should be a power source possible
         charging: if edit { read_power_source()? } else { false },
+        logs: Vec::<String>::new(),
     };
 
     // Make a cpu struct for each cpu listed

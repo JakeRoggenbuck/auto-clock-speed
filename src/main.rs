@@ -9,7 +9,7 @@ use std::process::exit;
 use structopt::StructOpt;
 use system::{
     check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
-    list_cpu_governors, list_cpu_speeds, list_cpus,
+    list_cpu_governors, list_cpu_speeds, list_cpus
 };
 
 pub mod cpu;
@@ -131,13 +131,13 @@ fn main() {
         },
         Command::Run { verbose, delay } => match daemon_init(verbose, delay, true) {
             Ok(mut d) => {
-                d.run();
+                d.run().unwrap_err();
             }
             Err(_) => eprint!("Could not run daemon in edit mode"),
         },
         Command::Monitor { delay } => match daemon_init(true, delay, false) {
             Ok(mut d) => {
-                d.run();
+                d.run().unwrap_err();
             }
             Err(_) => eprint!("Could not run daemon in monitor mode"),
         },

@@ -1,12 +1,14 @@
 use super::cpu::{Speed, CPU};
-use super::power::has_battery;
+use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
 use super::system::list_cpus;
 use super::Error;
 use std::{thread, time};
 use termion::{color, style};
 
 pub trait Checker {
-    fn run(&mut self);
+    fn log(&mut self, message: &str);
+    fn apply_to_cpus(&mut self, operation: &dyn Fn(&mut CPU));
+    fn run(&mut self) -> Result<(), Error>;
     fn update_all(&mut self);
     fn print(&self);
 }
@@ -17,18 +19,61 @@ pub struct Daemon {
     pub delay: u64,
     pub edit: bool,
     pub message: String,
+    pub lid_state: LidState,
+    pub charging: bool,
+    pub logs: Vec<String>,
+}
+
+fn make_gov_powersave(cpu: &mut CPU) {
+    cpu.set_gov("powersave".to_string())
 }
 
 impl Checker for Daemon {
-    fn run(&mut self) {
+    // TODO: Change this to append message after cpu display
+    fn log(&mut self, message: &str) {
+        if self.verbose {
+            self.logs.push(message.to_string());
+        }
+    }
+
+    /// Apply a function to every cpu
+    fn apply_to_cpus(&mut self, operation: &dyn Fn(&mut CPU)) {
+        for cpu in self.cpus.iter_mut() {
+            operation(cpu);
+        }
+    }
+
+    fn run(&mut self) -> Result<(), Error> {
         let timeout = time::Duration::from_millis(self.delay);
+
+        // The state for rules
+        let mut already_under_20_percent: bool = false;
 
         loop {
             // Update all the values for each cpu before they get used
             self.update_all();
 
             if self.edit {
-                // TODO: Logic to check battery, charge, etc. and set max, min, and gov accordingly
+                // If the lid just closed, turn on powersave
+                if read_lid_state()? == LidState::Closed && self.lid_state != LidState::Closed {
+                    self.log("Governor set to powersave because lid closed");
+                    self.apply_to_cpus(&make_gov_powersave);
+                    self.lid_state = LidState::Closed;
+                }
+                if read_lid_state()? == LidState::Open {
+                    self.lid_state = LidState::Open;
+                }
+
+                // If the battery life is below 20%, set gov to powersave
+                if read_battery_charge()? < 20 && !already_under_20_percent {
+                    self.log("Governor set to powersave because battery was less than 20");
+                    self.apply_to_cpus(&make_gov_powersave);
+                    already_under_20_percent = true;
+                // Make sure to reset state
+                }
+                if read_battery_charge()? >= 20 {
+                    already_under_20_percent = false;
+                }
             }
 
             // Print the each cpu, each iteration
@@ -51,15 +96,22 @@ impl Checker for Daemon {
     fn print(&self) {
         println!(
             "{}\n\n{}{}",
+            // TODO: Don't clear each print
+            // clear at start and replace the first lines
             termion::clear::All,
             termion::cursor::Goto(1, 1),
             self.message,
         );
-        println!("{}Name  Max\tMin\tFreq\tGoverner", style::Bold);
+        println!("{}Name  Max\tMin\tFreq\tGovernor", style::Bold);
         for cpu in &self.cpus {
             cpu.print();
         }
-        println!("\nctrl+c to stop monitoring")
+        println!("\nctrl+c to stop monitoring\n\n");
+        if self.verbose {
+            for log in &self.logs {
+                println!("{}", log)
+            }
+        }
     }
 }
 
@@ -114,6 +166,12 @@ pub fn daemon_init(verbose: bool, delay: u64, mut edit: bool) -> Result<Daemon, 
         delay,
         edit,
         message,
+        // TODO: Get the lid state if possible or set to Unknown if not
+        lid_state: LidState::Unknown,
+        // If edit is still true, then there is definitely a bool result to read_power_source
+        // otherwise, there is a real problem, because there should be a power source possible
+        charging: if edit { read_power_source()? } else { false },
+        logs: Vec::<String>::new(),
     };
 
     // Make a cpu struct for each cpu listed

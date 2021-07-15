@@ -6,6 +6,8 @@ use std::{thread, time};
 use termion::{color, style};
 
 pub trait Checker {
+    fn log(&mut self, message: &str);
+    fn apply_to_cpus(&mut self, operation: &dyn Fn(&mut CPU));
     fn run(&mut self) -> Result<(), Error>;
     fn update_all(&mut self);
     fn print(&self);
@@ -21,7 +23,25 @@ pub struct Daemon {
     pub charging: bool,
 }
 
+fn make_gov_powersave(cpu: &mut CPU) {
+    cpu.set_gov("powersave".to_string())
+}
+
 impl Checker for Daemon {
+    // TODO: Change this to append message after cpu display
+    fn log(&mut self, message: &str) {
+        if self.verbose {
+            println!("{}", message);
+        }
+    }
+
+    /// Apply a function to every cpu
+    fn apply_to_cpus(&mut self, operation: &dyn Fn(&mut CPU)) {
+        for cpu in self.cpus.iter_mut() {
+            operation(cpu);
+        }
+    }
+
     fn run(&mut self) -> Result<(), Error> {
         let timeout = time::Duration::from_millis(self.delay);
 
@@ -30,26 +50,16 @@ impl Checker for Daemon {
             self.update_all();
 
             if self.edit {
-                // TODO: Logic to check battery, charge, etc. and set max, min, and gov accordingly
-
                 // If the lid just closed, turn on powersave
                 if read_lid_state()? == LidState::Closed && self.lid_state != LidState::Closed {
-                    if self.verbose {
-                        println!("Governor set to powersave because lid closed");
-                    }
-                    for cpu in self.cpus.iter_mut() {
-                        cpu.set_gov("powersave".to_string())
-                    }
+                    self.log("Governor set to powersave because lid closed");
+                    self.apply_to_cpus(&make_gov_powersave);
                 }
 
                 // If the battery life is below 20%, set gov to powersave
                 if read_battery_charge()? < 20 {
-                    if self.verbose {
-                        println!("Governor set to powersave because battery was less than 20");
-                    }
-                    for cpu in self.cpus.iter_mut() {
-                        cpu.set_gov("powersave".to_string())
-                    }
+                    self.log("Governor set to powersave because battery was less than 20");
+                    self.apply_to_cpus(&make_gov_powersave);
                 }
             }
 

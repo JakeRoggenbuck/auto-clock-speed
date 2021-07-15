@@ -47,7 +47,7 @@ impl Checker for Daemon {
         let timeout = time::Duration::from_millis(self.delay);
 
         // The state for rules
-        let mut under_20_percent: bool = false;
+        let mut already_under_20_percent: bool = false;
 
         loop {
             // Update all the values for each cpu before they get used
@@ -61,12 +61,13 @@ impl Checker for Daemon {
                 }
 
                 // If the battery life is below 20%, set gov to powersave
-                if read_battery_charge()? < 20 && under_20_percent {
+                if read_battery_charge()? < 20 && !already_under_20_percent {
                     self.log("Governor set to powersave because battery was less than 20");
                     self.apply_to_cpus(&make_gov_powersave);
-                    under_20_percent = true;
-                } else {
-                    under_20_percent = false;
+                    already_under_20_percent = true;
+                // Make sure to reset state
+                } else if read_battery_charge()? >= 20 {
+                    already_under_20_percent = false;
                 }
             }
 

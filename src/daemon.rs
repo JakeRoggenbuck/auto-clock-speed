@@ -58,6 +58,7 @@ impl Checker for Daemon {
                 if read_lid_state()? == LidState::Closed && self.lid_state != LidState::Closed {
                     self.log("Governor set to powersave because lid closed");
                     self.apply_to_cpus(&make_gov_powersave);
+                    self.lid_state = LidState::Closed;
                 }
 
                 // If the battery life is below 20%, set gov to powersave

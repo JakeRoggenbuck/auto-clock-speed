@@ -60,6 +60,9 @@ impl Checker for Daemon {
                     self.apply_to_cpus(&make_gov_powersave);
                     self.lid_state = LidState::Closed;
                 }
+                if read_lid_state()? == LidState::Open {
+                    self.lid_state = LidState::Open;
+                }
 
                 // If the battery life is below 20%, set gov to powersave
                 if read_battery_charge()? < 20 && !already_under_20_percent {
@@ -67,7 +70,8 @@ impl Checker for Daemon {
                     self.apply_to_cpus(&make_gov_powersave);
                     already_under_20_percent = true;
                 // Make sure to reset state
-                } else if read_battery_charge()? >= 20 {
+                }
+                if read_battery_charge()? >= 20 {
                     already_under_20_percent = false;
                 }
             }

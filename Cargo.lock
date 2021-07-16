@@ -12,6 +12,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "autoclockspeed"
+version = "0.1.3"
+dependencies = [
+ "regex",
+ "structopt",
+ "termion",
+]
+
+[[package]]
 name = "bitflags"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -26,15 +35,6 @@ dependencies = [
  "bitflags",
  "textwrap",
  "unicode-width",
-]
-
-[[package]]
-name = "clockspeed"
-version = "0.1.1"
-dependencies = [
- "regex",
- "structopt",
- "termion",
 ]
 
 [[package]]

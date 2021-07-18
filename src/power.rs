@@ -1,9 +1,9 @@
 use super::Error;
+use std::cmp::PartialEq;
 use std::fmt;
 use std::fs::{read_dir, File};
 use std::io::Read;
 use std::path::Path;
-use std::cmp::PartialEq;
 
 #[derive(PartialEq)]
 pub enum LidState {

@@ -56,10 +56,10 @@ pub fn print_cpu(cpu: &CPU) {
         style::Bold,
         cpu.name,
         style::Reset,
-        cpu.max_freq/1000,
-        cpu.min_freq/1000,
+        cpu.max_freq / 1000,
+        cpu.min_freq / 1000,
         color::Fg(color::Green),
-        cpu.cur_freq/1000,
+        cpu.cur_freq / 1000,
         style::Reset,
         cpu.gov
     );

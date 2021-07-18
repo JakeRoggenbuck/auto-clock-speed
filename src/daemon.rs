@@ -29,7 +29,6 @@ fn make_gov_powersave(cpu: &mut CPU) {
 }
 
 impl Checker for Daemon {
-    // TODO: Change this to append message after cpu display
     fn log(&mut self, message: &str) {
         if self.verbose {
             self.logs.push(message.to_string());
@@ -69,7 +68,7 @@ impl Checker for Daemon {
                     self.log("Governor set to powersave because battery was less than 20");
                     self.apply_to_cpus(&make_gov_powersave);
                     already_under_20_percent = true;
-                // Make sure to reset state
+                    // Make sure to reset state
                 }
                 if read_battery_charge()? >= 20 {
                     already_under_20_percent = false;

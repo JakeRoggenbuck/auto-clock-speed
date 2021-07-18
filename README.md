@@ -10,13 +10,27 @@
     - Add options to display raw output of governors, clockspeed, turbo, battery, etc. for use in scripts or display panels like polybar.
 
 ## Install
-```
-git clone https://github.com/JakeRoggenbuck/auto-clock-speed
-cargo install --path auto-clock-speed
+If you have cargo on your machine, skip to step 3
 
-# Move the excecutable so sudo can access it
-sudo cp ~/.cargo/bin/acs /bin/acs
-```
+1. Install [`rustup.rs`](https://rustup.rs/).
+
+2. Setup compiler
+   ```sh
+   rustup override set stable
+   rustup update stable
+   ```
+
+3. Clone the project and install
+   ```
+   git clone https://github.com/JakeRoggenbuck/auto-clock-speed
+   cargo install --path auto-clock-speed
+   ```
+
+4. Copy the binary to /bin
+   ```
+   # Move the excecutable so sudo can access it
+   sudo cp ~/.cargo/bin/acs /bin/acs
+   ```
 
 ## Usage
 ### Monitor

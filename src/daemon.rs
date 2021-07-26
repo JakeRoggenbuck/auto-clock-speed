@@ -130,7 +130,7 @@ fn format_message(edit: bool, started_as_edit: bool, forced_reason: String, dela
     // Format the original message with mode and delay, along with the forced message if it
     // was forced to switched modes
     format!(
-        "Auto Clock Speed daemon has been initialized in {} mode with a delay of {} seconds{}\n",
+        "Auto Clock Speed daemon has been initialized in {} mode with a delay of {} milliseconds{}\n",
         if edit {
             format!("{}edit{}", color::Fg(color::Red), style::Reset)
         } else {

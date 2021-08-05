@@ -2,8 +2,8 @@ use super::cpu::{Speed, CPU};
 use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
 use super::system::list_cpus;
 use super::Error;
-use std::{thread, time};
 use nix::unistd::Uid;
+use std::{thread, time};
 use termion::{color, style};
 
 pub trait Checker {
@@ -162,6 +162,7 @@ pub fn daemon_init(verbose: bool, delay: u64, mut edit: bool) -> Result<Daemon, 
         println!("{}{}{}", color::Fg(color::Black), color::Bg(color::Red), "Inorder to properly run the daemon in edit mode you must give the executable root privlages.\nContinuing anyway in 5 seconds.");
         let timeout = time::Duration::from_millis(5000);
         thread::sleep(timeout);
+        println!("{}", style::Reset);
     }
 
     let message = format_message(edit, started_as_edit, forced_reason, delay);

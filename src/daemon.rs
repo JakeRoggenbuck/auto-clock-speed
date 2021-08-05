@@ -3,6 +3,7 @@ use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_
 use super::system::list_cpus;
 use super::Error;
 use std::{thread, time};
+use nix::unistd::Uid;
 use termion::{color, style};
 
 pub trait Checker {
@@ -155,7 +156,13 @@ pub fn daemon_init(verbose: bool, delay: u64, mut edit: bool) -> Result<Daemon, 
         Err(_) => eprintln!("Could not check battery"),
     }
 
-    // TODO: Check if the executable has permission to edit speeds, otherwise for to monitor mode
+    // Maybe this could be a function in the future I can't think of any other reason why we would
+    // need to check permissions
+    if !Uid::effective().is_root() {
+        println!("{}{}{}", color::Fg(color::Black), color::Bg(color::Red), "Inorder to properly run the daemon in edit mode you must give the executable root privlages.\nContinuing anyway in 5 seconds.");
+        let timeout = time::Duration::from_millis(5000);
+        thread::sleep(timeout);
+    }
 
     let message = format_message(edit, started_as_edit, forced_reason, delay);
     // Create a new Daemon

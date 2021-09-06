@@ -1,12 +1,13 @@
 use super::display::print_cpu;
 use super::exit;
-use super::{Error, GovGetError, GovSetError, SpeedGetError, SpeedSetError};
+use super::{Error, GovGetError, TempGetError, GovSetError, SpeedGetError, SpeedSetError};
 use std::fs::File;
 use std::io::{Read, Write};
 
 pub trait Speed {
     fn read_int(&mut self, sub_path: String) -> Result<i32, Error>;
     fn read_str(&mut self, sub_path: String) -> Result<String, Error>;
+    fn read_temp(&mut self, sub_path: String) -> Result<i32, Error>;
     fn write_value(&mut self, value: WritableValue) -> Result<(), Error>;
     fn update(&mut self);
     fn init_cpu(&mut self);
@@ -15,6 +16,7 @@ pub trait Speed {
     fn get_max(&mut self);
     fn get_min(&mut self);
     fn get_cur(&mut self);
+    fn get_temp(&mut self);
     fn get_gov(&mut self);
     fn set_gov(&mut self, gov: String);
     fn print(&self);
@@ -26,6 +28,7 @@ pub struct CPU {
     pub max_freq: i32,
     pub min_freq: i32,
     pub cur_freq: i32,
+    pub cur_temp: i32,
     pub gov: String,
 }
 
@@ -46,6 +49,24 @@ impl Speed for CPU {
 
         // Remove the last character (the newline)
         info.pop();
+        match info.parse::<i32>() {
+            Err(_) => {
+                eprintln!("Could not read {}", sub_path);
+                exit(1);
+            }
+            Ok(a) => Ok(a),
+        }
+    }
+
+    fn read_temp(&mut self, sub_path: String) -> Result<i32, Error> {
+        let mut info: String = String::new();
+        let cpu_info_path: String = format!("/sys/class/thermal/{}/{}", self.name.replace("cpu", "thermal_zone"), sub_path);
+
+        File::open(cpu_info_path)?.read_to_string(&mut info)?;
+
+        // Remove the last character (the newline)
+        info.pop();
+
         match info.parse::<i32>() {
             Err(_) => {
                 eprintln!("Could not read {}", sub_path);
@@ -98,6 +119,7 @@ impl Speed for CPU {
         self.get_max();
         self.get_min();
         self.get_cur();
+        self.get_temp();
         self.get_gov();
     }
 
@@ -165,6 +187,20 @@ impl Speed for CPU {
             }
         }
     }
+
+    fn get_temp(&mut self) {
+        let path = "temp";
+        match self.read_temp(path.to_string()) {
+            Ok(a) => {
+                self.cur_temp = a;
+            }
+            Err(_) => {
+                eprint!("{}", TempGetError);
+                exit(1)
+            }
+        }
+    }
+
     fn get_gov(&mut self) {
         let path = "cpufreq/scaling_governor";
         match self.read_str(path.to_string()) {

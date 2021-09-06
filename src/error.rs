@@ -40,9 +40,9 @@ impl fmt::Display for GovGetError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "Could not get the governor, possibly incompatible cpu.\
-            Give us a bug report by opening an issue at\
-            https://github.com/JakeRoggenbuck/auto-clock-speed/issues/new/choose"
+            "Could not get the governor, possibly incompatible cpu.
+Give us a bug report by opening an issue at
+https://github.com/JakeRoggenbuck/auto-clock-speed/issues/new/choose"
         )
     }
 }
@@ -51,9 +51,9 @@ impl fmt::Display for SpeedGetError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "Could not get the speed, possibly incompatible cpu.\
-            Give us a bug report by opening an issue at\
-            https://github.com/JakeRoggenbuck/auto-clock-speed/issues/new/choose"
+            "Could not get the speed, possibly incompatible cpu.
+Give us a bug report by opening an issue at
+https://github.com/JakeRoggenbuck/auto-clock-speed/issues/new/choose"
         )
     }
 }

@@ -156,13 +156,19 @@ pub fn daemon_init(verbose: bool, delay: u64, mut edit: bool) -> Result<Daemon, 
         Err(_) => eprintln!("Could not check battery"),
     }
 
-    // Maybe this could be a function in the future I can't think of any other reason why we would
-    // need to check permissions
-    if !Uid::effective().is_root() {
-        println!("{}{}{}", color::Fg(color::Black), color::Bg(color::Red), "Inorder to properly run the daemon in edit mode you must give the executable root privlages.\nContinuing anyway in 5 seconds.");
-        let timeout = time::Duration::from_millis(5000);
-        thread::sleep(timeout);
-        println!("{}", style::Reset);
+    // Check if effective permissions are enough for edit
+    if edit {
+        if !Uid::effective().is_root() {
+            println!(
+                "{}{}{}{}",
+                color::Fg(color::Red),
+                "In order to properly run the daemon in edit mode you must give the executable root privileges.", 
+                "Continuing anyway in 5 seconds.",
+                style::Reset
+            );
+            let timeout = time::Duration::from_millis(5000);
+            thread::sleep(timeout);
+        }
     }
 
     let message = format_message(edit, started_as_edit, forced_reason, delay);
@@ -171,6 +177,7 @@ pub fn daemon_init(verbose: bool, delay: u64, mut edit: bool) -> Result<Daemon, 
         cpus: Vec::<CPU>::new(),
         verbose,
         delay,
+        // If the program is supposed to change any values (needs root)
         edit,
         message,
         // TODO: Get the lid state if possible or set to Unknown if not

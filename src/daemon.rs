@@ -162,8 +162,8 @@ pub fn daemon_init(verbose: bool, delay: u64, mut edit: bool) -> Result<Daemon, 
             println!(
                 "{}{}{}{}",
                 color::Fg(color::Red),
-                "In order to properly run the daemon in edit mode you must give the executable root privileges.", 
-                "Continuing anyway in 5 seconds.",
+                "In order to properly run the daemon in edit mode you must give the executable root privileges.\n", 
+                "Continuing anyway in 5 seconds...",
                 style::Reset
             );
             let timeout = time::Duration::from_millis(5000);

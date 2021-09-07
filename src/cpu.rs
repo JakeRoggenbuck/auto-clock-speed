@@ -62,10 +62,10 @@ impl Speed for CPU {
     fn read_temp(&mut self, sub_path: String) -> Result<i32, Error> {
         let mut info: String = String::new();
         let cpu_info_path: String = format!(
-+            "/sys/class/thermal/{}/{}",
-+            self.name.replace("cpu", "thermal_zone"),
-+            sub_path
-+        );
+            "/sys/class/thermal/{}/{}",
+            self.name.replace("cpu", "thermal_zone"),
+            sub_path
+        );
         if !Path::new(&cpu_info_path).exists() {
             return Ok(-1);
         }

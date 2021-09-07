@@ -64,9 +64,9 @@ impl fmt::Display for TempGetError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "Could not get the temperature, possibly incompatible cpu or system.\
-            Give us a bug report by opening an issue at\
-            https://github.com/JakeRoggenbuck/auto-clock-speed/issues/new/choose"
+            "Could not get the temperature, possibly incompatible cpu or system.
+Give us a bug report by opening an issue at
+https://github.com/JakeRoggenbuck/auto-clock-speed/issues/new/choose"
         )
     }
 }

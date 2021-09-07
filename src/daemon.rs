@@ -168,6 +168,8 @@ pub fn daemon_init(verbose: bool, delay: u64, mut edit: bool) -> Result<Daemon, 
             );
             let timeout = time::Duration::from_millis(5000);
             thread::sleep(timeout);
+            edit = false;
+            forced_reason = "acs was not run as root".to_string();
         }
     }
 

@@ -1,15 +1,15 @@
 use daemon::{daemon_init, Checker};
 use display::{
-    print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpus, print_freq,
+    print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpu_temp, print_cpus, print_freq,
     print_turbo,
 };
-use error::{Error, GovGetError, GovSetError, SpeedGetError, SpeedSetError};
+use error::{Error, GovGetError, TempGetError, GovSetError, SpeedGetError, SpeedSetError};
 use power::{read_battery_charge, read_lid_state, read_power_source};
 use std::process::exit;
 use structopt::StructOpt;
 use system::{
     check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
-    list_cpu_governors, list_cpu_speeds, list_cpus,
+    list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus,
 };
 
 pub mod cpu;
@@ -56,6 +56,13 @@ enum Command {
     /// The speed of the individual cores
     #[structopt(name = "get-cpu-speeds")]
     GetSpeeds {
+        #[structopt(short, long)]
+        raw: bool,
+    },
+
+    /// The temperature of the individual cores
+    #[structopt(name = "get-cpu-temp")]
+    GetTemp {
         #[structopt(short, long)]
         raw: bool,
     },
@@ -124,6 +131,10 @@ fn main() {
         Command::GetSpeeds { raw } => match list_cpu_speeds() {
             Ok(cpu_speeds) => print_cpu_speeds(cpu_speeds, raw),
             Err(_) => println!("Failed to get list of cpu speeds"),
+        },
+        Command::GetTemp { raw } => match list_cpu_temp() {
+            Ok(cpu_temp) => print_cpu_temp(cpu_temp, raw),
+            Err(_) => println!("Failed to get list of cpu temperature"),
         },
         Command::GetGovernors { raw } => match list_cpu_governors() {
             Ok(cpu_governors) => print_cpu_governors(cpu_governors, raw),

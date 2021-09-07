@@ -52,7 +52,7 @@ pub fn print_cpus(cpus: Vec<CPU>, name: String) {
 
 pub fn print_cpu(cpu: &CPU) {
     println!(
-        "{}{}:{} {}Hz\t{}Hz\t{}{}Hz{}\t{}",
+        "{}{}:{} {}Hz\t{}Hz\t{}{}Hz{}\t{}{}C\t{}",
         style::Bold,
         cpu.name,
         style::Reset,
@@ -61,12 +61,18 @@ pub fn print_cpu(cpu: &CPU) {
         color::Fg(color::Green),
         cpu.cur_freq / 1000,
         style::Reset,
+        cpu.cur_temp / 1000,
+        style::Reset,
         cpu.gov
     );
 }
 
 pub fn print_cpu_speeds(cpu_speeds: Vec<i32>, raw: bool) {
     print_vec(cpu_speeds, raw);
+}
+
+pub fn print_cpu_temp(cpu_temp: Vec<i32>, raw: bool) {
+    print_vec(cpu_temp, raw);
 }
 
 pub fn print_cpu_governors(cpu_governors: Vec<String>, raw: bool) {

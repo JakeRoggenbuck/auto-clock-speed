@@ -104,6 +104,7 @@ pub fn list_cpus() -> Result<Vec<CPU>, Error> {
             max_freq: 0,
             min_freq: 0,
             cur_freq: 0,
+            cur_temp: 0,
             gov: "Unknown".to_string(),
         };
 
@@ -125,6 +126,18 @@ pub fn list_cpu_speeds() -> Result<Vec<i32>, Error> {
         speeds.push(speed)
     }
     Ok(speeds)
+}
+
+/// Get a vector of temperatures reported from each cpu from list_cpus
+pub fn list_cpu_temp() -> Result<Vec<i32>, Error> {
+    let cpus = list_cpus()?;
+    let mut temp = Vec::<i32>::new();
+
+    for cpu in cpus {
+        let temperature = cpu.cur_temp;
+        temp.push(temperature)
+    }
+    Ok(temp)
 }
 
 /// Get a vector of the governors that the cpus from list_cpus

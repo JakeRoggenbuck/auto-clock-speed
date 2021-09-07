@@ -18,6 +18,8 @@ pub struct SpeedSetError;
 pub struct GovGetError;
 pub struct SpeedGetError;
 
+pub struct TempGetError;
+
 impl fmt::Display for GovSetError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -58,6 +60,17 @@ impl fmt::Display for SpeedGetError {
     }
 }
 
+impl fmt::Display for TempGetError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "Could not get the temperature, possibly incompatible cpu or system.\
+            Give us a bug report by opening an issue at\
+            https://github.com/JakeRoggenbuck/auto-clock-speed/issues/new/choose"
+        )
+    }
+}
+
 impl fmt::Debug for GovSetError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{{ file: {}, line: {} }}", file!(), line!())
@@ -77,6 +90,12 @@ impl fmt::Debug for GovGetError {
 }
 
 impl fmt::Debug for SpeedGetError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{{ file: {}, line: {} }}", file!(), line!())
+    }
+}
+
+impl fmt::Debug for TempGetError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{{ file: {}, line: {} }}", file!(), line!())
     }

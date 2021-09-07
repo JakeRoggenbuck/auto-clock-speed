@@ -106,7 +106,7 @@ impl Checker for Daemon {
         for cpu in &self.cpus {
             cpu.print();
         }
-        println!("\nctrl+c to stop monitoring\n\n");
+        println!("\nctrl+c to stop running\n\n");
         if self.verbose {
             for log in &self.logs {
                 println!("{}", log)

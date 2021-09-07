@@ -53,6 +53,19 @@ sudo acs run
 sudo acs run --quiet
 ```
 
+### Get
+```sh
+# Get information about the system
+
+# View all of get's subcommands
+acs get --help
+
+acs get temp
+acs get freq
+acs get cpu-speeds
+```
+
+
 ## Help
 ```
 Automatic CPU frequency scaler and power saver
@@ -65,13 +78,8 @@ FLAGS:
     -V, --version    Prints version information
 
 SUBCOMMANDS:
-    get-available-governors    Get the available governor
-    get-cpu-governors          The governors of the individual cores
-    get-cpu-speeds             The speed of the individual cores
-    get-cpus                   The names of the core
-    get-freq                   The overall frequency of your cpu
-    get-turbo                  Get whether turbo is enabled or not
-    help                       Prints this message or the help of the given subcommand(s)
-    monitor                    Monitor each cpu, it's min, max, and current speed, along with the governor
-    run                        Run the daemon, this checks and edit your cpu's speed
+    get        Get a specific value or status
+    help       Prints this message or the help of the given subcommand(s)
+    monitor    Monitor each cpu, it's min, max, and current speed, along with the governor
+    run        Run the daemon, this checks and edit your cpu's speed
 ```

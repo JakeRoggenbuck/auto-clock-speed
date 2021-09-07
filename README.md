@@ -9,27 +9,32 @@
 - Secondly, try to improve upon AdnanHodzic's already amazing [auto-cpufreq](https://github.com/AdnanHodzic/auto-cpufreq)
     - Add options to display raw output of governors, clockspeed, turbo, battery, etc. for use in scripts or display panels like polybar.
 
-## Install
+## Install Latest Release
 If you have cargo on your machine, skip to step 3
 
 1. Install [`rustup.rs`](https://rustup.rs/).
 
-2. Setup compiler
+2. Setup rust
    ```sh
    rustup override set stable
    rustup update stable
    ```
 
-3. Clone the project and install
+3. Install from crates
    ```
-   git clone https://github.com/JakeRoggenbuck/auto-clock-speed
-   cargo install --path auto-clock-speed
+   cargo install autoclockspeed
    ```
 
-4. Copy the binary to /bin
+## Install from github
+Do steps 1 and 2 from other install if you don't have rust installed, then do this next step.
+
+3. Clone the project and install
+
    ```
-   # Move the excecutable so sudo can access it
-   sudo cp ~/.cargo/bin/acs /bin/acs
+   git clone https://github.com/JakeRoggenbuck/auto-clock-speed
+   ```
+   ```
+   cargo install --path auto-clock-speed
    ```
 
 ## Usage

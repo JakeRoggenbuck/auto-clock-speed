@@ -37,6 +37,22 @@ Do steps 1 and 2 from other install if you don't have rust installed, then do th
    cargo install --path auto-clock-speed
    ```
 
+## Systemd
+Inorder to have auto clock speed start when you restart your computer you must follow these instruction
+```
+# IMPORTANT: Modify the service file to include the path to the binary file (usually /home/username/.cargo/bin/acs)
+
+# In the auto clock speed directory run this command to move the service file into your systemd directory
+sudo mv acs.service /etc/systemd/system
+
+# Start and enable the service
+systemctl start acs
+systemctl enable acs
+
+# Check service is up and running
+systemctl status acs
+```
+
 ## Usage
 ### Monitor
 ```sh

@@ -1,0 +1,8 @@
+[Unit]
+Description=Manages Clock Speed
+
+[Service]
+ExecStart=/home/cameron/.cargo/bin/acs run
+
+[Install]
+WantedBy=multi-user.target

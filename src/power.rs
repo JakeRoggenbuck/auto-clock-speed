@@ -69,7 +69,7 @@ pub fn read_battery_charge() -> Result<i8, Error> {
 
 pub fn read_power_source() -> Result<bool, Error> {
     if !Path::new("/sys/class/power_supply/AC0/online").exists() {
-        println!("Unexpected, the directory /sys/class/power_supple/AC0/online doesn't exist? Do you not have a power source?");
+        println!("Unexpected, the directory /sys/class/power_supply/AC0/online doesn't exist? Do you not have a power source?");
         return Ok(true);
     }
 

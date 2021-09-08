@@ -91,10 +91,11 @@ impl Checker for Daemon {
                 if self.charging && !already_charging {
                     self.log("Governor set to performance because battery is charging");
                     self.apply_to_cpus(&make_gov_performance);
+                    already_charging = true;
                 }
                 if !self.charging && already_charging {
-                    already_charging = false;
                     self.apply_to_cpus(&make_gov_powersave);
+                    already_charging = false;
                 }
             }
 

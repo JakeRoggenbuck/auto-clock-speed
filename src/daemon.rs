@@ -29,6 +29,10 @@ fn make_gov_powersave(cpu: &mut CPU) {
     cpu.set_gov("powersave".to_string())
 }
 
+fn make_gov_performance(cpu: &mut CPU) {
+    cpu.set_gov("performance".to_string())
+}
+
 impl Checker for Daemon {
     fn log(&mut self, message: &str) {
         if self.verbose {
@@ -73,6 +77,15 @@ impl Checker for Daemon {
                 }
                 if read_battery_charge()? >= 20 {
                     already_under_20_percent = false;
+                }
+
+                // Update charging status
+                self.charging = read_power_source()?;
+
+                // If the battery is charging, set to performance
+                if self.charging {
+                    self.log("Governor set to performance because battery is charging");
+                    self.apply_to_cpus(&make_gov_performance);
                 }
             }
 

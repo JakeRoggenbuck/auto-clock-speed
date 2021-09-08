@@ -94,6 +94,7 @@ impl Checker for Daemon {
                 }
                 if !self.charging && already_charging {
                     already_charging = false;
+                    self.apply_to_cpus(&make_gov_powersave);
                 }
             }
 

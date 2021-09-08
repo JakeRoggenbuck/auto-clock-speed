@@ -70,33 +70,3 @@ https://github.com/JakeRoggenbuck/auto-clock-speed/issues/new/choose"
         )
     }
 }
-
-impl fmt::Debug for GovSetError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{{ file: {}, line: {} }}", file!(), line!())
-    }
-}
-
-impl fmt::Debug for SpeedSetError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{{ file: {}, line: {} }}", file!(), line!())
-    }
-}
-
-impl fmt::Debug for GovGetError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{{ file: {}, line: {} }}", file!(), line!())
-    }
-}
-
-impl fmt::Debug for SpeedGetError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{{ file: {}, line: {} }}", file!(), line!())
-    }
-}
-
-impl fmt::Debug for TempGetError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{{ file: {}, line: {} }}", file!(), line!())
-    }
-}

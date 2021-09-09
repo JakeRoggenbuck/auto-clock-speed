@@ -29,6 +29,10 @@ fn make_gov_powersave(cpu: &mut CPU) {
     cpu.set_gov("powersave".to_string())
 }
 
+fn make_gov_performance(cpu: &mut CPU) {
+    cpu.set_gov("performance".to_string())
+}
+
 impl Checker for Daemon {
     fn log(&mut self, message: &str) {
         if self.verbose {
@@ -48,12 +52,15 @@ impl Checker for Daemon {
 
         // The state for rules
         let mut already_under_20_percent: bool = false;
+        let mut already_charging: bool = self.charging;
 
         loop {
             // Update all the values for each cpu before they get used
             self.update_all();
 
             if self.edit {
+
+                // Lid close rule -> gov powersave
                 // If the lid just closed, turn on powersave
                 if read_lid_state()? == LidState::Closed && self.lid_state != LidState::Closed {
                     self.log("Governor set to powersave because lid closed");
@@ -64,6 +71,7 @@ impl Checker for Daemon {
                     self.lid_state = LidState::Open;
                 }
 
+                // Under 20% rule -> gov powersave
                 // If the battery life is below 20%, set gov to powersave
                 if read_battery_charge()? < 20 && !already_under_20_percent {
                     self.log("Governor set to powersave because battery was less than 20");
@@ -73,6 +81,22 @@ impl Checker for Daemon {
                 }
                 if read_battery_charge()? >= 20 {
                     already_under_20_percent = false;
+                }
+
+                // Charging rule -> gov performance
+                // Update charging status
+                self.charging = read_power_source()?;
+
+                // If the battery is charging, set to performance
+                if self.charging && !already_charging {
+                    self.log("Governor set to performance because battery is charging");
+                    self.apply_to_cpus(&make_gov_performance);
+                    already_charging = true;
+                }
+                if !self.charging && already_charging {
+                    self.log("Governor set to powersave because battery is no longer charging");
+                    self.apply_to_cpus(&make_gov_powersave);
+                    already_charging = false;
                 }
             }
 

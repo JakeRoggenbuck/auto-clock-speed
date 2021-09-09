@@ -94,6 +94,7 @@ impl Checker for Daemon {
                     already_charging = true;
                 }
                 if !self.charging && already_charging {
+                    self.log("Governor set to powersave because battery is no longer charging");
                     self.apply_to_cpus(&make_gov_powersave);
                     already_charging = false;
                 }

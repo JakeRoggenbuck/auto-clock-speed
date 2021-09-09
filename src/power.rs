@@ -68,13 +68,13 @@ pub fn read_battery_charge() -> Result<i8, Error> {
 }
 
 pub fn read_power_source() -> Result<bool, Error> {
-    if !Path::new("/sys/class/power_supply/AC0/online").exists() {
-        println!("Unexpected, the directory /sys/class/power_supply/AC0/online doesn't exist? Do you not have a power source?");
+    if !Path::new("/sys/class/power_supply/AC/online").exists() {
+        println!("Unexpected, the directory /sys/class/power_supply/AC/online doesn't exist? Do you not have a power source?");
         return Ok(true);
     }
 
     let mut pwr_str: String = String::new();
-    File::open("/sys/class/power_supply/AC0/online")?.read_to_string(&mut pwr_str)?;
+    File::open("/sys/class/power_supply/AC/online")?.read_to_string(&mut pwr_str)?;
 
     // Remove the \n char
     pwr_str.pop();

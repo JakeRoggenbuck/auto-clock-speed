@@ -46,13 +46,13 @@ In order to have auto-clock-speed start when you restart your computer you must 
 
 ```
 # In the auto clock speed directory run this command to move the service file into your systemd directory
-sudo mv acs.service /etc/systemd/system
+sudo cp acs.service /etc/systemd/system/
 ```
 
 ```
 # Start and enable the service
-systemctl start acs
-systemctl enable acs
+sudo systemctl start acs
+sudo systemctl enable acs
 
 # Check service is up and running
 systemctl status acs

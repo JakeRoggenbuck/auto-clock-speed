@@ -123,7 +123,7 @@ enum Command {
 }
 
 fn main() {
-    let main_daemon: daemon::Daemon;
+    let mut main_daemon: daemon::Daemon;
 
     match Command::from_args() {
         // Everything starting with "get"
@@ -180,7 +180,7 @@ fn main() {
 
         // Run command
         Command::Run { quiet, delay } => match daemon_init(!quiet, delay, true) {
-            Ok(mut d) => {
+            Ok(d) => {
                 main_daemon = d;
                 main_daemon.run().unwrap_err();
             }
@@ -189,7 +189,7 @@ fn main() {
 
         // Monitor command
         Command::Monitor { delay } => match daemon_init(true, delay, false) {
-            Ok(mut d) => {
+            Ok(d) => {
                 main_daemon = d;
                 main_daemon.run().unwrap_err();
             }

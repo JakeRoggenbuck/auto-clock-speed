@@ -73,6 +73,15 @@ enum GetType {
 }
 
 #[derive(StructOpt)]
+enum SetType {
+    #[structopt(name = "gov")]
+    Gov {
+        #[structopt()]
+        value: String,
+    },
+}
+
+#[derive(StructOpt)]
 #[structopt(
     name = "autoclockspeed",
     about = "Automatic CPU frequency scaler and power saver"
@@ -84,6 +93,12 @@ enum Command {
         /// The type of value to request
         #[structopt(subcommand)]
         get: GetType,
+    },
+
+    #[structopt(name = "set")]
+    Set {
+        #[structopt(subcommand)]
+        set: SetType,
     },
 
     /// Run the daemon, this checks and edit your cpu's speed
@@ -108,7 +123,10 @@ enum Command {
 }
 
 fn main() {
+    let main_daemon: daemon::Daemon;
+
     match Command::from_args() {
+        // Everything starting with "get"
         Command::Get { get } => match get {
             GetType::Freq { raw } => match check_cpu_freq() {
                 Ok(f) => print_freq(f, raw),
@@ -154,15 +172,26 @@ fn main() {
                 Err(_) => println!("Failed to get list of cpu governors"),
             },
         },
+
+        // Everything starting with "set"
+        Command::Set { set } => match set {
+            SetType::Gov {value} => println!("Hello {}", value),
+        },
+
+        // Run command
         Command::Run { quiet, delay } => match daemon_init(!quiet, delay, true) {
             Ok(mut d) => {
-                d.run().unwrap_err();
+                main_daemon = d;
+                main_daemon.run().unwrap_err();
             }
             Err(_) => eprint!("Could not run daemon in edit mode"),
         },
+
+        // Monitor command
         Command::Monitor { delay } => match daemon_init(true, delay, false) {
             Ok(mut d) => {
-                d.run().unwrap_err();
+                main_daemon = d;
+                main_daemon.run().unwrap_err();
             }
             Err(_) => eprint!("Could not run daemon in monitor mode"),
         },

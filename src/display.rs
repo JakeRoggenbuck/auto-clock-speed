@@ -51,8 +51,17 @@ pub fn print_cpus(cpus: Vec<CPU>, name: String) {
 }
 
 pub fn print_cpu(cpu: &CPU) {
+
+    let mut temp_color: String = color::Fg(color::Green).to_string();
+
+    if cpu.cur_temp / 1000 > 60 {
+        temp_color = color::Fg(color::Red).to_string();
+    } else if cpu.cur_temp / 1000 > 40 {
+        temp_color = color::Fg(color::Yellow).to_string();
+    }
+
     println!(
-        "{}{}:{} {}Hz\t{}Hz\t{}{}Hz{}\t{}{}C\t{}",
+        "{}{}:{} {}Hz\t{}Hz\t{}{}Hz{}\t{}C{}\t{}",
         style::Bold,
         cpu.name,
         style::Reset,
@@ -60,7 +69,7 @@ pub fn print_cpu(cpu: &CPU) {
         cpu.min_freq / 1000,
         color::Fg(color::Green),
         cpu.cur_freq / 1000,
-        style::Reset,
+        temp_color,
         cpu.cur_temp / 1000,
         style::Reset,
         cpu.gov

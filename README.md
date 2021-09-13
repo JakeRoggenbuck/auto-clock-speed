@@ -45,7 +45,8 @@ In order to have auto-clock-speed start when you restart your computer you must 
 ```
 
 ```
-# In the auto clock speed directory run this command to move the service file into your systemd directory
+# In the auto clock speed directory run this command to
+# move the service file into your systemd directory
 sudo cp acs.service /etc/systemd/system/
 ```
 

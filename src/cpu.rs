@@ -132,7 +132,7 @@ impl Speed for CPU {
         Ok(())
     }
 
-    fn init_cpu(&mut self) -> Result<(), Error>{
+    fn init_cpu(&mut self) -> Result<(), Error> {
         self.update()?;
         Ok(())
     }

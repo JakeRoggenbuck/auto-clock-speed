@@ -46,7 +46,7 @@ impl fmt::Display for Log {
             ),
         };
 
-        let time = DateTime::<Utc>::from(self.timestamp).format("%Y-%m-%d %H:%M:%S.%f");
+        let time = DateTime::<Utc>::from(self.timestamp).format("%Y-%m-%d %H:%M:%S");
 
         write!(f, "{} {} -> {}", severity, time, self.message)
     }

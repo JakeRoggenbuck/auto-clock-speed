@@ -9,9 +9,13 @@ use std::{thread, time};
 use termion::{color, style};
 
 pub trait Checker {
-    fn apply_to_cpus(&mut self, operation: &dyn Fn(&mut CPU));
+    fn apply_to_cpus(
+        &mut self,
+        operation: &dyn Fn(&mut CPU) -> Result<(), Error>,
+    ) -> Result<(), Error>;
+
     fn run(&mut self) -> Result<(), Error>;
-    fn update_all(&mut self);
+    fn update_all(&mut self) -> Result<(), Error>;
     fn print(&self);
 }
 
@@ -26,20 +30,26 @@ pub struct Daemon {
     pub logger: logger::Logger,
 }
 
-fn make_gov_powersave(cpu: &mut CPU) {
-    cpu.set_gov("powersave".to_string())
+fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
+    cpu.set_gov("powersave".to_string())?;
+    Ok(())
 }
 
-fn make_gov_performance(cpu: &mut CPU) {
-    cpu.set_gov("performance".to_string())
+fn make_gov_performance(cpu: &mut CPU) -> Result<(), Error> {
+    cpu.set_gov("performance".to_string())?;
+    Ok(())
 }
 
 impl Checker for Daemon {
     /// Apply a function to every cpu
-    fn apply_to_cpus(&mut self, operation: &dyn Fn(&mut CPU)) {
+    fn apply_to_cpus(
+        &mut self,
+        operation: &dyn Fn(&mut CPU) -> Result<(), Error>,
+    ) -> Result<(), Error> {
         for cpu in self.cpus.iter_mut() {
-            operation(cpu);
+            operation(cpu)?;
         }
+        Ok(())
     }
 
     fn run(&mut self) -> Result<(), Error> {
@@ -51,7 +61,7 @@ impl Checker for Daemon {
 
         loop {
             // Update all the values for each cpu before they get used
-            self.update_all();
+            self.update_all()?;
 
             if self.edit {
                 // Lid close rule -> gov powersave
@@ -61,7 +71,7 @@ impl Checker for Daemon {
                         "Governor set to powersave because lid closed",
                         logger::Severity::Log,
                     );
-                    self.apply_to_cpus(&make_gov_powersave);
+                    self.apply_to_cpus(&make_gov_powersave)?;
                     self.lid_state = LidState::Closed;
                 }
                 if read_lid_state()? == LidState::Open {
@@ -75,7 +85,7 @@ impl Checker for Daemon {
                         "Governor set to powersave because battery was less than 20",
                         logger::Severity::Log,
                     );
-                    self.apply_to_cpus(&make_gov_powersave);
+                    self.apply_to_cpus(&make_gov_powersave)?;
                     already_under_20_percent = true;
                     // Make sure to reset state
                 }
@@ -93,7 +103,7 @@ impl Checker for Daemon {
                         "Governor set to performance because battery is charging",
                         logger::Severity::Log,
                     );
-                    self.apply_to_cpus(&make_gov_performance);
+                    self.apply_to_cpus(&make_gov_performance)?;
                     already_charging = true;
                 }
                 if !self.charging && already_charging {
@@ -101,7 +111,7 @@ impl Checker for Daemon {
                         "Governor set to powersave because battery is no longer charging",
                         logger::Severity::Log,
                     );
-                    self.apply_to_cpus(&make_gov_powersave);
+                    self.apply_to_cpus(&make_gov_powersave)?;
                     already_charging = false;
                 }
             }
@@ -116,10 +126,11 @@ impl Checker for Daemon {
     }
 
     /// Calls update on each cpu to update the state of each one
-    fn update_all(&mut self) {
+    fn update_all(&mut self) -> Result<(), Error> {
         for cpu in self.cpus.iter_mut() {
-            cpu.update();
+            cpu.update()?;
         }
+        Ok(())
     }
 
     /// Output the values from each cpu
@@ -225,7 +236,7 @@ pub fn daemon_init(verbose: bool, delay: u64, mut edit: bool) -> Result<Daemon, 
     // Make a cpu struct for each cpu listed
     for mut cpu in list_cpus()? {
         // Fill that value that were zero with real values
-        cpu.init_cpu();
+        cpu.init_cpu()?;
         daemon.cpus.push(cpu);
     }
 

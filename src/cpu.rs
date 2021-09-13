@@ -1,6 +1,6 @@
 use super::display::print_cpu;
 use super::exit;
-use super::{Error, GovGetError, GovSetError, SpeedGetError, SpeedSetError, TempGetError};
+use super::Error;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
@@ -10,16 +10,16 @@ pub trait Speed {
     fn read_str(&mut self, sub_path: String) -> Result<String, Error>;
     fn read_temp(&mut self, sub_path: String) -> Result<i32, Error>;
     fn write_value(&mut self, value: WritableValue) -> Result<(), Error>;
-    fn update(&mut self);
-    fn init_cpu(&mut self);
-    fn set_max(&mut self, max: i32);
-    fn set_min(&mut self, min: i32);
-    fn get_max(&mut self);
-    fn get_min(&mut self);
-    fn get_cur(&mut self);
-    fn get_temp(&mut self);
-    fn get_gov(&mut self);
-    fn set_gov(&mut self, gov: String);
+    fn update(&mut self) -> Result<(), Error>;
+    fn init_cpu(&mut self) -> Result<(), Error>;
+    fn set_max(&mut self, max: i32) -> Result<(), Error>;
+    fn set_min(&mut self, min: i32) -> Result<(), Error>;
+    fn get_max(&mut self) -> Result<(), Error>;
+    fn get_min(&mut self) -> Result<(), Error>;
+    fn get_cur(&mut self) -> Result<(), Error>;
+    fn get_temp(&mut self) -> Result<(), Error>;
+    fn get_gov(&mut self) -> Result<(), Error>;
+    fn set_gov(&mut self, gov: String) -> Result<(), Error>;
     fn print(&self);
 }
 
@@ -123,114 +123,66 @@ impl Speed for CPU {
 
     /// Get all the attributes of a cpu
     /// These get methods write the value returned
-    fn update(&mut self) {
-        self.get_max();
-        self.get_min();
-        self.get_cur();
-        self.get_temp();
-        self.get_gov();
+    fn update(&mut self) -> Result<(), Error> {
+        self.get_max()?;
+        self.get_min()?;
+        self.get_cur()?;
+        self.get_temp()?;
+        self.get_gov()?;
+        Ok(())
     }
 
-    fn init_cpu(&mut self) {
-        self.update();
+    fn init_cpu(&mut self) -> Result<(), Error>{
+        self.update()?;
+        Ok(())
     }
 
-    fn set_max(&mut self, max: i32) {
+    fn set_max(&mut self, max: i32) -> Result<(), Error> {
         self.max_freq = max;
-        match self.write_value(WritableValue::Max) {
-            Err(_) => {
-                eprint!("{}", SpeedSetError);
-                exit(1);
-            }
-            Ok(_) => (),
-        };
+        self.write_value(WritableValue::Max)?;
+        Ok(())
     }
 
-    fn set_min(&mut self, min: i32) {
+    fn set_min(&mut self, min: i32) -> Result<(), Error> {
         self.min_freq = min;
-        match self.write_value(WritableValue::Min) {
-            Err(_) => {
-                eprint!("{}", SpeedSetError);
-                exit(1);
-            }
-            Ok(_) => (),
-        };
+        self.write_value(WritableValue::Min)?;
+        Ok(())
     }
 
-    fn get_max(&mut self) {
+    fn get_max(&mut self) -> Result<(), Error> {
         let path = "cpufreq/scaling_max_freq";
-        match self.read_int(path.to_string()) {
-            Ok(a) => {
-                self.max_freq = a;
-            }
-            Err(_) => {
-                eprint!("{}", SpeedGetError);
-                exit(1);
-            }
-        }
+        self.max_freq = self.read_int(path.to_string())?;
+        Ok(())
     }
 
-    fn get_min(&mut self) {
+    fn get_min(&mut self) -> Result<(), Error> {
         let path = "cpufreq/scaling_min_freq";
-        match self.read_int(path.to_string()) {
-            Ok(a) => {
-                self.min_freq = a;
-            }
-            Err(_) => {
-                eprint!("{}", SpeedGetError);
-                exit(1)
-            }
-        }
+        self.min_freq = self.read_int(path.to_string())?;
+        Ok(())
     }
 
-    fn get_cur(&mut self) {
+    fn get_cur(&mut self) -> Result<(), Error> {
         let path = "cpufreq/scaling_cur_freq";
-        match self.read_int(path.to_string()) {
-            Ok(a) => {
-                self.cur_freq = a;
-            }
-            Err(_) => {
-                eprint!("{}", SpeedGetError);
-                exit(1)
-            }
-        }
+        self.cur_freq = self.read_int(path.to_string())?;
+        Ok(())
     }
 
-    fn get_temp(&mut self) {
+    fn get_temp(&mut self) -> Result<(), Error> {
         let path = "temp";
-        match self.read_temp(path.to_string()) {
-            Ok(a) => {
-                self.cur_temp = a;
-            }
-            Err(_) => {
-                eprint!("{}", TempGetError);
-                exit(1)
-            }
-        }
+        self.cur_temp = self.read_temp(path.to_string())?;
+        Ok(())
     }
 
-    fn get_gov(&mut self) {
+    fn get_gov(&mut self) -> Result<(), Error> {
         let path = "cpufreq/scaling_governor";
-        match self.read_str(path.to_string()) {
-            Ok(a) => {
-                self.gov = a;
-            }
-            Err(_) => {
-                eprint!("{}", GovGetError);
-                exit(1)
-            }
-        }
+        self.gov = self.read_str(path.to_string())?;
+        Ok(())
     }
 
-    fn set_gov(&mut self, gov: String) {
+    fn set_gov(&mut self, gov: String) -> Result<(), Error> {
         self.gov = gov.clone();
-        match self.write_value(WritableValue::Gov) {
-            Err(_) => {
-                eprint!("{}", GovSetError);
-                exit(1)
-            }
-            Ok(_) => (),
-        };
+        self.write_value(WritableValue::Gov)?;
+        Ok(())
     }
 
     fn print(&self) {

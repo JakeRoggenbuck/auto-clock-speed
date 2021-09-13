@@ -1,4 +1,6 @@
 use super::cpu::{Speed, CPU};
+use super::logger;
+use super::logger::Interface;
 use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
 use super::system::list_cpus;
 use super::Error;
@@ -7,11 +9,11 @@ use std::{thread, time};
 use termion::{color, style};
 
 pub trait Checker {
-    fn log(&mut self, message: &str);
     fn apply_to_cpus(
         &mut self,
         operation: &dyn Fn(&mut CPU) -> Result<(), Error>,
     ) -> Result<(), Error>;
+
     fn run(&mut self) -> Result<(), Error>;
     fn update_all(&mut self) -> Result<(), Error>;
     fn print(&self);
@@ -25,7 +27,7 @@ pub struct Daemon {
     pub message: String,
     pub lid_state: LidState,
     pub charging: bool,
-    pub logs: Vec<String>,
+    pub logger: logger::Logger,
 }
 
 fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
@@ -39,12 +41,6 @@ fn make_gov_performance(cpu: &mut CPU) -> Result<(), Error> {
 }
 
 impl Checker for Daemon {
-    fn log(&mut self, message: &str) {
-        if self.verbose {
-            self.logs.push(message.to_string());
-        }
-    }
-
     /// Apply a function to every cpu
     fn apply_to_cpus(
         &mut self,
@@ -71,7 +67,10 @@ impl Checker for Daemon {
                 // Lid close rule -> gov powersave
                 // If the lid just closed, turn on powersave
                 if read_lid_state()? == LidState::Closed && self.lid_state != LidState::Closed {
-                    self.log("Governor set to powersave because lid closed");
+                    self.logger.log(
+                        "Governor set to powersave because lid closed",
+                        logger::Severity::Log,
+                    );
                     self.apply_to_cpus(&make_gov_powersave)?;
                     self.lid_state = LidState::Closed;
                 }
@@ -82,7 +81,10 @@ impl Checker for Daemon {
                 // Under 20% rule -> gov powersave
                 // If the battery life is below 20%, set gov to powersave
                 if read_battery_charge()? < 20 && !already_under_20_percent {
-                    self.log("Governor set to powersave because battery was less than 20");
+                    self.logger.log(
+                        "Governor set to powersave because battery was less than 20",
+                        logger::Severity::Log,
+                    );
                     self.apply_to_cpus(&make_gov_powersave)?;
                     already_under_20_percent = true;
                     // Make sure to reset state
@@ -97,12 +99,18 @@ impl Checker for Daemon {
 
                 // If the battery is charging, set to performance
                 if self.charging && !already_charging {
-                    self.log("Governor set to performance because battery is charging");
+                    self.logger.log(
+                        "Governor set to performance because battery is charging",
+                        logger::Severity::Log,
+                    );
                     self.apply_to_cpus(&make_gov_performance)?;
                     already_charging = true;
                 }
                 if !self.charging && already_charging {
-                    self.log("Governor set to powersave because battery is no longer charging");
+                    self.logger.log(
+                        "Governor set to powersave because battery is no longer charging",
+                        logger::Severity::Log,
+                    );
                     self.apply_to_cpus(&make_gov_powersave)?;
                     already_charging = false;
                 }
@@ -141,7 +149,7 @@ impl Checker for Daemon {
         }
         println!("\nctrl+c to stop running\n\n");
         if self.verbose {
-            for log in &self.logs {
+            for log in &self.logger.logs {
                 println!("{}", log)
             }
         }
@@ -220,7 +228,9 @@ pub fn daemon_init(verbose: bool, delay: u64, mut edit: bool) -> Result<Daemon, 
         // If edit is still true, then there is definitely a bool result to read_power_source
         // otherwise, there is a real problem, because there should be a power source possible
         charging: if edit { read_power_source()? } else { false },
-        logs: Vec::<String>::new(),
+        logger: logger::Logger {
+            logs: Vec::<logger::Log>::new(),
+        },
     };
 
     // Make a cpu struct for each cpu listed

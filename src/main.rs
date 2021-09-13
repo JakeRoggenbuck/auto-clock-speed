@@ -16,6 +16,7 @@ pub mod cpu;
 pub mod daemon;
 pub mod display;
 pub mod error;
+pub mod logger;
 pub mod power;
 pub mod system;
 

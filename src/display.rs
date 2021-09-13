@@ -51,7 +51,6 @@ pub fn print_cpus(cpus: Vec<CPU>, name: String) {
 }
 
 pub fn print_cpu(cpu: &CPU) {
-
     let mut temp_color: String = color::Fg(color::Green).to_string();
 
     if cpu.cur_temp / 1000 > 60 {

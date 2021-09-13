@@ -108,7 +108,7 @@ pub fn list_cpus() -> Result<Vec<CPU>, Error> {
             gov: "Unknown".to_string(),
         };
 
-        new.update();
+        new.update()?;
 
         to_return.push(new)
     }

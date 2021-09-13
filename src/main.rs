@@ -3,7 +3,7 @@ use display::{
     print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpu_temp, print_cpus,
     print_freq, print_turbo,
 };
-use error::{Error, GovGetError, GovSetError, SpeedGetError, SpeedSetError, TempGetError};
+use error::Error;
 use power::{read_battery_charge, read_lid_state, read_power_source};
 use std::process::exit;
 use structopt::StructOpt;

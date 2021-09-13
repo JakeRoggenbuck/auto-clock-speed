@@ -206,8 +206,7 @@ pub fn daemon_init(verbose: bool, delay: u64, mut edit: bool) -> Result<Daemon, 
         // If the program is supposed to change any values (needs root)
         edit,
         message,
-        // TODO: Get the lid state if possible or set to Unknown if not
-        lid_state: LidState::Unknown,
+        lid_state: read_lid_state()?,
         // If edit is still true, then there is definitely a bool result to read_power_source
         // otherwise, there is a real problem, because there should be a power source possible
         charging: if edit { read_power_source()? } else { false },

@@ -12,11 +12,11 @@ use system::{
     list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus,
 };
 
-pub mod logger;
 pub mod cpu;
 pub mod daemon;
 pub mod display;
 pub mod error;
+pub mod logger;
 pub mod power;
 pub mod system;
 

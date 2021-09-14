@@ -91,7 +91,7 @@ acs get --help
 
 acs get temp
 acs get freq
-acs get cpu-speeds
+acs get speeds
 ```
 
 

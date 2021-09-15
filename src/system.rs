@@ -184,4 +184,15 @@ mod tests {
         }
         Ok(())
     }
+
+    #[test]
+    fn list_cpu_speeds_test() -> Result<(), Error> {
+        // Type check
+        assert_eq!(type_of(list_cpu_speeds()?), type_of(Vec::<i32>::new()));
+
+        for x in list_cpu_speeds()? {
+            assert!(x > 0);
+        }
+        Ok(())
+    }
 }

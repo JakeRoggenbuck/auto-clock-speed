@@ -161,6 +161,27 @@ mod tests {
     }
 
     #[test]
+    fn check_cpu_freq_test() -> Result<(), Error> {
+        assert_eq!(type_of(check_cpu_freq()?), type_of(1));
+
+        assert!(check_cpu_freq()? > 0);
+        Ok(())
+    }
+
+    #[test]
+    fn check_cpu_name_test() -> Result<(), Error> {
+        assert_eq!(type_of(check_cpu_name()?), type_of(String::new()));
+        assert!(check_cpu_name()?.len() > 0);
+        Ok(())
+    }
+
+    #[test]
+    fn check_turbo_enabled_test() -> Result<(), Error> {
+        assert_eq!(type_of(check_turbo_enabled()?), type_of(true));
+        Ok(())
+    }
+
+    #[test]
     fn list_cpu_speeds_test() -> Result<(), Error> {
         // Type check
         assert_eq!(type_of(list_cpu_speeds()?), type_of(Vec::<i32>::new()));

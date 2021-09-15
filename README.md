@@ -40,19 +40,21 @@ Do steps 1 and 2 from other install if you don't have rust installed, then do th
 ## Systemd
 In order to have auto-clock-speed start when you restart your computer you must follow these instruction
 ```
-# IMPORTANT: Modify the service file to include the path to the binary file 
+# IMPORTANT: Modify the service file to include
+# the path to the binary file 
 # (usually /home/username/.cargo/bin/acs)
 ```
 
 ```
-# In the auto clock speed directory run this command to move the service file into your systemd directory
-sudo mv acs.service /etc/systemd/system
+# In the auto clock speed directory run this command to
+# move the service file into your systemd directory
+sudo cp acs.service /etc/systemd/system/
 ```
 
 ```
 # Start and enable the service
-systemctl start acs
-systemctl enable acs
+sudo systemctl start acs
+sudo systemctl enable acs
 
 # Check service is up and running
 systemctl status acs
@@ -61,7 +63,8 @@ systemctl status acs
 ## Usage
 ### Monitor
 ```sh
-# Show the min, max, and current cpu frequency along with the cpu governor
+# Show the min, max, and current cpu frequency
+# along with the cpu governor
 acs monitor
 
 # A delay (in milliseconds) can be set for both monitor and run
@@ -88,7 +91,7 @@ acs get --help
 
 acs get temp
 acs get freq
-acs get cpu-speeds
+acs get speeds
 ```
 
 

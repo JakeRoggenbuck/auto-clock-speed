@@ -1,4 +1,5 @@
 use super::cpu::CPU;
+use super::power::LidState;
 use std::fmt::Display;
 use termion::{color, style};
 
@@ -7,6 +8,14 @@ pub fn print_freq(f: i32, raw: bool) {
         println!("{}", f);
     } else {
         println!("CPU freq is {} MHz", f / 1000)
+    }
+}
+
+pub fn print_power(lid: LidState, bat: i8, plugged: bool, raw: bool) {
+    if raw {
+        println!("{} {} {}", lid, bat, plugged);
+    } else {
+        println!("Lid: {} Battery: {} Plugged: {}", lid, bat, plugged);
     }
 }
 
@@ -31,11 +40,10 @@ fn print_vec<T: Display>(t: Vec<T>, raw: bool) {
             println!("{}", x);
         }
     } else {
-        print!("[ ");
         for x in t {
-            print!("\"{}\" ", x);
+            print!("{} ", x);
         }
-        print!("]");
+        print!("\n")
     }
 }
 
@@ -43,16 +51,30 @@ pub fn print_available_governors(available_governors: Vec<String>, raw: bool) {
     print_vec(available_governors, raw);
 }
 
-pub fn print_cpus(cpus: Vec<CPU>, name: String) {
-    println!("Name:{}", name);
-    for x in cpus {
-        println!("{} is currently @ {} MHz", x.name, x.cur_freq / 1000);
+pub fn print_cpus(cpus: Vec<CPU>, name: String, raw: bool) {
+    if raw {
+        for x in cpus {
+            println!("{} {}", x.name, x.cur_freq);
+        }
+    } else {
+        println!("Name:{}", name);
+        for x in cpus {
+            println!("{} is currently @ {} MHz", x.name, x.cur_freq / 1000);
+        }
     }
 }
 
 pub fn print_cpu(cpu: &CPU) {
+    let mut temp_color: String = color::Fg(color::Green).to_string();
+
+    if cpu.cur_temp / 1000 > 60 {
+        temp_color = color::Fg(color::Red).to_string();
+    } else if cpu.cur_temp / 1000 > 40 {
+        temp_color = color::Fg(color::Yellow).to_string();
+    }
+
     println!(
-        "{}{}:{} {}Hz\t{}Hz\t{}{}Hz{}\t{}{}C\t{}",
+        "{}{}:{} {}Hz\t{}Hz\t{}{}Hz{}\t{}C{}\t{}",
         style::Bold,
         cpu.name,
         style::Reset,
@@ -60,7 +82,7 @@ pub fn print_cpu(cpu: &CPU) {
         cpu.min_freq / 1000,
         color::Fg(color::Green),
         cpu.cur_freq / 1000,
-        style::Reset,
+        temp_color,
         cpu.cur_temp / 1000,
         style::Reset,
         cpu.gov

@@ -1,9 +1,9 @@
 use daemon::{daemon_init, Checker};
 use display::{
     print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpu_temp, print_cpus,
-    print_freq, print_turbo,
+    print_freq, print_power, print_turbo,
 };
-use error::{Error, GovGetError, GovSetError, SpeedGetError, SpeedSetError, TempGetError};
+use error::Error;
 use power::{read_battery_charge, read_lid_state, read_power_source};
 use std::process::exit;
 use structopt::StructOpt;
@@ -16,6 +16,7 @@ pub mod cpu;
 pub mod daemon;
 pub mod display;
 pub mod error;
+pub mod logger;
 pub mod power;
 pub mod system;
 
@@ -23,7 +24,10 @@ pub mod system;
 enum GetType {
     /// Get the power
     #[structopt(name = "power")]
-    Power,
+    Power {
+        #[structopt(short, long)]
+        raw: bool,
+    },
 
     /// The overall frequency of your cpu
     #[structopt(name = "freq")]
@@ -48,24 +52,27 @@ enum GetType {
 
     /// The names of the core
     #[structopt(name = "cpus")]
-    CPUS,
+    CPUS {
+        #[structopt(short, long)]
+        raw: bool,
+    },
 
     /// The speed of the individual cores
-    #[structopt(name = "cpu-speeds")]
+    #[structopt(name = "speeds")]
     Speeds {
         #[structopt(short, long)]
         raw: bool,
     },
 
     /// The temperature of the individual cores
-    #[structopt(name = "cpu-temp")]
+    #[structopt(name = "temp")]
     Temp {
         #[structopt(short, long)]
         raw: bool,
     },
 
     /// The governors of the individual cores
-    #[structopt(name = "cpu-govs")]
+    #[structopt(name = "govs")]
     Govs {
         #[structopt(short, long)]
         raw: bool,
@@ -132,11 +139,11 @@ fn main() {
                 Ok(f) => print_freq(f, raw),
                 Err(_) => eprintln!("Faild to get cpu frequency"),
             },
-            GetType::Power {} => match read_lid_state() {
-                Ok(f) => match read_battery_charge() {
-                    Ok(c) => match read_power_source() {
-                        Ok(p) => {
-                            println!("Lid: {} Bat: {} Plugged in: {}", f, c, p)
+            GetType::Power { raw } => match read_lid_state() {
+                Ok(lid) => match read_battery_charge() {
+                    Ok(bat) => match read_power_source() {
+                        Ok(plugged) => {
+                            print_power(lid, bat, plugged, raw);
                         }
                         Err(_) => eprintln!("Faild to get read power source"),
                     },
@@ -152,9 +159,9 @@ fn main() {
                 Ok(available_governors) => print_available_governors(available_governors, raw),
                 Err(_) => println!("Failed to get available governors"),
             },
-            GetType::CPUS {} => match list_cpus() {
+            GetType::CPUS { raw } => match list_cpus() {
                 Ok(cpus) => match check_cpu_name() {
-                    Ok(name) => print_cpus(cpus, name),
+                    Ok(name) => print_cpus(cpus, name, raw),
                     Err(_) => println!("Failed get list of cpus"),
                 },
                 Err(_) => println!("Failed get list of cpus"),

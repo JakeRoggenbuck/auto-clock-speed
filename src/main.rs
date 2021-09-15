@@ -183,9 +183,10 @@ fn main() {
         // Everything starting with "set"
         Command::Set { set } => match set {
             SetType::Gov { value } => match daemon_init(true, 0, false) {
-                Ok(mut d) => {
-                    d.set_govs(value);
-                }
+                Ok(mut d) => match d.set_govs(value.clone()) {
+                    Ok(_) => {},
+                    Err(e) => eprint!("Could not set gov, {:?}", e),
+                },
                 Err(_) => eprint!("Could not run daemon in edit mode"),
             },
         },

@@ -124,8 +124,6 @@ impl Speed for CPU {
     /// Get all the attributes of a cpu
     /// These get methods write the value returned
     fn update(&mut self) -> Result<(), Error> {
-        self.get_max()?;
-        self.get_min()?;
         self.get_cur()?;
         self.get_temp()?;
         self.get_gov()?;
@@ -133,6 +131,9 @@ impl Speed for CPU {
     }
 
     fn init_cpu(&mut self) -> Result<(), Error> {
+        // Add function calls in the init
+        self.get_max()?;
+        self.get_min()?;
         self.update()?;
         Ok(())
     }

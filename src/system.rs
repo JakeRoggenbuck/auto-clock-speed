@@ -182,6 +182,40 @@ mod tests {
     }
 
     #[test]
+    fn check_available_governors_test() -> Result<(), Error> {
+        assert_eq!(
+            type_of(check_available_governors()?),
+            type_of(Vec::<String>::new())
+        );
+
+        for x in check_available_governors()? {
+            assert!(x == "powersave" || x == "performance");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn list_cpus_test() -> Result<(), Error>{
+        assert_eq!(
+            type_of(list_cpus()?),
+            type_of(Vec::<CPU>::new())
+        );
+
+        for x in list_cpus()? {
+            assert!(x.name.len() > 0);
+            assert!(x.max_freq > 0);
+            assert!(x.min_freq > 0);
+
+            assert!(x.cur_freq> 0);
+            assert!(x.cur_temp > 0);
+
+            assert!(x.gov == "powersave" || x.gov == "performance");
+
+        }
+        Ok(())
+    }
+
+    #[test]
     fn list_cpu_speeds_test() -> Result<(), Error> {
         // Type check
         assert_eq!(type_of(list_cpu_speeds()?), type_of(Vec::<i32>::new()));

@@ -150,3 +150,27 @@ pub fn list_cpu_governors() -> Result<Vec<String>, Error> {
     }
     Ok(governors)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::any::type_name;
+
+    fn type_of<T>(_: T) -> &'static str {
+        type_name::<T>()
+    }
+
+    #[test]
+    fn list_cpu_governors_test() -> Result<(), Error> {
+        // Type check
+        assert_eq!(
+            type_of(list_cpu_governors()?),
+            type_of(vec!["a".to_string()])
+        );
+
+        for x in list_cpu_governors()? {
+            assert!(x == "powersave" || x == "performance");
+        }
+        Ok(())
+    }
+}

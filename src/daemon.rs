@@ -12,6 +12,7 @@ pub trait Checker {
     fn run(&mut self) -> Result<(), Error>;
     fn update_all(&mut self);
     fn print(&self);
+    fn set_govs(&mut self, gov: String);
 }
 
 pub struct Daemon {
@@ -44,6 +45,14 @@ impl Checker for Daemon {
     fn apply_to_cpus(&mut self, operation: &dyn Fn(&mut CPU)) {
         for cpu in self.cpus.iter_mut() {
             operation(cpu);
+        }
+    }
+
+    fn set_govs(&mut self, gov: String) {
+        match gov.as_str() {
+            "performance" => self.apply_to_cpus(&make_gov_performance),
+            "powersave" => self.apply_to_cpus(&make_gov_powersave),
+            _ => eprintln!("Gov \"{}\" not available", gov)
         }
     }
 

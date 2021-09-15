@@ -165,11 +165,22 @@ mod tests {
         // Type check
         assert_eq!(
             type_of(list_cpu_governors()?),
-            type_of(vec!["a".to_string()])
+            type_of(Vec::<String>::new())
         );
 
         for x in list_cpu_governors()? {
             assert!(x == "powersave" || x == "performance");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn list_cpu_temp_test() -> Result<(), Error> {
+        // Type check
+        assert_eq!(type_of(list_cpu_temp()?), type_of(Vec::<i32>::new()));
+
+        for x in list_cpu_temp()? {
+            assert!(x > 0);
         }
         Ok(())
     }

@@ -152,6 +152,7 @@ pub fn list_cpu_governors() -> Result<Vec<String>, Error> {
 }
 
 #[cfg(test)]
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod tests {
     use super::*;
     use std::any::type_name;

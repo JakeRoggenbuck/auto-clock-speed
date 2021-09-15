@@ -161,15 +161,12 @@ mod tests {
     }
 
     #[test]
-    fn list_cpu_governors_test() -> Result<(), Error> {
+    fn list_cpu_speeds_test() -> Result<(), Error> {
         // Type check
-        assert_eq!(
-            type_of(list_cpu_governors()?),
-            type_of(Vec::<String>::new())
-        );
+        assert_eq!(type_of(list_cpu_speeds()?), type_of(Vec::<i32>::new()));
 
-        for x in list_cpu_governors()? {
-            assert!(x == "powersave" || x == "performance");
+        for x in list_cpu_speeds()? {
+            assert!(x > 0);
         }
         Ok(())
     }
@@ -186,12 +183,15 @@ mod tests {
     }
 
     #[test]
-    fn list_cpu_speeds_test() -> Result<(), Error> {
+    fn list_cpu_governors_test() -> Result<(), Error> {
         // Type check
-        assert_eq!(type_of(list_cpu_speeds()?), type_of(Vec::<i32>::new()));
+        assert_eq!(
+            type_of(list_cpu_governors()?),
+            type_of(Vec::<String>::new())
+        );
 
-        for x in list_cpu_speeds()? {
-            assert!(x > 0);
+        for x in list_cpu_governors()? {
+            assert!(x == "powersave" || x == "performance");
         }
         Ok(())
     }

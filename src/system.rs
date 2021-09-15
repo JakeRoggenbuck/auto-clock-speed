@@ -152,7 +152,6 @@ pub fn list_cpu_governors() -> Result<Vec<String>, Error> {
 }
 
 #[cfg(test)]
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod tests {
     use super::*;
     use std::any::type_name;
@@ -162,7 +161,7 @@ mod tests {
     }
 
     #[test]
-    fn check_cpu_freq_test() -> Result<(), Error> {
+    fn acs_check_cpu_freq_test() -> Result<(), Error> {
         assert_eq!(type_of(check_cpu_freq()?), type_of(1));
 
         assert!(check_cpu_freq()? > 0);
@@ -170,20 +169,20 @@ mod tests {
     }
 
     #[test]
-    fn check_cpu_name_test() -> Result<(), Error> {
+    fn acs_check_cpu_name_test() -> Result<(), Error> {
         assert_eq!(type_of(check_cpu_name()?), type_of(String::new()));
         assert!(check_cpu_name()?.len() > 0);
         Ok(())
     }
 
     #[test]
-    fn check_turbo_enabled_test() -> Result<(), Error> {
+    fn acs_check_turbo_enabled_test() -> Result<(), Error> {
         assert_eq!(type_of(check_turbo_enabled()?), type_of(true));
         Ok(())
     }
 
     #[test]
-    fn check_available_governors_test() -> Result<(), Error> {
+    fn acs_check_available_governors_test() -> Result<(), Error> {
         assert_eq!(
             type_of(check_available_governors()?),
             type_of(Vec::<String>::new())
@@ -196,7 +195,7 @@ mod tests {
     }
 
     #[test]
-    fn list_cpus_test() -> Result<(), Error>{
+    fn acs_list_cpus_test() -> Result<(), Error>{
         assert_eq!(
             type_of(list_cpus()?),
             type_of(Vec::<CPU>::new())
@@ -217,7 +216,7 @@ mod tests {
     }
 
     #[test]
-    fn list_cpu_speeds_test() -> Result<(), Error> {
+    fn acs_list_cpu_speeds_test() -> Result<(), Error> {
         // Type check
         assert_eq!(type_of(list_cpu_speeds()?), type_of(Vec::<i32>::new()));
 
@@ -228,7 +227,7 @@ mod tests {
     }
 
     #[test]
-    fn list_cpu_temp_test() -> Result<(), Error> {
+    fn acs_list_cpu_temp_test() -> Result<(), Error> {
         // Type check
         assert_eq!(type_of(list_cpu_temp()?), type_of(Vec::<i32>::new()));
 
@@ -239,7 +238,7 @@ mod tests {
     }
 
     #[test]
-    fn list_cpu_governors_test() -> Result<(), Error> {
+    fn acs_list_cpu_governors_test() -> Result<(), Error> {
         // Type check
         assert_eq!(
             type_of(list_cpu_governors()?),

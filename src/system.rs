@@ -150,3 +150,104 @@ pub fn list_cpu_governors() -> Result<Vec<String>, Error> {
     }
     Ok(governors)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::any::type_name;
+
+    fn type_of<T>(_: T) -> &'static str {
+        type_name::<T>()
+    }
+
+    #[test]
+    fn acs_check_cpu_freq_test() -> Result<(), Error> {
+        assert_eq!(type_of(check_cpu_freq()?), type_of(1));
+
+        assert!(check_cpu_freq()? > 0);
+        Ok(())
+    }
+
+    #[test]
+    fn acs_check_cpu_name_test() -> Result<(), Error> {
+        assert_eq!(type_of(check_cpu_name()?), type_of(String::new()));
+        assert!(check_cpu_name()?.len() > 0);
+        Ok(())
+    }
+
+    #[test]
+    fn acs_check_turbo_enabled_test() -> Result<(), Error> {
+        assert_eq!(type_of(check_turbo_enabled()?), type_of(true));
+        Ok(())
+    }
+
+    #[test]
+    fn acs_check_available_governors_test() -> Result<(), Error> {
+        assert_eq!(
+            type_of(check_available_governors()?),
+            type_of(Vec::<String>::new())
+        );
+
+        for x in check_available_governors()? {
+            assert!(x == "powersave" || x == "performance");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn acs_list_cpus_test() -> Result<(), Error>{
+        assert_eq!(
+            type_of(list_cpus()?),
+            type_of(Vec::<CPU>::new())
+        );
+
+        for x in list_cpus()? {
+            assert!(x.name.len() > 0);
+            assert!(x.max_freq > 0);
+            assert!(x.min_freq > 0);
+
+            assert!(x.cur_freq> 0);
+            assert!(x.cur_temp > 0);
+
+            assert!(x.gov == "powersave" || x.gov == "performance");
+
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn acs_list_cpu_speeds_test() -> Result<(), Error> {
+        // Type check
+        assert_eq!(type_of(list_cpu_speeds()?), type_of(Vec::<i32>::new()));
+
+        for x in list_cpu_speeds()? {
+            assert!(x > 0);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn acs_list_cpu_temp_test() -> Result<(), Error> {
+        // Type check
+        assert_eq!(type_of(list_cpu_temp()?), type_of(Vec::<i32>::new()));
+
+        for x in list_cpu_temp()? {
+            assert!(x > 0);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn acs_list_cpu_governors_test() -> Result<(), Error> {
+        // Type check
+        assert_eq!(
+            type_of(list_cpu_governors()?),
+            type_of(Vec::<String>::new())
+        );
+
+        for x in list_cpu_governors()? {
+            assert!(x == "powersave" || x == "performance");
+        }
+        Ok(())
+    }
+}

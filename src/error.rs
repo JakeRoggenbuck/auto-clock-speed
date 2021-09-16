@@ -3,7 +3,6 @@ use std::fmt;
 const BUG_REPORT: &str = "\nGive us a bug report by opening an issue at
 https://github.com/JakeRoggenbuck/auto-clock-speed/issues/new/choose";
 
-
 pub enum Error {
     IO(std::io::Error),
     Unknown,

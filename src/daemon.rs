@@ -2,7 +2,7 @@ use super::cpu::{Speed, CPU};
 use super::logger;
 use super::logger::Interface;
 use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
-use super::system::list_cpus;
+use super::system::{list_cpus, check_turbo_enabled};
 use super::Error;
 use nix::unistd::Uid;
 use std::{thread, time};
@@ -158,6 +158,37 @@ impl Checker for Daemon {
         println!("{}Name  Max\tMin\tFreq\tTemp\tGovernor", style::Bold);
         for cpu in &self.cpus {
             cpu.print();
+        }
+        match has_battery() {
+            Ok(a) => {
+                if a {
+                    match read_battery_charge() {
+                        Ok(bat) => {
+                            println!("{}Battery: {}%", style::Bold, bat)
+                        },
+                        Err(_) => {
+                            // Failed!
+                        }
+                    }
+                } else {
+                    println!("{}Battery: {}%", style::Bold, "N/A")
+                }
+            },
+            Err(_) => {
+                // Who knows what happened
+            }
+        }
+        match check_turbo_enabled() {
+            Ok(turbo) => {
+                if turbo {
+                    println!("{}Turbo: {}", style::Bold, "yes")
+                } else {
+                    println!("{}Turbo: {}", style::Bold, "no")
+                }
+            },
+            Err(_) => {
+                // Failed
+            }
         }
         println!("\nctrl+c to stop running\n\n");
         if self.verbose {

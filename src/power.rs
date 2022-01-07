@@ -1,4 +1,5 @@
 use super::Error;
+use std::any::Any;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::fs::{read_dir, File};
@@ -36,12 +37,27 @@ pub fn has_battery() -> Result<bool, Error> {
 }
 
 pub fn read_lid_state() -> Result<LidState, Error> {
-    if !Path::new("/proc/acpi/button/lid/LID0/state").exists() {
-        return Ok(LidState::Unapplicable);
-    }
+    let lid_status_path: Vec<&str> = vec![
+        "/proc/acpi/button/lid/LID/state",
+        "/proc/acpi/button/lid/LID0/state",
+        "/proc/acpi/button/lid/LID1/state"
+    ];
+
+    let path: &str = match get_best_path(lid_status_path) {
+        Ok(path) => {
+            path
+        },
+        Err(error) => {
+            if error.type_id() == Error::IO.type_id() {
+                // Make sure to return IO error if one occurs
+                return Err(error);
+            }
+            return Ok(LidState::Unapplicable);
+        }
+    };
 
     let mut lid_str: String = String::new();
-    File::open("/proc/acpi/button/lid/LID0/state")?.read_to_string(&mut lid_str)?;
+    File::open(path)?.read_to_string(&mut lid_str)?;
 
     if lid_str.contains("open") {
         return Ok(LidState::Open);
@@ -80,4 +96,15 @@ pub fn read_power_source() -> Result<bool, Error> {
     pwr_str.pop();
 
     return Ok(pwr_str == "1");
+}
+
+pub fn get_best_path(paths: Vec::<&str>) -> Result<&str, Error> {
+
+    for path in paths.iter() {
+        if Path::new(path).exists() {
+            return Ok(path);
+        }
+    }
+
+    return Err(Error::Unknown);
 }

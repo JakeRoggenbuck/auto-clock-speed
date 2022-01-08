@@ -52,6 +52,7 @@ pub fn read_lid_state() -> Result<LidState, Error> {
                 // Make sure to return IO error if one occurs
                 return Err(error);
             }
+            eprintln!("We could not detect your lid state. If you are on a laptop please create an issue at https://github.com/JakeRoggenBuck/auto-clock-speed/issues/new");
             return Ok(LidState::Unapplicable);
         }
     };
@@ -85,6 +86,7 @@ pub fn read_battery_charge() -> Result<i8, Error> {
                 return Err(error);
             }
             // If it doesn't exist then it is plugged in so make it 100% percent capacity
+            eprintln!("We could not detect your battery. If you are sure you are on a laptop please create an issue at https://github.com/JakeRoggenBuck/auto-clock-speed/issues/new");
             return Ok(100);
         }
     };
@@ -116,7 +118,7 @@ pub fn read_power_source() -> Result<bool, Error> {
                 // Make sure to return IO error if one occurs
                 return Err(error);
             }
-            println!("Unexpected, the directory /sys/class/power_supply/AC/online doesn't exist? Do you not have a power source?");
+            eprintln!("We could not detect your AC power source. Please create an issue at https://github.com/JakeRoggenBuck/auto-clock-speed/issues/new");
             return Ok(true);
         }
     };

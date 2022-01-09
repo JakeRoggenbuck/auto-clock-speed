@@ -28,6 +28,7 @@ pub struct Daemon {
     pub message: String,
     pub lid_state: LidState,
     pub charging: bool,
+    pub charge: i8,
     pub logger: logger::Logger,
 }
 
@@ -69,30 +70,61 @@ impl Checker for Daemon {
 
         // The state for rules
         let mut already_under_20_percent: bool = false;
-        let mut already_charging: bool = self.charging;
+        let mut already_charging: bool = false;
+        let mut already_closed: bool = false;
+        let mut first_run: bool = true;
 
         loop {
             // Update all the values for each cpu before they get used
             self.update_all()?;
 
             if self.edit {
+
+                // Update current states
+                self.charging = read_power_source()?;
+                self.charge = read_battery_charge()?;
+                self.lid_state = read_lid_state()?;
+
+                // If we just daemonized then make sure the states are the opposite of what they should
+                // The logic after this block will make sure that they are set to the correct state
+                // but only if the previous states were incorrect
+                if first_run == true {
+                    already_charging = !self.charging;
+                    already_under_20_percent = !(self.charge < 20);
+                    already_closed = self.lid_state == LidState::Closed;
+                    first_run = false;
+                }
+
                 // Lid close rule -> gov powersave
                 // If the lid just closed, turn on powersave
-                if read_lid_state()? == LidState::Closed && self.lid_state != LidState::Closed {
+
+                if self.lid_state == LidState::Closed && !already_closed {
                     self.logger.log(
                         "Governor set to powersave because lid closed",
                         logger::Severity::Log,
                     );
                     self.apply_to_cpus(&make_gov_powersave)?;
-                    self.lid_state = LidState::Closed;
+                    already_closed = true;
                 }
-                if read_lid_state()? == LidState::Open {
-                    self.lid_state = LidState::Open;
+
+                if self.lid_state == LidState::Open && already_closed {
+
+                    // A few checks inorder to insure the computer should actually be in performance
+                    if !(self.charge < 20) && self.charging {
+                        self.logger.log("Governor set to performance because lid opened", logger::Severity::Log);
+                        self.apply_to_cpus(&make_gov_performance)?;
+                    } else {
+                        self.logger.log("Lid opened however the governor remains unchanged", logger::Severity::Log);
+                    }
+
+                    already_closed = false;
+
                 }
 
                 // Under 20% rule -> gov powersave
                 // If the battery life is below 20%, set gov to powersave
-                if read_battery_charge()? < 20 && !already_under_20_percent {
+
+                if self.charge < 20 && !already_under_20_percent {
                     self.logger.log(
                         "Governor set to powersave because battery was less than 20",
                         logger::Severity::Log,
@@ -101,26 +133,32 @@ impl Checker for Daemon {
                     already_under_20_percent = true;
                     // Make sure to reset state
                 }
-                if read_battery_charge()? >= 20 {
+                if self.charge >= 20 {
                     already_under_20_percent = false;
                 }
 
                 // Charging rule -> gov performance
-                // Update charging status
-                self.charging = read_power_source()?;
-
                 // If the battery is charging, set to performance
+
                 if self.charging && !already_charging {
-                    self.logger.log(
-                        "Governor set to performance because battery is charging",
-                        logger::Severity::Log,
-                    );
+
+                    if self.lid_state == LidState::Closed || self.charge < 20 {
+                        self.logger.log(
+                            "Battery is charging however the governor remains unchanged",
+                            logger::Severity::Log,
+                        );
+                    } else {
+                        self.logger.log(
+                            "Governor set to performance because battery is charging",
+                            logger::Severity::Log,
+                        );
+                    }
                     self.apply_to_cpus(&make_gov_performance)?;
                     already_charging = true;
                 }
                 if !self.charging && already_charging {
                     self.logger.log(
-                        "Governor set to powersave because battery is no longer charging",
+                        "Governor set to powersave because battery is not charging",
                         logger::Severity::Log,
                     );
                     self.apply_to_cpus(&make_gov_powersave)?;
@@ -266,10 +304,11 @@ pub fn daemon_init(verbose: bool, delay: u64, mut edit: bool) -> Result<Daemon, 
         // If the program is supposed to change any values (needs root)
         edit,
         message,
-        lid_state: read_lid_state()?,
+        lid_state: LidState::Unknown,
         // If edit is still true, then there is definitely a bool result to read_power_source
         // otherwise, there is a real problem, because there should be a power source possible
         charging: if edit { read_power_source()? } else { false },
+        charge: 100,
         logger: logger::Logger {
             logs: Vec::<logger::Log>::new(),
         },

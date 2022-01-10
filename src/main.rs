@@ -4,6 +4,8 @@ use display::{
     print_freq, print_power, print_turbo,
 };
 use error::Error;
+use local::{local_config_dir_exists, create_local_config_dir};
+use log::debug;
 use power::{read_battery_charge, read_lid_state, read_power_source};
 use std::process::exit;
 use structopt::StructOpt;
@@ -16,6 +18,7 @@ pub mod cpu;
 pub mod daemon;
 pub mod display;
 pub mod error;
+pub mod local;
 pub mod logger;
 pub mod power;
 pub mod system;
@@ -130,7 +133,12 @@ enum Command {
 }
 
 fn main() {
+    env_logger::init();
     let mut main_daemon: daemon::Daemon;
+
+    if !local_config_dir_exists() {
+        create_local_config_dir();
+    }
 
     match Command::from_args() {
         // Everything starting with "get"
@@ -184,7 +192,7 @@ fn main() {
         Command::Set { set } => match set {
             SetType::Gov { value } => match daemon_init(true, 0, false) {
                 Ok(mut d) => match d.set_govs(value.clone()) {
-                    Ok(_) => {},
+                    Ok(_) => {}
                     Err(e) => eprint!("Could not set gov, {:?}", e),
                 },
                 Err(_) => eprint!("Could not run daemon in edit mode"),

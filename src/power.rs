@@ -40,13 +40,11 @@ pub fn read_lid_state() -> Result<LidState, Error> {
     let lid_status_path: Vec<&str> = vec![
         "/proc/acpi/button/lid/LID/state",
         "/proc/acpi/button/lid/LID0/state",
-        "/proc/acpi/button/lid/LID1/state"
+        "/proc/acpi/button/lid/LID1/state",
     ];
 
     let path: &str = match get_best_path(lid_status_path) {
-        Ok(path) => {
-            path
-        },
+        Ok(path) => path,
         Err(error) => {
             if error.type_id() == Error::IO.type_id() {
                 // Make sure to return IO error if one occurs
@@ -73,13 +71,11 @@ pub fn read_battery_charge() -> Result<i8, Error> {
     let battery_charge_path: Vec<&str> = vec![
         "/sys/class/power_supply/BAT/capacity",
         "/sys/class/power_supply/BAT0/capacity",
-        "/sys/class/power_supply/BAT1/capacity"
+        "/sys/class/power_supply/BAT1/capacity",
     ];
 
     let path: &str = match get_best_path(battery_charge_path) {
-        Ok(path) => {
-            path
-        },
+        Ok(path) => path,
         Err(error) => {
             if error.type_id() == Error::IO.type_id() {
                 // Make sure to return IO error if one occurs
@@ -101,18 +97,15 @@ pub fn read_battery_charge() -> Result<i8, Error> {
 }
 
 pub fn read_power_source() -> Result<bool, Error> {
-
-    let power_source_path: Vec<&str> = vec![ 
+    let power_source_path: Vec<&str> = vec![
         "/sys/class/power_supply/AC/online",
         "/sys/class/power_supply/AC0/online",
         "/sys/class/power_supply/AC1/online",
-        "/sys/class/power_supply/ACAD/online"
+        "/sys/class/power_supply/ACAD/online",
     ];
 
     let path: &str = match get_best_path(power_source_path) {
-        Ok(path) => {
-            path
-        },
+        Ok(path) => path,
         Err(error) => {
             if error.type_id() == Error::IO.type_id() {
                 // Make sure to return IO error if one occurs
@@ -132,8 +125,7 @@ pub fn read_power_source() -> Result<bool, Error> {
     return Ok(pwr_str == "1");
 }
 
-pub fn get_best_path(paths: Vec::<&str>) -> Result<&str, Error> {
-
+pub fn get_best_path(paths: Vec<&str>) -> Result<&str, Error> {
     for path in paths.iter() {
         if Path::new(path).exists() {
             return Ok(path);

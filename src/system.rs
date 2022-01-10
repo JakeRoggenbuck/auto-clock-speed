@@ -195,22 +195,18 @@ mod tests {
     }
 
     #[test]
-    fn acs_list_cpus_test() -> Result<(), Error>{
-        assert_eq!(
-            type_of(list_cpus()?),
-            type_of(Vec::<CPU>::new())
-        );
+    fn acs_list_cpus_test() -> Result<(), Error> {
+        assert_eq!(type_of(list_cpus()?), type_of(Vec::<CPU>::new()));
 
         for x in list_cpus()? {
             assert!(x.name.len() > 0);
             assert!(x.max_freq > 0);
             assert!(x.min_freq > 0);
 
-            assert!(x.cur_freq> 0);
+            assert!(x.cur_freq > 0);
             assert!(x.cur_temp > 0);
 
             assert!(x.gov == "powersave" || x.gov == "performance");
-
         }
         Ok(())
     }

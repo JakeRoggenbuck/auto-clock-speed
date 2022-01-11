@@ -1,5 +1,4 @@
 use super::debug;
-use std::env;
 use std::fs;
 use std::path::Path;
 
@@ -37,8 +36,8 @@ pub fn create_local(path_name: &str) {
 }
 
 
-pub fn local_config_dir_exists() {
-    check_local(".config/acs/")
+pub fn local_config_dir_exists() -> bool {
+    check_for_local(".config/acs/")
 }
 
 pub fn create_local_config_dir() {

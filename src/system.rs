@@ -94,6 +94,8 @@ pub fn list_cpus() -> Result<Vec<CPU>, Error> {
         .map(|x| x.to_owned())
         .collect();
 
+    cpus.sort();
+
     let mut to_return: Vec<CPU> = Vec::<CPU>::new();
 
     for cpu in cpus {

@@ -1,3 +1,4 @@
+use super::config::Config;
 use super::cpu::{Speed, CPU};
 use super::logger;
 use super::logger::Interface;
@@ -30,6 +31,7 @@ pub struct Daemon {
     pub charging: bool,
     pub charge: i8,
     pub logger: logger::Logger,
+    pub config: Config,
 }
 
 fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
@@ -69,7 +71,7 @@ impl Checker for Daemon {
         let timeout = time::Duration::from_millis(self.delay);
 
         // The state for rules
-        let mut already_under_20_percent: bool = false;
+        let mut already_under_powersave_under_percent: bool = false;
         let mut already_charging: bool = false;
         let mut already_closed: bool = false;
         let mut first_run: bool = true;
@@ -89,7 +91,8 @@ impl Checker for Daemon {
                 // but only if the previous states were incorrect
                 if first_run == true {
                     already_charging = !self.charging;
-                    already_under_20_percent = !(self.charge < 20);
+                    already_under_powersave_under_percent =
+                        !(self.charge < self.config.powersave_under);
                     already_closed = self.lid_state == LidState::Closed;
                     first_run = false;
                 }
@@ -108,7 +111,7 @@ impl Checker for Daemon {
 
                 if self.lid_state == LidState::Open && already_closed {
                     // A few checks inorder to insure the computer should actually be in performance
-                    if !(self.charge < 20) && self.charging {
+                    if !(self.charge < self.config.powersave_under) && self.charging {
                         self.logger.log(
                             "Governor set to performance because lid opened",
                             logger::Severity::Log,
@@ -124,27 +127,34 @@ impl Checker for Daemon {
                     already_closed = false;
                 }
 
-                // Under 20% rule -> gov powersave
-                // If the battery life is below 20%, set gov to powersave
+                // Under self.config.powersave_under% rule -> gov powersave
+                // If the battery life is below self.config.powersave_under%, set gov to powersave
 
-                if self.charge < 20 && !already_under_20_percent {
+                if self.charge < self.config.powersave_under
+                    && !already_under_powersave_under_percent
+                {
                     self.logger.log(
-                        "Governor set to powersave because battery was less than 20",
+                        &format!(
+                            "Governor set to powersave because battery was less than {}",
+                            self.config.powersave_under
+                        ),
                         logger::Severity::Log,
                     );
                     self.apply_to_cpus(&make_gov_powersave)?;
-                    already_under_20_percent = true;
+                    already_under_powersave_under_percent = true;
                     // Make sure to reset state
                 }
-                if self.charge >= 20 {
-                    already_under_20_percent = false;
+                if self.charge >= self.config.powersave_under {
+                    already_under_powersave_under_percent = false;
                 }
 
                 // Charging rule -> gov performance
                 // If the battery is charging, set to performance
 
                 if self.charging && !already_charging {
-                    if self.lid_state == LidState::Closed || self.charge < 20 {
+                    if self.lid_state == LidState::Closed
+                        || self.charge < self.config.powersave_under
+                    {
                         self.logger.log(
                             "Battery is charging however the governor remains unchanged",
                             logger::Severity::Log,
@@ -266,7 +276,12 @@ fn format_message(edit: bool, started_as_edit: bool, forced_reason: String, dela
     )
 }
 
-pub fn daemon_init(verbose: bool, delay: u64, mut edit: bool) -> Result<Daemon, Error> {
+pub fn daemon_init(
+    verbose: bool,
+    delay: u64,
+    mut edit: bool,
+    config: Config,
+) -> Result<Daemon, Error> {
     let started_as_edit = edit;
     let mut forced_reason: String = String::new();
     // Check if the device has a battery, otherwise force it to monitor mode
@@ -314,6 +329,7 @@ pub fn daemon_init(verbose: bool, delay: u64, mut edit: bool) -> Result<Daemon, 
         logger: logger::Logger {
             logs: Vec::<logger::Log>::new(),
         },
+        config,
     };
 
     // Make a cpu struct for each cpu listed

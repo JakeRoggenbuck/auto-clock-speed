@@ -6,14 +6,15 @@ use std::io::Read;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
-    pub powersave_under: i32,
-    pub charging_powersave_under: i32,
+    pub powersave_under: i8,
+
+    // Future variables
+    // pub charging_powersave_under: i32,
 }
 
 pub fn default_config() -> Config {
     Config {
-        powersave_under: 40,
-        charging_powersave_under: 30,
+        powersave_under: 20,
     }
 }
 

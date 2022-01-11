@@ -199,7 +199,7 @@ fn main() {
 
         // Everything starting with "set"
         Command::Set { set } => match set {
-            SetType::Gov { value } => match daemon_init(true, 0, false) {
+            SetType::Gov { value } => match daemon_init(true, 0, false, config) {
                 Ok(mut d) => match d.set_govs(value.clone()) {
                     Ok(_) => {}
                     Err(e) => eprint!("Could not set gov, {:?}", e),
@@ -209,7 +209,7 @@ fn main() {
         },
 
         // Run command
-        Command::Run { quiet, delay } => match daemon_init(!quiet, delay, true) {
+        Command::Run { quiet, delay } => match daemon_init(!quiet, delay, true, config) {
             Ok(d) => {
                 main_daemon = d;
                 main_daemon.run().unwrap_err();
@@ -218,7 +218,7 @@ fn main() {
         },
 
         // Monitor command
-        Command::Monitor { delay } => match daemon_init(true, delay, false) {
+        Command::Monitor { delay } => match daemon_init(true, delay, false, config) {
             Ok(d) => {
                 main_daemon = d;
                 main_daemon.run().unwrap_err();

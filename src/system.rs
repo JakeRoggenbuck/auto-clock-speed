@@ -29,7 +29,7 @@ pub fn check_cpu_name() -> Result<String, Error> {
     // For each line that starts with the clock speed identifier return the number after : as a 32
     // bit integer
     find_cpu_mhz
-        .and_then(|line| line.split(':').last())
+        .and_then(|line| line.split(": ").last())
         .map(|x| x.to_owned())
         .ok_or(Error::Unknown)
 }

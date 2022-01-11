@@ -3,6 +3,34 @@ use super::power::LidState;
 use std::fmt::Display;
 use termion::{color, style};
 
+#[macro_export]
+macro_rules! bold_color_text {
+    ($a:expr, $b:expr) => {{
+        format!(
+            "{}{}{}{}{}",
+            termion::style::Bold,
+            termion::color::Fg($b),
+            $a,
+            termion::color::Fg(termion::color::Reset),
+            termion::style::Reset,
+        )
+    }};
+}
+
+#[macro_export]
+macro_rules! warn_user {
+    ($a:expr) => {{
+        println!(
+            "{}{}WARN:{}{} {}",
+            termion::style::Bold,
+            termion::color::Fg(termion::color::Yellow),
+            termion::color::Fg(termion::color::Reset),
+            termion::style::Reset,
+            $a,
+        );
+    }};
+}
+
 pub fn print_freq(f: i32, raw: bool) {
     if raw {
         println!("{}", f);

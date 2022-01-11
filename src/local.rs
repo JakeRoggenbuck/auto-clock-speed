@@ -38,7 +38,7 @@ pub fn create_local(path_name: &str) {
 pub fn config_path() -> String {
     match home::home_dir() {
         Some(path) => {
-            format!("{}/{}", path.display(), ".config/acs/config.toml")
+            format!("{}/{}", path.display(), ".config/acs/acs.toml")
         }
         None => {
             println!("Could not get home directory");

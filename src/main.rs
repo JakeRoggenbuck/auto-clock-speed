@@ -1,4 +1,4 @@
-use config::open_config;
+use config::{default_config, open_config};
 use daemon::{daemon_init, Checker};
 use display::{
     print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpu_temp, print_cpus,
@@ -138,9 +138,16 @@ fn main() {
     env_logger::init();
     let mut main_daemon: daemon::Daemon;
 
+    // Create config directory if it doesn't exist
     if !local_config_dir_exists() {
         create_local_config_dir();
     }
+
+    // Config will always exist, default or otherwise
+    let config: config::Config = match open_config() {
+        Ok(a) => a,
+        Err(_) => default_config(),
+    };
 
     match Command::from_args() {
         // Everything starting with "get"

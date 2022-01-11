@@ -1,10 +1,11 @@
+use config::open_config;
 use daemon::{daemon_init, Checker};
 use display::{
     print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpu_temp, print_cpus,
     print_freq, print_power, print_turbo,
 };
 use error::Error;
-use local::{local_config_dir_exists, create_local_config_dir};
+use local::{create_local_config_dir, local_config_dir_exists};
 use log::debug;
 use power::{read_battery_charge, read_lid_state, read_power_source};
 use std::process::exit;
@@ -14,6 +15,7 @@ use system::{
     list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus,
 };
 
+pub mod config;
 pub mod cpu;
 pub mod daemon;
 pub mod display;

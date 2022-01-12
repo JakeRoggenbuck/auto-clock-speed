@@ -41,6 +41,7 @@ pub fn read_lid_state() -> Result<LidState, Error> {
         "/proc/acpi/button/lid/LID/state",
         "/proc/acpi/button/lid/LID0/state",
         "/proc/acpi/button/lid/LID1/state",
+        "/proc/acpi/button/lid/LID2/state",
     ];
 
     let path: &str = match get_best_path(lid_status_path) {
@@ -72,6 +73,7 @@ pub fn read_battery_charge() -> Result<i8, Error> {
         "/sys/class/power_supply/BAT/capacity",
         "/sys/class/power_supply/BAT0/capacity",
         "/sys/class/power_supply/BAT1/capacity",
+        "/sys/class/power_supply/BAT2/capacity",
     ];
 
     let path: &str = match get_best_path(battery_charge_path) {

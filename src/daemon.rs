@@ -2,7 +2,7 @@ use super::cpu::{Speed, CPU};
 use super::logger;
 use super::logger::Interface;
 use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
-use super::system::{list_cpus, check_turbo_enabled};
+use super::system::{check_turbo_enabled, list_cpus};
 use super::Error;
 use nix::unistd::Uid;
 use std::{thread, time};
@@ -79,7 +79,6 @@ impl Checker for Daemon {
             self.update_all()?;
 
             if self.edit {
-
                 // Update current states
                 self.charging = read_power_source()?;
                 self.charge = read_battery_charge()?;
@@ -108,17 +107,21 @@ impl Checker for Daemon {
                 }
 
                 if self.lid_state == LidState::Open && already_closed {
-
                     // A few checks inorder to insure the computer should actually be in performance
                     if !(self.charge < 20) && self.charging {
-                        self.logger.log("Governor set to performance because lid opened", logger::Severity::Log);
+                        self.logger.log(
+                            "Governor set to performance because lid opened",
+                            logger::Severity::Log,
+                        );
                         self.apply_to_cpus(&make_gov_performance)?;
                     } else {
-                        self.logger.log("Lid opened however the governor remains unchanged", logger::Severity::Log);
+                        self.logger.log(
+                            "Lid opened however the governor remains unchanged",
+                            logger::Severity::Log,
+                        );
                     }
 
                     already_closed = false;
-
                 }
 
                 // Under 20% rule -> gov powersave
@@ -141,7 +144,6 @@ impl Checker for Daemon {
                 // If the battery is charging, set to performance
 
                 if self.charging && !already_charging {
-
                     if self.lid_state == LidState::Closed || self.charge < 20 {
                         self.logger.log(
                             "Battery is charging however the governor remains unchanged",
@@ -203,7 +205,7 @@ impl Checker for Daemon {
                     match read_battery_charge() {
                         Ok(bat) => {
                             println!("{}Battery: {}%", style::Bold, bat)
-                        },
+                        }
                         Err(_) => {
                             // Failed!
                         }
@@ -211,7 +213,7 @@ impl Checker for Daemon {
                 } else {
                     println!("{}Battery: {}%", style::Bold, "N/A")
                 }
-            },
+            }
             Err(_) => {
                 // Who knows what happened
             }
@@ -223,7 +225,7 @@ impl Checker for Daemon {
                 } else {
                     println!("{}Turbo: {}", style::Bold, "no")
                 }
-            },
+            }
             Err(_) => {
                 // Failed
             }

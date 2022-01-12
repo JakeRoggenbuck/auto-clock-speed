@@ -7,7 +7,6 @@ use std::io::Read;
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
     pub powersave_under: i8,
-
     // Future variables
     // pub charging_powersave_under: i32,
 }

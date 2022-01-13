@@ -82,7 +82,11 @@ sudo acs run --quiet
 ```
 
 # Get
-## Subcommands
+
+## Flags
+`--raw` is the only used flag for the `get` command.
+
+## Subcommands (click to expand each subcommand)
 <details><summary>available-govs</summary>
 <p>
 
@@ -182,6 +186,7 @@ open 0 false
 
 <details><summary>speeds</summary>
 <p>
+
 ## speeds
 Normal
 ```

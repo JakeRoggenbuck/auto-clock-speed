@@ -241,6 +241,31 @@ true
 </p>
 </details>
 
+# Set
+
+## Perms
+Note that all of the set commands require sudo.
+
+## Subcommand
+<details><summary>gov (click to expand)</summary>
+<p>
+
+## available-govs
+
+Normal use
+```
+sudo acs set gov performance
+sudo acs set gov powersave
+```
+
+Fancy set script
+```sh
+sudo acs set gov $(acs get available-govs --raw | dmenu)
+```
+
+</p>
+</details>
+
 ## Help
 ```
 Automatic CPU frequency scaler and power saver
@@ -257,4 +282,5 @@ SUBCOMMANDS:
     help       Prints this message or the help of the given subcommand(s)
     monitor    Monitor each cpu, it's min, max, and current speed, along with the governor
     run        Run the daemon, this checks and edit your cpu's speed
+    set
 ```

@@ -1,8 +1,7 @@
 # Auto Clock Speed (acs) ![Rust](https://img.shields.io/github/workflow/status/jakeroggenbuck/auto-clock-speed/Rust?style=for-the-badge)
- A utility to check stats about your CPU, and auto regulate clock speeds to help with either performance or battery life.
+A utility to check stats about your CPU, and auto regulate clock speeds to help with either performance or battery life.
  
-![image](https://user-images.githubusercontent.com/35516367/132371565-4ff64d03-bff2-4e46-9a73-165e933c460c.png)
-
+![image](https://user-images.githubusercontent.com/35516367/149242078-117ceebf-4414-446e-90f2-a133f35fdcdc.png)
 
 ## Goals
 - First and foremost, this is a project to learn about Rust and Linux

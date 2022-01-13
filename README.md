@@ -83,15 +83,6 @@ sudo acs run --quiet
 
 # Get
 ## Subcommands
-- available-govs
-- cpus
-- freq
-- govs
-- help
-- power
-- speeds
-- temp
-- turbo
 
 <details><summary>available-govs</summary>
 <p>
@@ -112,6 +103,9 @@ powersave
 </p>
 </details>
 
+<details><summary>cpus</summary>
+<p>
+
 ## cpus
 Normal
 ```
@@ -130,6 +124,12 @@ cpu2 590444
 cpu3 627150
 ```
 
+</p>
+</details>
+
+<details><summary>cpus</summary>
+<p>
+
 ## freq
 Normal
 ```
@@ -140,6 +140,12 @@ Raw
 ```
 597471
 ```
+
+</p>
+</details>
+
+<details><summary>cpus</summary>
+<p>
 
 ## govs
 Normal
@@ -155,6 +161,12 @@ powersave
 powersave
 ```
 
+</p>
+</details>
+
+<details><summary>cpus</summary>
+<p>
+
 ## power
 Normal
 ```
@@ -166,6 +178,11 @@ Raw
 open 0 false
 ```
 
+</p>
+</details>
+
+<details><summary>cpus</summary>
+<p>
 ## speeds
 Normal
 ```
@@ -179,6 +196,12 @@ Raw
 566880
 579120
 ```
+
+</p>
+</details>
+
+<details><summary>cpus</summary>
+<p>
 
 ## temp
 Normal
@@ -194,6 +217,12 @@ Raw
 29050
 ```
 
+</p>
+</details>
+
+<details><summary>cpus</summary>
+<p>
+
 ## turbo
 Normal
 ```
@@ -204,6 +233,9 @@ Raw
 ```
 true
 ```
+
+</p>
+</details>
 
 ## Help
 ```

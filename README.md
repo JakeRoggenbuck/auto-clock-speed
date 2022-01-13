@@ -245,7 +245,7 @@ true
 </p>
 </details>
 
-<br><br>
+<br>
 
 ## Set
 
@@ -271,6 +271,8 @@ sudo acs set gov $(acs get available-govs --raw | dmenu)
 
 </p>
 </details>
+
+<br>
 
 ## Help
 ```

@@ -7,7 +7,6 @@ use super::Error;
 use nix::unistd::Uid;
 use std::{thread, time};
 use termion::{color, style};
-use crate::display::print_turbo_animation;
 
 pub trait Checker {
     fn apply_to_cpus(
@@ -226,11 +225,9 @@ impl Checker for Daemon {
         match check_turbo_enabled() {
             Ok(turbo) => {
                 if turbo {
-                    println!("  Turbo: {}{}{}", style::Bold, "yes", style::Reset);
-                    print_turbo_animation(true)
+                    println!("Turbo: {}{}{}", style::Bold, "yes", style::Reset)
                 } else {
-                    println!("  Turbo: {}{}{}", style::Bold, "no", style::Reset);
-                    print_turbo_animation(false)
+                    println!("Turbo: {}{}{}", style::Bold, "no", style::Reset)
                 }
             }
             Err(_) => {

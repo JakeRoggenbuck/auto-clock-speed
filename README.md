@@ -82,17 +82,121 @@ sudo acs run --quiet
 ```
 
 ### Get
-```sh
-# Get information about the system
+#### Subcommands
+- available-govs
+- cpus
+- freq
+- govs
+- help
+- power
+- speeds
+- temp
+- turbo
 
-# View all of get's subcommands
-acs get --help
-
-acs get temp
-acs get freq
-acs get speeds
+#### available-govs
+Normal
+```
+performance powersave
 ```
 
+Raw
+```
+performance
+powersave
+```
+
+#### cpus
+Normal
+```
+Name: Intel(R) Core(TM) i5-7300U CPU @ 2.60GHz
+cpu0 is currently @ 589 MHz
+cpu1 is currently @ 629 MHz
+cpu2 is currently @ 594 MHz
+cpu3 is currently @ 649 MHz
+```
+
+Raw
+```
+cpu0 628003
+cpu1 601547
+cpu2 590444
+cpu3 627150
+```
+
+#### freq
+Normal
+```
+CPU freq is 597 MHz
+```
+
+Raw
+```
+597471
+```
+
+#### govs
+Normal
+```
+powersave powersave powersave powersave
+```
+
+Raw
+```
+powersave
+powersave
+powersave
+powersave
+```
+
+#### power
+Normal
+```
+Lid: open Battery: 0 Plugged: false
+```
+
+Raw
+```
+open 0 false
+```
+
+#### speeds
+Normal
+```
+578444 578308 572217 579259
+```
+
+Raw
+```
+572773
+580328
+566880
+579120
+```
+
+#### temp
+Normal
+```
+25000 31050 20000 29050
+```
+
+Raw
+```
+25000
+32050
+20000
+29050
+```
+
+#### turbo
+Normal
+```
+Turbo is enabled
+```
+
+Raw
+```
+true
+```
 
 ## Help
 ```

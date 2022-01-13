@@ -93,10 +93,11 @@ sudo acs run --quiet
 - temp
 - turbo
 
-<details>
-<summary>available-govs<summary>
-
+<details><summary>available-govs</summary>
 <p>
+
+## available-govs
+
 Normal
 ```
 performance powersave
@@ -107,6 +108,7 @@ Raw
 performance
 powersave
 ```
+
 </p>
 </details>
 

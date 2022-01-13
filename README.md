@@ -59,6 +59,8 @@ sudo systemctl enable acs
 systemctl status acs
 ```
 
+<br><br>
+
 ## Usage
 ### Monitor
 ```sh
@@ -70,6 +72,8 @@ acs monitor
 acs monitor --delay 1000
 ```
 
+<br><br>
+
 ### Run
 ```sh
 # Run requires sudo because it edits the cpu's frequency
@@ -80,6 +84,8 @@ sudo acs run
 # Shows no output but still edits speeds
 sudo acs run --quiet
 ```
+
+<br><br>
 
 # Get
 
@@ -240,6 +246,8 @@ true
 
 </p>
 </details>
+
+<br><br>
 
 # Set
 

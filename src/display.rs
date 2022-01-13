@@ -32,7 +32,6 @@ pub fn print_turbo(t: bool, raw: bool) {
             }
         )
     }
-    print_turbo(t, raw);
 }
 
 pub fn print_turbo_animation(t: bool) {

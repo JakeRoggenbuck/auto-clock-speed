@@ -81,8 +81,8 @@ sudo acs run
 sudo acs run --quiet
 ```
 
-### Get
-#### Subcommands
+# Get
+## Subcommands
 - available-govs
 - cpus
 - freq
@@ -93,7 +93,7 @@ sudo acs run --quiet
 - temp
 - turbo
 
-#### available-govs
+## available-govs
 Normal
 ```
 performance powersave
@@ -105,7 +105,7 @@ performance
 powersave
 ```
 
-#### cpus
+## cpus
 Normal
 ```
 Name: Intel(R) Core(TM) i5-7300U CPU @ 2.60GHz
@@ -123,7 +123,7 @@ cpu2 590444
 cpu3 627150
 ```
 
-#### freq
+## freq
 Normal
 ```
 CPU freq is 597 MHz
@@ -134,7 +134,7 @@ Raw
 597471
 ```
 
-#### govs
+## govs
 Normal
 ```
 powersave powersave powersave powersave
@@ -148,7 +148,7 @@ powersave
 powersave
 ```
 
-#### power
+## power
 Normal
 ```
 Lid: open Battery: 0 Plugged: false
@@ -159,7 +159,7 @@ Raw
 open 0 false
 ```
 
-#### speeds
+## speeds
 Normal
 ```
 578444 578308 572217 579259
@@ -173,7 +173,7 @@ Raw
 579120
 ```
 
-#### temp
+## temp
 Normal
 ```
 25000 31050 20000 29050
@@ -187,7 +187,7 @@ Raw
 29050
 ```
 
-#### turbo
+## turbo
 Normal
 ```
 Turbo is enabled

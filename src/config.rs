@@ -17,11 +17,11 @@ pub fn default_config() -> Config {
     }
 }
 
-pub fn open_config() -> Result<Config, toml::de::Error> {
+pub fn open_config() -> Result<Config, std::io::Error> {
     // Open config file
     let mut config_file = match File::open(config_path().as_str()) {
         Ok(a) => a,
-        Err(e) => panic!("{}", e),
+        Err(e) => return Err(e),
     };
 
     // Read it to new string
@@ -34,7 +34,7 @@ pub fn open_config() -> Result<Config, toml::de::Error> {
         Ok(a) => a,
         Err(e) => {
             warn_user!(format!("{}", e));
-            return Err(e);
+            panic!("{}", e);
         }
     };
 

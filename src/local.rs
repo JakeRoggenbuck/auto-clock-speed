@@ -47,6 +47,10 @@ pub fn config_path() -> String {
     }
 }
 
+pub fn local_config_file_exists() -> bool {
+    Path::new(&config_path()).exists()
+}
+
 pub fn local_config_dir_exists() -> bool {
     check_for_local(".config/acs/")
 }

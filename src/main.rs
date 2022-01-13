@@ -146,7 +146,12 @@ fn main() {
     // Config will always exist, default or otherwise
     let config: config::Config = match open_config() {
         Ok(a) => a,
-        Err(_) => default_config(),
+        Err(_) => {
+            warn_user!(
+                "Using default config. Create file ~/.config/acs/acs.toml for custom config."
+            );
+            default_config()
+        }
     };
 
     match Command::from_args() {

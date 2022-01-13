@@ -86,8 +86,8 @@ sudo acs run --quiet
 ## Flags
 `--raw` is the only used flag for the `get` command.
 
-## Subcommands (click to expand each subcommand)
-<details><summary>available-govs</summary>
+## Subcommands
+<details><summary>available-govs (click to expand)</summary>
 <p>
 
 ## available-govs

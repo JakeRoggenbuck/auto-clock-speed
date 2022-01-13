@@ -209,31 +209,35 @@ impl Checker for Daemon {
         for cpu in &self.cpus {
             cpu.print();
         }
+
+        println!("");
+
         match has_battery() {
             Ok(a) => {
                 if a {
                     match read_battery_charge() {
                         Ok(bat) => {
-                            println!("{}Battery: {}%", style::Bold, bat)
+                            println!("Battery: {}{}%{}", style::Bold, bat, style::Reset)
                         }
                         Err(_) => {
                             // Failed!
                         }
                     }
                 } else {
-                    println!("{}Battery: {}%", style::Bold, "N/A")
+                    println!("Battery: {}{}%{}", style::Bold, "N/A", style::Reset)
                 }
             }
             Err(_) => {
                 // Who knows what happened
             }
         }
+
         match check_turbo_enabled() {
             Ok(turbo) => {
                 if turbo {
-                    println!("{}Turbo: {}", style::Bold, "yes")
+                    println!("Turbo: {}{}{}", style::Bold, "yes", style::Reset)
                 } else {
-                    println!("{}Turbo: {}", style::Bold, "no")
+                    println!("Turbo: {}{}{}", style::Bold, "no", style::Reset)
                 }
             }
             Err(_) => {

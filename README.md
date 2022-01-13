@@ -59,10 +59,8 @@ sudo systemctl enable acs
 systemctl status acs
 ```
 
-<br><br>
-
-## Usage
-### Monitor
+# Usage
+## Monitor
 ```sh
 # Show the min, max, and current cpu frequency
 # along with the cpu governor
@@ -72,9 +70,9 @@ acs monitor
 acs monitor --delay 1000
 ```
 
-<br><br>
+<br>
 
-### Run
+## Run
 ```sh
 # Run requires sudo because it edits the cpu's frequency
 
@@ -85,18 +83,18 @@ sudo acs run
 sudo acs run --quiet
 ```
 
-<br><br>
+<br>
 
-# Get
+## Get
 
-## Flags
+### Flags
 `--raw` is the only used flag for the `get` command.
 
-## Subcommands
+### Subcommands
 <details><summary>available-govs (click to expand)</summary>
 <p>
 
-## available-govs
+### available-govs
 
 Normal
 ```
@@ -115,7 +113,7 @@ powersave
 <details><summary>cpus</summary>
 <p>
 
-## cpus
+### cpus
 Normal
 ```
 Name: Intel(R) Core(TM) i5-7300U CPU @ 2.60GHz
@@ -139,7 +137,7 @@ cpu3 627150
 <details><summary>freq</summary>
 <p>
 
-## freq
+### freq
 Normal
 ```
 CPU freq is 597 MHz
@@ -156,7 +154,7 @@ Raw
 <details><summary>govs</summary>
 <p>
 
-## govs
+### govs
 Normal
 ```
 powersave powersave powersave powersave
@@ -176,7 +174,7 @@ powersave
 <details><summary>power</summary>
 <p>
 
-## power
+### power
 Normal
 ```
 Lid: open Battery: 0 Plugged: false
@@ -193,7 +191,7 @@ open 0 false
 <details><summary>speeds</summary>
 <p>
 
-## speeds
+### speeds
 Normal
 ```
 578444 578308 572217 579259
@@ -213,7 +211,7 @@ Raw
 <details><summary>temp</summary>
 <p>
 
-## temp
+### temp
 Normal
 ```
 25000 31050 20000 29050
@@ -233,7 +231,7 @@ Raw
 <details><summary>turbo</summary>
 <p>
 
-## turbo
+### turbo
 Normal
 ```
 Turbo is enabled
@@ -249,16 +247,16 @@ true
 
 <br><br>
 
-# Set
+## Set
 
-## Perms
+### Perms
 Note that all of the set commands require sudo.
 
-## Subcommand
+### Subcommand
 <details><summary>gov (click to expand)</summary>
 <p>
 
-## available-govs
+### available-govs
 
 Normal use
 ```

@@ -93,7 +93,8 @@ sudo acs run --quiet
 - temp
 - turbo
 
-## available-govs
+<details>
+<summary><h2>available-govs</h2><summary>
 Normal
 ```
 performance powersave
@@ -104,6 +105,7 @@ Raw
 performance
 powersave
 ```
+</details>
 
 ## cpus
 Normal

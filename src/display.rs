@@ -32,6 +32,27 @@ pub fn print_turbo(t: bool, raw: bool) {
             }
         )
     }
+    print_turbo(t, raw);
+}
+
+pub fn print_turbo_animation(t: bool, raw: bool) {
+    let frames = ['◷', '◶', '◵', '◴'];
+    let mut current = 0;
+
+    if raw {
+        println!("{}", t);
+    } else {
+        if t {
+            loop {
+                println!("{}[;H{}", 27 as char, frames[current]);
+                current += 1;
+                if current == 4 { current = 0; }
+                std::thread::sleep(std::time::Duration::from_millis(150));
+            }
+        } else {
+            println!("{}[;H{}", 27 as char, frames[current]);
+        }
+    }
 }
 
 fn print_vec<T: Display>(t: Vec<T>, raw: bool) {

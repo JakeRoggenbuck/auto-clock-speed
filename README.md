@@ -38,19 +38,19 @@ Do steps 1 and 2 from other install if you don't have rust installed, then do th
 
 ## Systemd
 In order to have auto-clock-speed start when you restart your computer you must follow these instruction
-```
+```sh
 # IMPORTANT: Modify the service file to include
 # the path to the binary file 
 # (usually /home/username/.cargo/bin/acs)
 ```
 
-```
+```sh
 # In the auto clock speed directory run this command to
 # move the service file into your systemd directory
 sudo cp acs.service /etc/systemd/system/
 ```
 
-```
+```sh
 # Start and enable the service
 sudo systemctl start acs
 sudo systemctl enable acs
@@ -97,12 +97,12 @@ sudo acs run --quiet
 ### available-govs
 
 Normal
-```
+```sh
 performance powersave
 ```
 
 Raw
-```
+```sh
 performance
 powersave
 ```
@@ -115,7 +115,7 @@ powersave
 
 ### cpus
 Normal
-```
+```sh
 Name: Intel(R) Core(TM) i5-7300U CPU @ 2.60GHz
 cpu0 is currently @ 589 MHz
 cpu1 is currently @ 629 MHz
@@ -124,7 +124,7 @@ cpu3 is currently @ 649 MHz
 ```
 
 Raw
-```
+```sh
 cpu0 628003
 cpu1 601547
 cpu2 590444
@@ -139,12 +139,12 @@ cpu3 627150
 
 ### freq
 Normal
-```
+```sh
 CPU freq is 597 MHz
 ```
 
 Raw
-```
+```sh
 597471
 ```
 
@@ -156,12 +156,12 @@ Raw
 
 ### govs
 Normal
-```
+```sh
 powersave powersave powersave powersave
 ```
 
 Raw
-```
+```sh
 powersave
 powersave
 powersave
@@ -176,12 +176,12 @@ powersave
 
 ### power
 Normal
-```
+```sh
 Lid: open Battery: 0 Plugged: false
 ```
 
 Raw
-```
+```sh
 open 0 false
 ```
 
@@ -193,12 +193,12 @@ open 0 false
 
 ### speeds
 Normal
-```
+```sh
 578444 578308 572217 579259
 ```
 
 Raw
-```
+```sh
 572773
 580328
 566880
@@ -213,12 +213,12 @@ Raw
 
 ### temp
 Normal
-```
+```sh
 25000 31050 20000 29050
 ```
 
 Raw
-```
+```sh
 25000
 32050
 20000
@@ -233,12 +233,12 @@ Raw
 
 ### turbo
 Normal
-```
+```sh
 Turbo is enabled
 ```
 
 Raw
-```
+```sh
 true
 ```
 
@@ -259,7 +259,7 @@ Note that all of the set commands require sudo.
 ### available-govs
 
 Normal use
-```
+```sh
 sudo acs set gov performance
 sudo acs set gov powersave
 ```
@@ -275,7 +275,7 @@ sudo acs set gov $(acs get available-govs --raw | dmenu)
 <br>
 
 ## Help
-```
+```sh
 Automatic CPU frequency scaler and power saver
 
 USAGE:

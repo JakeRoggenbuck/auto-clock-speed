@@ -95,18 +95,18 @@ sudo acs run --quiet
 
 <details>
 <summary>available-govs<summary>
-
-<p>Normal</p>
+<p>
+Normal
 ```
 performance powersave
 ```
 
-<p>Raw</p>
+Raw
 ```
 performance
 powersave
 ```
-
+</p>
 </details>
 
 ## cpus

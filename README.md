@@ -94,20 +94,18 @@ sudo acs run --quiet
 - turbo
 
 <details>
-<summary><h2>available-govs</h2><summary>
+<summary>available-govs<summary>
 
+<p>Normal</p>
+```
+performance powersave
+```
 
-<h2>Test</h2>
-<!-- <p>Normal</p> -->
-<!-- ``` -->
-<!-- performance powersave -->
-<!-- ``` -->
-
-<!-- <p>Raw</p> -->
-<!-- ``` -->
-<!-- performance -->
-<!-- powersave -->
-<!-- ``` -->
+<p>Raw</p>
+```
+performance
+powersave
+```
 
 </details>
 

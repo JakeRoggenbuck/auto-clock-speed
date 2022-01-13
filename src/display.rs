@@ -45,7 +45,7 @@ pub fn print_turbo_animation(t: bool) {
             println!("{}[;F{}", 27 as char, frames[current]);
             current += 1;
             if current == 4 { current = 0; }
-            std::thread::sleep(std::time::Duration::from_millis(150));
+            std::thread::sleep(std::time::Duration::from_millis(100));
         }
     } else {
         println!("{}[;F{}", 27 as char, frames[current]);

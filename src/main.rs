@@ -1,9 +1,12 @@
+use config::{default_config, open_config};
 use daemon::{daemon_init, Checker};
 use display::{
     print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpu_temp, print_cpus,
     print_freq, print_power, print_turbo,
 };
 use error::Error;
+use local::{create_local_config_dir, local_config_dir_exists};
+use log::debug;
 use power::{read_battery_charge, read_lid_state, read_power_source};
 use std::process::exit;
 use structopt::StructOpt;
@@ -12,10 +15,12 @@ use system::{
     list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus,
 };
 
+pub mod config;
 pub mod cpu;
 pub mod daemon;
 pub mod display;
 pub mod error;
+pub mod local;
 pub mod logger;
 pub mod power;
 pub mod system;
@@ -130,7 +135,24 @@ enum Command {
 }
 
 fn main() {
+    env_logger::init();
     let mut main_daemon: daemon::Daemon;
+
+    // Create config directory if it doesn't exist
+    if !local_config_dir_exists() {
+        create_local_config_dir();
+    }
+
+    // Config will always exist, default or otherwise
+    let config: config::Config = match open_config() {
+        Ok(a) => a,
+        Err(_) => {
+            warn_user!(
+                "Using default config. Create file ~/.config/acs/acs.toml for custom config."
+            );
+            default_config()
+        }
+    };
 
     match Command::from_args() {
         // Everything starting with "get"
@@ -182,9 +204,9 @@ fn main() {
 
         // Everything starting with "set"
         Command::Set { set } => match set {
-            SetType::Gov { value } => match daemon_init(true, 0, false) {
+            SetType::Gov { value } => match daemon_init(true, 0, false, config) {
                 Ok(mut d) => match d.set_govs(value.clone()) {
-                    Ok(_) => {},
+                    Ok(_) => {}
                     Err(e) => eprint!("Could not set gov, {:?}", e),
                 },
                 Err(_) => eprint!("Could not run daemon in edit mode"),
@@ -192,7 +214,7 @@ fn main() {
         },
 
         // Run command
-        Command::Run { quiet, delay } => match daemon_init(!quiet, delay, true) {
+        Command::Run { quiet, delay } => match daemon_init(!quiet, delay, true, config) {
             Ok(d) => {
                 main_daemon = d;
                 main_daemon.run().unwrap_err();
@@ -201,7 +223,7 @@ fn main() {
         },
 
         // Monitor command
-        Command::Monitor { delay } => match daemon_init(true, delay, false) {
+        Command::Monitor { delay } => match daemon_init(true, delay, false, config) {
             Ok(d) => {
                 main_daemon = d;
                 main_daemon.run().unwrap_err();

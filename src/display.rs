@@ -35,15 +35,16 @@ pub fn print_turbo(t: bool, raw: bool) {
     }
 }
 
-pub fn print_turbo_animation(t: bool) {
+pub fn print_turbo_animation(t: bool, cpu: usize) {
     let frames = ['◷', '◶', '◵', '◴'];
+    let y_pos = cpu + 6;
     let mut current = 0;
 
     if t {
         thread::spawn(move || {
             for _ in 0.. 20 {
                 termion::cursor::Goto(3, 7);
-                println!("{}[18;1H{}", 27 as char, frames[current]);
+                println!("{}[{};1H{}", 27 as char, y_pos, frames[current]);
                 current += 1;
                 if current == 4 { current = 0; }
                 std::thread::sleep(std::time::Duration::from_millis(100));

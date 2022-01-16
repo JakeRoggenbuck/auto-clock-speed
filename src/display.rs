@@ -1,6 +1,7 @@
 use super::cpu::CPU;
 use super::power::LidState;
 use std::fmt::Display;
+use std::thread;
 use termion::{color, style};
 
 pub fn print_freq(f: i32, raw: bool) {
@@ -39,15 +40,18 @@ pub fn print_turbo_animation(t: bool) {
     let mut current = 0;
 
     if t {
-        loop {
-            termion::cursor::Goto(3, 7);
-            println!("{}[;F{}", 27 as char, frames[current]);
-            current += 1;
-            if current == 4 { current = 0; }
-            std::thread::sleep(std::time::Duration::from_millis(100));
-        }
+        thread::spawn(move || {
+            loop {
+                termion::cursor::Goto(3, 7);
+                println!("{}[18;1H{}", 27 as char, frames[current]);
+                current += 1;
+                if current == 4 { current = 0; }
+                std::thread::sleep(std::time::Duration::from_millis(100));
+            }
+        });
     } else {
-        println!("{}[;F{}", 27 as char, frames[current]);
+        //println!("{}[;F{}", 27 as char, frames[current]);
+        print!("{esc}[2J{esc}[18;1H", esc = 27 as char);
     }
 }
 

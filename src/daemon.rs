@@ -8,6 +8,7 @@ use super::Error;
 use nix::unistd::Uid;
 use std::{thread, time};
 use termion::{color, style};
+use crate::display::print_turbo_animation;
 
 pub trait Checker {
     fn apply_to_cpus(
@@ -197,6 +198,7 @@ impl Checker for Daemon {
 
     /// Output the values from each cpu
     fn print(&self) {
+        let cores = num_cpus::get();
         println!(
             "{}\n\n{}{}",
             // TODO: Don't clear each print
@@ -235,9 +237,11 @@ impl Checker for Daemon {
         match check_turbo_enabled() {
             Ok(turbo) => {
                 if turbo {
-                    println!("Turbo: {}{}{}", style::Bold, "yes", style::Reset)
+                    println!("  Turbo: {}{}{}", style::Bold, "yes", style::Reset);
+                    print_turbo_animation(true, cores)
                 } else {
-                    println!("Turbo: {}{}{}", style::Bold, "no", style::Reset)
+                    println!("  Turbo: {}{}{}", style::Bold, "no", style::Reset);
+                    print_turbo_animation(false, cores)
                 }
             }
             Err(_) => {

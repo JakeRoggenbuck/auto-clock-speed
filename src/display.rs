@@ -1,6 +1,7 @@
 use super::cpu::CPU;
 use super::power::LidState;
 use std::fmt::Display;
+use std::thread;
 use termion::{color, style};
 
 #[macro_export]
@@ -59,6 +60,27 @@ pub fn print_turbo(t: bool, raw: bool) {
                 "Turbo is not enabled"
             }
         )
+    }
+}
+
+pub fn print_turbo_animation(t: bool, cpu: usize) {
+    let frames = ['◷', '◶', '◵', '◴'];
+    let y_pos = cpu + 6;
+    let mut current = 0;
+
+    if t {
+        thread::spawn(move || {
+            for _ in 0.. 20 {
+                termion::cursor::Goto(3, 7);
+                println!("{}[{};1H{}", 27 as char, y_pos, frames[current]);
+                current += 1;
+                if current == 4 { current = 0; }
+                std::thread::sleep(std::time::Duration::from_millis(100));
+            }
+        });
+    } else {
+        println!("{esc}[2J{esc}[18;1H", esc = 27 as char);
+        println!("{}[;F{}", 27 as char, frames[current]);
     }
 }
 

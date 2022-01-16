@@ -41,7 +41,7 @@ pub fn print_turbo_animation(t: bool) {
 
     if t {
         thread::spawn(move || {
-            loop {
+            for _ in 0.. 20 {
                 termion::cursor::Goto(3, 7);
                 println!("{}[18;1H{}", 27 as char, frames[current]);
                 current += 1;
@@ -50,8 +50,8 @@ pub fn print_turbo_animation(t: bool) {
             }
         });
     } else {
-        //println!("{}[;F{}", 27 as char, frames[current]);
-        print!("{esc}[2J{esc}[18;1H", esc = 27 as char);
+        println!("{esc}[2J{esc}[18;1H", esc = 27 as char);
+        println!("{}[;F{}", 27 as char, frames[current]);
     }
 }
 

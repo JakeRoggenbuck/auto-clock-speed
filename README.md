@@ -38,19 +38,19 @@ Do steps 1 and 2 from other install if you don't have rust installed, then do th
 
 ## Systemd
 In order to have auto-clock-speed start when you restart your computer you must follow these instruction
-```
+```sh
 # IMPORTANT: Modify the service file to include
 # the path to the binary file 
 # (usually /home/username/.cargo/bin/acs)
 ```
 
-```
+```sh
 # In the auto clock speed directory run this command to
 # move the service file into your systemd directory
 sudo cp acs.service /etc/systemd/system/
 ```
 
-```
+```sh
 # Start and enable the service
 sudo systemctl start acs
 sudo systemctl enable acs
@@ -59,8 +59,8 @@ sudo systemctl enable acs
 systemctl status acs
 ```
 
-## Usage
-### Monitor
+# Usage
+## Monitor
 ```sh
 # Show the min, max, and current cpu frequency
 # along with the cpu governor
@@ -70,7 +70,9 @@ acs monitor
 acs monitor --delay 1000
 ```
 
-### Run
+<br>
+
+## Run
 ```sh
 # Run requires sudo because it edits the cpu's frequency
 
@@ -81,21 +83,199 @@ sudo acs run
 sudo acs run --quiet
 ```
 
-### Get
+<br>
+
+## Get
+
+### Flags
+`--raw` is the only used flag for the `get` command.
+
+### Subcommands
+<details><summary>available-govs (click to expand)</summary>
+<p>
+
+### available-govs
+
+Normal
 ```sh
-# Get information about the system
-
-# View all of get's subcommands
-acs get --help
-
-acs get temp
-acs get freq
-acs get speeds
+performance powersave
 ```
 
+Raw
+```sh
+performance
+powersave
+```
+
+</p>
+</details>
+
+<details><summary>cpus</summary>
+<p>
+
+### cpus
+Normal
+```sh
+Name: Intel(R) Core(TM) i5-7300U CPU @ 2.60GHz
+cpu0 is currently @ 589 MHz
+cpu1 is currently @ 629 MHz
+cpu2 is currently @ 594 MHz
+cpu3 is currently @ 649 MHz
+```
+
+Raw
+```sh
+cpu0 628003
+cpu1 601547
+cpu2 590444
+cpu3 627150
+```
+
+</p>
+</details>
+
+<details><summary>freq</summary>
+<p>
+
+### freq
+Normal
+```sh
+CPU freq is 597 MHz
+```
+
+Raw
+```sh
+597471
+```
+
+</p>
+</details>
+
+<details><summary>govs</summary>
+<p>
+
+### govs
+Normal
+```sh
+powersave powersave powersave powersave
+```
+
+Raw
+```sh
+powersave
+powersave
+powersave
+powersave
+```
+
+</p>
+</details>
+
+<details><summary>power</summary>
+<p>
+
+### power
+Normal
+```sh
+Lid: open Battery: 0 Plugged: false
+```
+
+Raw
+```sh
+open 0 false
+```
+
+</p>
+</details>
+
+<details><summary>speeds</summary>
+<p>
+
+### speeds
+Normal
+```sh
+578444 578308 572217 579259
+```
+
+Raw
+```sh
+572773
+580328
+566880
+579120
+```
+
+</p>
+</details>
+
+<details><summary>temp</summary>
+<p>
+
+### temp
+Normal
+```sh
+25000 31050 20000 29050
+```
+
+Raw
+```sh
+25000
+32050
+20000
+29050
+```
+
+</p>
+</details>
+
+<details><summary>turbo</summary>
+<p>
+
+### turbo
+Normal
+```sh
+Turbo is enabled
+```
+
+Raw
+```sh
+true
+```
+
+</p>
+</details>
+
+<br>
+
+## Set
+
+### Perms
+Note that all of the set commands require sudo.
+
+### Subcommand
+<details><summary>gov (click to expand)</summary>
+<p>
+
+### available-govs
+
+Normal use
+```sh
+sudo acs set gov performance
+sudo acs set gov powersave
+```
+
+Fancy set script
+```sh
+sudo acs set gov $(acs get available-govs --raw | dmenu)
+```
+
+</p>
+</details>
+
+<br>
 
 ## Help
-```
+```sh
 Automatic CPU frequency scaler and power saver
 
 USAGE:
@@ -110,4 +290,5 @@ SUBCOMMANDS:
     help       Prints this message or the help of the given subcommand(s)
     monitor    Monitor each cpu, it's min, max, and current speed, along with the governor
     run        Run the daemon, this checks and edit your cpu's speed
+    set
 ```

@@ -45,6 +45,40 @@ fn make_gov_performance(cpu: &mut CPU) -> Result<(), Error> {
     Ok(())
 }
 
+fn print_battery_status() {
+    match has_battery() {
+        Ok(has) => {
+            if has {
+                match read_battery_charge() {
+                    Ok(bat) => println!("Battery: {}{}%{}", style::Bold, bat, style::Reset),
+                    Err(e) => eprintln!("Battery charge could not be read\n{:?}", e),
+                }
+            } else {
+                println!("Battery: {}{}%{}", style::Bold, "N/A", style::Reset);
+            }
+        }
+        Err(e) => eprintln!("Could not find battery\n{:?}", e),
+    }
+}
+
+fn print_turbo_status(cores: usize) {
+    match check_turbo_enabled() {
+        Ok(turbo) => {
+            let enabled_message = if turbo { "yes" } else { "no" };
+
+            println!(
+                "  Turbo: {}{}{}",
+                style::Bold,
+                enabled_message,
+                style::Reset
+            );
+
+            print_turbo_animation(turbo, cores)
+        }
+        Err(e) => eprintln!("Could not check turbo\n{:?}", e),
+    }
+}
+
 impl Checker for Daemon {
     /// Apply a function to every cpu
     fn apply_to_cpus(
@@ -201,12 +235,8 @@ impl Checker for Daemon {
         let cores = num_cpus::get();
 
         // Clear screen
-        println!(
-            "{}",
-            // TODO: Don't clear each print
-            // clear at start and replace the first lines
-            termion::clear::All,
-        );
+        // TODO: Don't clear each print, clear at start and replace the first lines
+        println!("{}", termion::clear::All);
 
         // Print initial banner
         println!("{}{}", termion::cursor::Goto(1, 1), self.message);
@@ -223,36 +253,10 @@ impl Checker for Daemon {
         println!("");
 
         // Prints batter percent or N/A if not
-        match has_battery() {
-            Ok(has) => {
-                if has {
-                    match read_battery_charge() {
-                        Ok(bat) => println!("Battery: {}{}%{}", style::Bold, bat, style::Reset),
-                        Err(e) => eprintln!("Battery charge could not be read\n{:?}", e),
-                    }
-                } else {
-                    println!("Battery: {}{}%{}", style::Bold, "N/A", style::Reset);
-                }
-            }
-            Err(e) => eprintln!("Could not find battery\n{:?}", e),
-        }
+        print_battery_status();
 
         // Shows if turbo is enabled with an amazing turbo animation
-        match check_turbo_enabled() {
-            Ok(turbo) => {
-                let enabled_message = if turbo { "yes" } else { "no" };
-
-                println!(
-                    "  Turbo: {}{}{}",
-                    style::Bold,
-                    enabled_message,
-                    style::Reset
-                );
-
-                print_turbo_animation(turbo, cores)
-            }
-            Err(e) => eprintln!("Could not check turbo\n{:?}", e),
-        }
+        print_turbo_status(cores);
 
         // Tells user how to stop
         println!("\nctrl+c to stop running\n\n");
@@ -302,6 +306,7 @@ pub fn daemon_init(
 ) -> Result<Daemon, Error> {
     let started_as_edit: bool = edit;
     let mut forced_reason: String = String::new();
+
     // Check if the device has a battery, otherwise force it to monitor mode
     match has_battery() {
         Ok(has) => {

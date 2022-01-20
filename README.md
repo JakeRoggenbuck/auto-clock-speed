@@ -59,6 +59,24 @@ sudo systemctl enable acs
 systemctl status acs
 ```
 
+## Turn Off
+```
+# Temporarily stop (only lasts until reboot)
+sudo systemctl stop acs
+
+# Perminatly stop until turned on
+sudo systemctl disable acs
+```
+
+## Uninstall
+```
+# Remove binary
+cargo uninstall autoclockspeed
+
+# Remove systemctl entry
+rm /etc/systemd/system/acs.service
+```
+
 # Usage
 ## Monitor
 ```sh

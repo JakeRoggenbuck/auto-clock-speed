@@ -1,3 +1,4 @@
+use super::create_issue;
 use super::Error;
 use std::any::Any;
 use std::cmp::PartialEq;
@@ -51,7 +52,8 @@ pub fn read_lid_state() -> Result<LidState, Error> {
                 // Make sure to return IO error if one occurs
                 return Err(error);
             }
-            eprintln!("We could not detect your lid state. If you are on a laptop please create an issue at https://github.com/JakeRoggenBuck/auto-clock-speed/issues/new");
+            eprintln!("We could not detect your lid state.");
+            create_issue!("If you are on a laptop");
             return Ok(LidState::Unapplicable);
         }
     };
@@ -59,13 +61,15 @@ pub fn read_lid_state() -> Result<LidState, Error> {
     let mut lid_str: String = String::new();
     File::open(path)?.read_to_string(&mut lid_str)?;
 
-    if lid_str.contains("open") {
-        return Ok(LidState::Open);
+    let state = if lid_str.contains("open") {
+        LidState::Open
     } else if lid_str.contains("closed") {
-        return Ok(LidState::Closed);
-    }
+        LidState::Closed
+    } else {
+        LidState::Unknown
+    };
 
-    Ok(LidState::Unknown)
+    Ok(state)
 }
 
 pub fn read_battery_charge() -> Result<i8, Error> {
@@ -84,7 +88,8 @@ pub fn read_battery_charge() -> Result<i8, Error> {
                 return Err(error);
             }
             // If it doesn't exist then it is plugged in so make it 100% percent capacity
-            eprintln!("We could not detect your battery. If you are sure you are on a laptop please create an issue at https://github.com/JakeRoggenBuck/auto-clock-speed/issues/new");
+            eprintln!("We could not detect your battery.");
+            create_issue!("If you are on a laptop");
             return Ok(100);
         }
     };
@@ -113,7 +118,8 @@ pub fn read_power_source() -> Result<bool, Error> {
                 // Make sure to return IO error if one occurs
                 return Err(error);
             }
-            eprintln!("We could not detect your AC power source. Please create an issue at https://github.com/JakeRoggenBuck/auto-clock-speed/issues/new");
+            eprintln!("We could not detect your AC power source.");
+            create_issue!("If you have a power source");
             return Ok(true);
         }
     };

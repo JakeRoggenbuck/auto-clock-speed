@@ -47,7 +47,6 @@ impl fmt::Display for Log {
         };
 
         let time = DateTime::<Utc>::from(self.timestamp).format("%Y-%m-%d %H:%M:%S");
-
         write!(f, "{} {} -> {}", severity, time, self.message)
     }
 }
@@ -57,13 +56,16 @@ pub struct Logger {
 }
 
 impl Interface for Logger {
+    /// Create a Log from message and severity, add the timestamp
     fn log(&mut self, msg: &str, sev: Severity) {
         let time = SystemTime::now();
+
         let loggable = Log {
             message: msg.to_string(),
             severity: sev,
             timestamp: time,
         };
+
         println!("{}", &loggable);
         self.logs.push(loggable);
     }

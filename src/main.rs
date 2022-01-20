@@ -145,11 +145,12 @@ fn main() {
 
     // Config will always exist, default or otherwise
     let config: config::Config = match open_config() {
-        Ok(a) => a,
+        Ok(conf) => conf,
         Err(_) => {
             warn_user!(
                 "Using default config. Create file ~/.config/acs/acs.toml for custom config."
             );
+            // Use default config as config
             default_config()
         }
     };
@@ -161,6 +162,7 @@ fn main() {
                 Ok(f) => print_freq(f, raw),
                 Err(_) => eprintln!("Faild to get cpu frequency"),
             },
+
             GetType::Power { raw } => match read_lid_state() {
                 Ok(lid) => match read_battery_charge() {
                     Ok(bat) => match read_power_source() {
@@ -173,14 +175,17 @@ fn main() {
                 },
                 Err(_) => eprintln!("Faild to get read lid state"),
             },
+
             GetType::Turbo { raw } => match check_turbo_enabled() {
                 Ok(turbo_enabled) => print_turbo(turbo_enabled, raw),
                 Err(_) => println!("Failed to get turbo status"),
             },
+
             GetType::AvailableGovs { raw } => match check_available_governors() {
                 Ok(available_governors) => print_available_governors(available_governors, raw),
                 Err(_) => println!("Failed to get available governors"),
             },
+
             GetType::CPUS { raw } => match list_cpus() {
                 Ok(cpus) => match check_cpu_name() {
                     Ok(name) => print_cpus(cpus, name, raw),
@@ -188,14 +193,17 @@ fn main() {
                 },
                 Err(_) => println!("Failed get list of cpus"),
             },
+
             GetType::Speeds { raw } => match list_cpu_speeds() {
                 Ok(cpu_speeds) => print_cpu_speeds(cpu_speeds, raw),
                 Err(_) => println!("Failed to get list of cpu speeds"),
             },
+
             GetType::Temp { raw } => match list_cpu_temp() {
                 Ok(cpu_temp) => print_cpu_temp(cpu_temp, raw),
                 Err(_) => println!("Failed to get list of cpu temperature"),
             },
+
             GetType::Govs { raw } => match list_cpu_governors() {
                 Ok(cpu_governors) => print_cpu_governors(cpu_governors, raw),
                 Err(_) => println!("Failed to get list of cpu governors"),

@@ -60,7 +60,7 @@ systemctl status acs
 ```
 
 ## Turn Off
-```
+```sh
 # Temporarily stop (only lasts until reboot)
 sudo systemctl stop acs
 
@@ -69,7 +69,7 @@ sudo systemctl disable acs
 ```
 
 ## Uninstall
-```
+```sh
 # Remove binary
 cargo uninstall autoclockspeed
 

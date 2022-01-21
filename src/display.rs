@@ -32,6 +32,17 @@ macro_rules! warn_user {
     }};
 }
 
+#[macro_export]
+macro_rules! create_issue {
+    ($a:expr) => {{
+        eprintln!(
+            "{}, {}",
+            $a,
+            "please create an issue at https://github.com/JakeRoggenbuck/auto-clock-speed/issues/new",
+        );
+    }};
+}
+
 pub fn print_freq(f: i32, raw: bool) {
     if raw {
         println!("{}", f);
@@ -70,11 +81,13 @@ pub fn print_turbo_animation(t: bool, cpu: usize) {
 
     if t {
         thread::spawn(move || {
-            for _ in 0.. 20 {
+            for _ in 0..20 {
                 termion::cursor::Goto(3, 7);
                 println!("{}[{};1H{}", 27 as char, y_pos, frames[current]);
                 current += 1;
-                if current == 4 { current = 0; }
+                if current == 4 {
+                    current = 0;
+                }
                 std::thread::sleep(std::time::Duration::from_millis(100));
             }
         });

@@ -5,10 +5,10 @@ use super::logger::Interface;
 use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
 use super::system::{check_turbo_enabled, list_cpus};
 use super::Error;
+use crate::display::print_turbo_animation;
 use nix::unistd::Uid;
 use std::{thread, time};
 use termion::{color, style};
-use crate::display::print_turbo_animation;
 
 pub trait Checker {
     fn apply_to_cpus(
@@ -43,6 +43,40 @@ fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
 fn make_gov_performance(cpu: &mut CPU) -> Result<(), Error> {
     cpu.set_gov("performance".to_string())?;
     Ok(())
+}
+
+fn print_battery_status() {
+    match has_battery() {
+        Ok(has) => {
+            if has {
+                match read_battery_charge() {
+                    Ok(bat) => println!("Battery: {}{}%{}", style::Bold, bat, style::Reset),
+                    Err(e) => eprintln!("Battery charge could not be read\n{:?}", e),
+                }
+            } else {
+                println!("Battery: {}{}%{}", style::Bold, "N/A", style::Reset);
+            }
+        }
+        Err(e) => eprintln!("Could not find battery\n{:?}", e),
+    }
+}
+
+fn print_turbo_status(cores: usize) {
+    match check_turbo_enabled() {
+        Ok(turbo) => {
+            let enabled_message = if turbo { "yes" } else { "no" };
+
+            println!(
+                "  Turbo: {}{}{}",
+                style::Bold,
+                enabled_message,
+                style::Reset
+            );
+
+            print_turbo_animation(turbo, cores)
+        }
+        Err(e) => eprintln!("Could not check turbo\n{:?}", e),
+    }
 }
 
 impl Checker for Daemon {
@@ -199,56 +233,36 @@ impl Checker for Daemon {
     /// Output the values from each cpu
     fn print(&self) {
         let cores = num_cpus::get();
-        println!(
-            "{}\n\n{}{}",
-            // TODO: Don't clear each print
-            // clear at start and replace the first lines
-            termion::clear::All,
-            termion::cursor::Goto(1, 1),
-            self.message,
-        );
+
+        // Clear screen
+        // TODO: Don't clear each print, clear at start and replace the first lines
+        println!("{}", termion::clear::All);
+
+        // Print initial banner
+        println!("{}{}", termion::cursor::Goto(1, 1), self.message);
+
+        // Print cpu label banner
         println!("{}Name  Max\tMin\tFreq\tTemp\tGovernor", style::Bold);
+
+        // Print each cpu
         for cpu in &self.cpus {
             cpu.print();
         }
 
+        // Just need a little space
         println!("");
 
-        match has_battery() {
-            Ok(a) => {
-                if a {
-                    match read_battery_charge() {
-                        Ok(bat) => {
-                            println!("Battery: {}{}%{}", style::Bold, bat, style::Reset)
-                        }
-                        Err(_) => {
-                            // Failed!
-                        }
-                    }
-                } else {
-                    println!("Battery: {}{}%{}", style::Bold, "N/A", style::Reset)
-                }
-            }
-            Err(_) => {
-                // Who knows what happened
-            }
-        }
+        // Prints batter percent or N/A if not
+        print_battery_status();
 
-        match check_turbo_enabled() {
-            Ok(turbo) => {
-                if turbo {
-                    println!("  Turbo: {}{}{}", style::Bold, "yes", style::Reset);
-                    print_turbo_animation(true, cores)
-                } else {
-                    println!("  Turbo: {}{}{}", style::Bold, "no", style::Reset);
-                    print_turbo_animation(false, cores)
-                }
-            }
-            Err(_) => {
-                // Failed
-            }
-        }
+        // Shows if turbo is enabled with an amazing turbo animation
+        print_turbo_status(cores);
+
+        // Tells user how to stop
         println!("\nctrl+c to stop running\n\n");
+
+        // Print all of the logs, e.g.
+        // notice: 2022-01-13 00:02:17 -> Governor set to performance because battery is charging
         if self.verbose {
             for log in &self.logger.logs {
                 println!("{}", log)
@@ -259,7 +273,7 @@ impl Checker for Daemon {
 
 fn format_message(edit: bool, started_as_edit: bool, forced_reason: String, delay: u64) -> String {
     // Create the message for why it force switched to monitor mode
-    let force = if started_as_edit != edit {
+    let force: String = if started_as_edit != edit {
         format!(
             "\n{}Forced to monitor mode because {}!{}",
             color::Fg(color::Red),
@@ -290,21 +304,23 @@ pub fn daemon_init(
     mut edit: bool,
     config: Config,
 ) -> Result<Daemon, Error> {
-    let started_as_edit = edit;
+    let started_as_edit: bool = edit;
     let mut forced_reason: String = String::new();
+
     // Check if the device has a battery, otherwise force it to monitor mode
     match has_battery() {
-        Ok(a) => {
-            if !a {
+        Ok(has) => {
+            if !has {
                 edit = false;
                 forced_reason = "the device has no battery".to_string();
             }
         }
-        Err(_) => eprintln!("Could not check battery"),
+        Err(e) => eprintln!("Could not find battery\n{:?}", e),
     }
 
     // Check if effective permissions are enough for edit
     if edit {
+        // If not running as root, tell the user and force to monitor
         if !Uid::effective().is_root() {
             println!(
                 "{}{}{}{}",
@@ -313,8 +329,10 @@ pub fn daemon_init(
                 "Continuing anyway in 5 seconds...",
                 style::Reset
             );
+
             let timeout = time::Duration::from_millis(5000);
             thread::sleep(timeout);
+
             edit = false;
             forced_reason = "acs was not run as root".to_string();
         }

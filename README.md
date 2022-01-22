@@ -59,7 +59,31 @@ sudo systemctl enable acs
 systemctl status acs
 ```
 
-# Usage
+# Config
+
+#### Using default config
+```sh
+WARN: Using default config. Create file ~/.config/acs/acs.toml for custom config.
+```
+This warning recommends creating a config file, use the following example and install at `~/.config/acs/acs.toml`
+
+#### This is an example config
+also the default settings if not config is provided
+
+```yaml
+powersave_under: 20
+```
+
+# Example Usage
+```
+acs monitor
+
+sudo acs run
+
+acs get speeds
+```
+
+# Detailed Usage
 ## Monitor
 ```sh
 # Show the min, max, and current cpu frequency

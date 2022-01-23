@@ -183,7 +183,7 @@ mod tests {
             assert!(x.min_freq > 0);
 
             assert!(x.cur_freq > 0);
-            assert!(x.cur_temp > 0);
+            assert!(x.cur_temp > -100);
 
             assert!(x.gov == "powersave" || x.gov == "performance");
         }
@@ -207,7 +207,7 @@ mod tests {
         assert_eq!(type_of(list_cpu_temp()?), type_of(Vec::<i32>::new()));
 
         for x in list_cpu_temp()? {
-            assert!(x > 0);
+            assert!(x > -100);
         }
         Ok(())
     }

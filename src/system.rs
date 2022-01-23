@@ -8,13 +8,10 @@ use std::string::String;
 
 /// Check the frequency of the cpu
 pub fn check_cpu_freq() -> Result<i32, Error> {
-    let mut total = 0;
-    let mut count = 0;
-    for cpu in list_cpus()? {
-        count += 1;
-        total += cpu.cur_freq;
-    }
-    Ok((total as f32 / count as f32) as i32)
+    let freqs: Vec<i32> = list_cpus()?.into_iter().map(|x| x.cur_freq).collect();
+    let sum: i32 = Iterator::sum(freqs.iter());
+
+    Ok((sum as f32 / freqs.len() as f32) as i32)
 }
 
 pub fn check_cpu_name() -> Result<String, Error> {
@@ -120,37 +117,17 @@ pub fn list_cpus() -> Result<Vec<CPU>, Error> {
 
 /// Get a vector of speeds reported from each cpu from list_cpus
 pub fn list_cpu_speeds() -> Result<Vec<i32>, Error> {
-    let cpus = list_cpus()?;
-    let mut speeds = Vec::<i32>::new();
-
-    for cpu in cpus {
-        let speed = cpu.cur_freq;
-        speeds.push(speed)
-    }
-    Ok(speeds)
+    Ok(list_cpus()?.into_iter().map(|x| x.cur_freq).collect())
 }
 
 /// Get a vector of temperatures reported from each cpu from list_cpus
 pub fn list_cpu_temp() -> Result<Vec<i32>, Error> {
-    let cpus = list_cpus()?;
-    let mut temp = Vec::<i32>::new();
-
-    for cpu in cpus {
-        let temperature = cpu.cur_temp;
-        temp.push(temperature)
-    }
-    Ok(temp)
+    Ok(list_cpus()?.into_iter().map(|x| x.cur_temp).collect())
 }
 
 /// Get a vector of the governors that the cpus from list_cpus
 pub fn list_cpu_governors() -> Result<Vec<String>, Error> {
-    let cpus = list_cpus()?;
-    let mut governors = Vec::<String>::new();
-
-    for cpu in cpus {
-        governors.push(cpu.gov)
-    }
-    Ok(governors)
+    Ok(list_cpus()?.into_iter().map(|x| x.gov).collect())
 }
 
 #[cfg(test)]

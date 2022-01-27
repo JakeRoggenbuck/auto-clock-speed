@@ -54,7 +54,7 @@ fn print_battery_status() {
                     Err(e) => eprintln!("Battery charge could not be read\n{:?}", e),
                 }
             } else {
-                println!("Battery: {}{}%{}", style::Bold, "N/A", style::Reset);
+                println!("Battery: {}{}{}", style::Bold, "N/A", style::Reset);
             }
         }
         Err(e) => eprintln!("Could not find battery\n{:?}", e),

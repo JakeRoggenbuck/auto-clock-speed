@@ -33,6 +33,7 @@ pub struct Daemon {
     pub charge: i8,
     pub logger: logger::Logger,
     pub config: Config,
+    pub no_animation: bool,
 }
 
 fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
@@ -61,7 +62,7 @@ fn print_battery_status() {
     }
 }
 
-fn print_turbo_status(cores: usize) {
+fn print_turbo_status(cores: usize, no_animation: bool) {
     match check_turbo_enabled() {
         Ok(turbo) => {
             let enabled_message = if turbo { "yes" } else { "no" };
@@ -73,7 +74,9 @@ fn print_turbo_status(cores: usize) {
                 style::Reset
             );
 
-            print_turbo_animation(turbo, cores)
+            if !no_animation {
+                print_turbo_animation(turbo, cores);
+            }
         }
         Err(e) => eprintln!("Could not check turbo\n{:?}", e),
     }
@@ -254,7 +257,7 @@ impl Checker for Daemon {
         print_battery_status();
 
         // Shows if turbo is enabled with an amazing turbo animation
-        print_turbo_status(cores);
+        print_turbo_status(cores, self.no_animation);
 
         // Tells user how to stop
         println!("\nctrl+c to stop running\n\n");
@@ -301,6 +304,7 @@ pub fn daemon_init(
     delay: u64,
     mut edit: bool,
     config: Config,
+    no_animation: bool,
 ) -> Result<Daemon, Error> {
     let started_as_edit: bool = edit;
     let mut forced_reason: String = String::new();
@@ -354,6 +358,7 @@ pub fn daemon_init(
             logs: Vec::<logger::Log>::new(),
         },
         config,
+        no_animation,
     };
 
     // Make a cpu struct for each cpu listed

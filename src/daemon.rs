@@ -145,7 +145,6 @@ impl Checker for Daemon {
     fn lid_close_rule(&mut self) -> Result<(), Error> {
         // Lid close rule -> gov powersave
         // If the lid just closed, turn on powersave
-
         if self.lid_state == LidState::Closed && !self.already_closed {
             self.logger.log(
                 "Governor set to powersave because lid closed",
@@ -178,7 +177,6 @@ impl Checker for Daemon {
     fn under_powersave_under(&mut self) -> Result<(), Error> {
         // Under self.config.powersave_under% rule -> gov powersave
         // If the battery life is below self.config.powersave_under%, set gov to powersave
-
         if self.charge < self.config.powersave_under && !self.already_under_powersave_under_percent
         {
             self.logger.log(
@@ -225,6 +223,10 @@ impl Checker for Daemon {
                     first_run = false;
                 }
             }
+
+            self.charging_rule();
+            self.lid_close_rule();
+            self.under_powersave_under();
 
             // Print the each cpu, each iteration
             if self.verbose {

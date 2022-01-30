@@ -116,11 +116,13 @@ sudo acs run --quiet
 
 Normal
 ```sh
+~ λ acs get available-govs
 performance powersave
 ```
 
 Raw
 ```sh
+~ λ acs get available-govs --raw
 performance
 powersave
 ```
@@ -134,6 +136,7 @@ powersave
 ### cpus
 Normal
 ```sh
+~ λ acs get cpus
 Name: Intel(R) Core(TM) i5-7300U CPU @ 2.60GHz
 cpu0 is currently @ 589 MHz
 cpu1 is currently @ 629 MHz
@@ -143,6 +146,7 @@ cpu3 is currently @ 649 MHz
 
 Raw
 ```sh
+~ λ acs get cpus --raw
 cpu0 628003
 cpu1 601547
 cpu2 590444
@@ -158,11 +162,13 @@ cpu3 627150
 ### freq
 Normal
 ```sh
+~ λ acs get freq
 CPU freq is 597 MHz
 ```
 
 Raw
 ```sh
+~ λ acs get freq --raw
 597471
 ```
 
@@ -175,11 +181,13 @@ Raw
 ### govs
 Normal
 ```sh
+~ λ acs get govs
 powersave powersave powersave powersave
 ```
 
 Raw
 ```sh
+~ λ acs get govs --raw
 powersave
 powersave
 powersave
@@ -195,11 +203,13 @@ powersave
 ### power
 Normal
 ```sh
+~ λ acs get power
 Lid: open Battery: 0 Plugged: false
 ```
 
 Raw
 ```sh
+~ λ acs get power --raw
 open 0 false
 ```
 
@@ -212,11 +222,13 @@ open 0 false
 ### speeds
 Normal
 ```sh
+~ λ acs get speeds
 578444 578308 572217 579259
 ```
 
 Raw
 ```sh
+~ λ acs get speeds --raw
 572773
 580328
 566880
@@ -232,11 +244,13 @@ Raw
 ### temp
 Normal
 ```sh
+~ λ acs get temp
 25000 31050 20000 29050
 ```
 
 Raw
 ```sh
+~ λ acs get temp --raw
 25000
 32050
 20000
@@ -252,11 +266,13 @@ Raw
 ### turbo
 Normal
 ```sh
+~ λ acs get turbo
 Turbo is enabled
 ```
 
 Raw
 ```sh
+~ λ acs get turbo --raw
 true
 ```
 

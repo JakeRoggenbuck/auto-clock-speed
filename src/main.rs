@@ -20,11 +20,11 @@ pub mod cpu;
 pub mod daemon;
 pub mod display;
 pub mod error;
+pub mod graph;
 pub mod local;
 pub mod logger;
 pub mod power;
 pub mod system;
-pub mod graph;
 
 #[derive(StructOpt)]
 enum GetType {
@@ -128,6 +128,10 @@ enum Command {
         /// No animations, for systemctl updating issue
         #[structopt(short, long)]
         no_animation: bool,
+
+        /// Graph
+        #[structopt(short, long)]
+        graph: bool,
     },
 
     /// Monitor each cpu, it's min, max, and current speed, along with the governor
@@ -140,6 +144,10 @@ enum Command {
         /// No animations, for systemctl updating issue
         #[structopt(short, long)]
         no_animation: bool,
+
+        /// Graph
+        #[structopt(short, long)]
+        graph: bool,
     },
 }
 
@@ -217,7 +225,7 @@ fn parse_args(config: config::Config) {
 
         // Everything starting with "set"
         Command::Set { set } => match set {
-            SetType::Gov { value } => match daemon_init(true, 0, false, config, true) {
+            SetType::Gov { value } => match daemon_init(true, 0, false, config, true, false) {
                 Ok(mut d) => match d.set_govs(value.clone()) {
                     Ok(_) => {}
                     Err(e) => eprint!("Could not set gov, {:?}", e),
@@ -231,7 +239,8 @@ fn parse_args(config: config::Config) {
             quiet,
             delay,
             no_animation,
-        } => match daemon_init(!quiet, delay, true, config, no_animation) {
+            graph,
+        } => match daemon_init(!quiet, delay, true, config, no_animation, graph) {
             Ok(d) => {
                 daemon = d;
                 daemon.run().unwrap_err();
@@ -243,7 +252,8 @@ fn parse_args(config: config::Config) {
         Command::Monitor {
             delay,
             no_animation,
-        } => match daemon_init(true, delay, false, config, no_animation) {
+            graph,
+        } => match daemon_init(true, delay, false, config, no_animation, graph) {
             Ok(d) => {
                 daemon = d;
                 daemon.run().unwrap_err();

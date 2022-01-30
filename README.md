@@ -148,10 +148,10 @@ sudo acs run --quiet
 `--raw` is the only used flag for the `get` command.
 
 ### Subcommands
-<details><summary>available-govs (click to expand)</summary>
-<p>
 
 ### available-govs
+<details><summary>more (click to expand)</summary>
+<p>
 
 Normal
 ```sh
@@ -169,10 +169,10 @@ powersave
 </p>
 </details>
 
-<details><summary>cpus</summary>
+### cpus
+<details><summary>more</summary>
 <p>
 
-### cpus
 Normal
 ```sh
 ~ λ acs get cpus
@@ -195,10 +195,10 @@ cpu3 627150
 </p>
 </details>
 
-<details><summary>freq</summary>
+### freq
+<details><summary>more</summary>
 <p>
 
-### freq
 Normal
 ```sh
 ~ λ acs get freq
@@ -214,10 +214,10 @@ Raw
 </p>
 </details>
 
-<details><summary>govs</summary>
+### govs
+<details><summary>more</summary>
 <p>
 
-### govs
 Normal
 ```sh
 ~ λ acs get govs
@@ -236,10 +236,10 @@ powersave
 </p>
 </details>
 
-<details><summary>power</summary>
+### power
+<details><summary>more</summary>
 <p>
 
-### power
 Normal
 ```sh
 ~ λ acs get power
@@ -255,10 +255,10 @@ open 0 false
 </p>
 </details>
 
-<details><summary>speeds</summary>
+### speeds
+<details><summary>more</summary>
 <p>
 
-### speeds
 Normal
 ```sh
 ~ λ acs get speeds
@@ -277,10 +277,10 @@ Raw
 </p>
 </details>
 
-<details><summary>temp</summary>
+### temp
+<details><summary>more</summary>
 <p>
 
-### temp
 Normal
 ```sh
 ~ λ acs get temp
@@ -299,10 +299,10 @@ Raw
 </p>
 </details>
 
-<details><summary>turbo</summary>
+### turbo
+<details><summary>more</summary>
 <p>
 
-### turbo
 Normal
 ```sh
 ~ λ acs get turbo
@@ -326,10 +326,10 @@ true
 Note that all of the set commands require sudo.
 
 ### Subcommand
-<details><summary>gov (click to expand)</summary>
-<p>
 
 ### available-govs
+<details><summary>more (click to expand)</summary>
+<p>
 
 Normal use
 ```sh

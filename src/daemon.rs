@@ -16,9 +16,12 @@ pub trait Checker {
         &mut self,
         operation: &dyn Fn(&mut CPU) -> Result<(), Error>,
     ) -> Result<(), Error>;
+
+    // Rules
     fn charging_rule(&mut self) -> Result<(), Error>;
     fn lid_close_rule(&mut self) -> Result<(), Error>;
-    fn under_powersave_under(&mut self) -> Result<(), Error>;
+    fn under_powersave_under_rule(&mut self) -> Result<(), Error>;
+
     fn run(&mut self) -> Result<(), Error>;
     fn update_all(&mut self) -> Result<(), Error>;
     fn print(&mut self);
@@ -174,7 +177,7 @@ impl Checker for Daemon {
         Ok(())
     }
 
-    fn under_powersave_under(&mut self) -> Result<(), Error> {
+    fn under_powersave_under_rule(&mut self) -> Result<(), Error> {
         // Under self.config.powersave_under% rule -> gov powersave
         // If the battery life is below self.config.powersave_under%, set gov to powersave
         if self.charge < self.config.powersave_under && !self.already_under_powersave_under_percent
@@ -222,11 +225,12 @@ impl Checker for Daemon {
                     self.already_closed = self.lid_state == LidState::Closed;
                     first_run = false;
                 }
-            }
 
-            self.charging_rule();
-            self.lid_close_rule();
-            self.under_powersave_under();
+                // Call all rules
+                self.charging_rule()?;
+                self.lid_close_rule()?;
+                self.under_powersave_under_rule()?;
+            }
 
             // Print the each cpu, each iteration
             if self.verbose {

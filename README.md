@@ -36,6 +36,9 @@ Do steps 1 and 2 from other install if you don't have rust installed, then do th
    cargo install --path auto-clock-speed
    ```
 
+## In Action
+[![image](https://user-images.githubusercontent.com/35516367/151716685-a3ed3c53-07f4-459f-a3ae-e1de1ba16429.png)](https://www.youtube.com/watch?v=T9nN_rQOYsg)
+
 ## Systemd
 In order to have auto-clock-speed start when you restart your computer you must follow these instruction
 ```sh
@@ -59,7 +62,61 @@ sudo systemctl enable acs
 systemctl status acs
 ```
 
-# Usage
+# Config
+
+### Using default config
+```sh
+WARN: Using default config. Create file ~/.config/acs/acs.toml for custom config.
+```
+This warning recommends creating a config file, use the following example and install at `~/.config/acs/acs.toml`
+
+```sh
+mkdir -p ~/.config/acs
+cp ./acs.toml ~/.config/acs/acs.toml
+```
+
+### This is an example config
+also the default settings if not config is provided
+
+```yaml
+# acs.toml
+powersave_under = 20
+```
+
+## Turn Off
+```sh
+# Temporarily stop (only lasts until reboot)
+sudo systemctl stop acs
+
+# Perminatly stop until turned on
+sudo systemctl disable acs
+```
+
+## Uninstall
+```sh
+# Remove binary
+cargo uninstall autoclockspeed
+
+# Remove systemctl entry
+rm /etc/systemd/system/acs.service
+```
+
+# Example Usage
+```sh
+# Monitor mode
+acs monitor
+
+# Run as root
+sudo acs run
+
+# Get all speeds
+acs get speeds
+
+# Select gov from dmenu
+sudo acs set gov $(acs get available-govs --raw | dmenu)
+```
+
+# Detailed Usage
 ## Monitor
 ```sh
 # Show the min, max, and current cpu frequency
@@ -98,11 +155,13 @@ sudo acs run --quiet
 
 Normal
 ```sh
+~ λ acs get available-govs
 performance powersave
 ```
 
 Raw
 ```sh
+~ λ acs get available-govs --raw
 performance
 powersave
 ```
@@ -116,6 +175,7 @@ powersave
 ### cpus
 Normal
 ```sh
+~ λ acs get cpus
 Name: Intel(R) Core(TM) i5-7300U CPU @ 2.60GHz
 cpu0 is currently @ 589 MHz
 cpu1 is currently @ 629 MHz
@@ -125,6 +185,7 @@ cpu3 is currently @ 649 MHz
 
 Raw
 ```sh
+~ λ acs get cpus --raw
 cpu0 628003
 cpu1 601547
 cpu2 590444
@@ -140,11 +201,13 @@ cpu3 627150
 ### freq
 Normal
 ```sh
+~ λ acs get freq
 CPU freq is 597 MHz
 ```
 
 Raw
 ```sh
+~ λ acs get freq --raw
 597471
 ```
 
@@ -157,11 +220,13 @@ Raw
 ### govs
 Normal
 ```sh
+~ λ acs get govs
 powersave powersave powersave powersave
 ```
 
 Raw
 ```sh
+~ λ acs get govs --raw
 powersave
 powersave
 powersave
@@ -177,11 +242,13 @@ powersave
 ### power
 Normal
 ```sh
+~ λ acs get power
 Lid: open Battery: 0 Plugged: false
 ```
 
 Raw
 ```sh
+~ λ acs get power --raw
 open 0 false
 ```
 
@@ -194,11 +261,13 @@ open 0 false
 ### speeds
 Normal
 ```sh
+~ λ acs get speeds
 578444 578308 572217 579259
 ```
 
 Raw
 ```sh
+~ λ acs get speeds --raw
 572773
 580328
 566880
@@ -214,11 +283,13 @@ Raw
 ### temp
 Normal
 ```sh
+~ λ acs get temp
 25000 31050 20000 29050
 ```
 
 Raw
 ```sh
+~ λ acs get temp --raw
 25000
 32050
 20000
@@ -234,11 +305,13 @@ Raw
 ### turbo
 Normal
 ```sh
+~ λ acs get turbo
 Turbo is enabled
 ```
 
 Raw
 ```sh
+~ λ acs get turbo --raw
 true
 ```
 

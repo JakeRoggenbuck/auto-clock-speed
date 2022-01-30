@@ -20,6 +20,7 @@ pub mod cpu;
 pub mod daemon;
 pub mod display;
 pub mod error;
+pub mod graph;
 pub mod local;
 pub mod logger;
 pub mod power;
@@ -123,6 +124,14 @@ enum Command {
         /// Milliseconds between update
         #[structopt(short, long, default_value = "1000")]
         delay: u64,
+
+        /// No animations, for systemctl updating issue
+        #[structopt(short, long)]
+        no_animation: bool,
+
+        /// Graph
+        #[structopt(short = "g", long = "--graph")]
+        should_graph: bool,
     },
 
     /// Monitor each cpu, it's min, max, and current speed, along with the governor
@@ -131,28 +140,33 @@ enum Command {
         /// Milliseconds between update
         #[structopt(short, long, default_value = "1000")]
         delay: u64,
+
+        /// No animations, for systemctl updating issue
+        #[structopt(short, long)]
+        no_animation: bool,
+
+        /// Graph
+        #[structopt(short = "g", long = "--graph")]
+        should_graph: bool,
     },
 }
 
-fn main() {
-    env_logger::init();
-    let mut main_daemon: daemon::Daemon;
-
-    // Create config directory if it doesn't exist
-    if !local_config_dir_exists() {
-        create_local_config_dir();
-    }
-
+fn get_config() -> config::Config {
     // Config will always exist, default or otherwise
-    let config: config::Config = match open_config() {
-        Ok(a) => a,
+    match open_config() {
+        Ok(conf) => conf,
         Err(_) => {
             warn_user!(
                 "Using default config. Create file ~/.config/acs/acs.toml for custom config."
             );
+            // Use default config as config
             default_config()
         }
-    };
+    }
+}
+
+fn parse_args(config: config::Config) {
+    let mut daemon: daemon::Daemon;
 
     match Command::from_args() {
         // Everything starting with "get"
@@ -161,6 +175,7 @@ fn main() {
                 Ok(f) => print_freq(f, raw),
                 Err(_) => eprintln!("Faild to get cpu frequency"),
             },
+
             GetType::Power { raw } => match read_lid_state() {
                 Ok(lid) => match read_battery_charge() {
                     Ok(bat) => match read_power_source() {
@@ -173,14 +188,17 @@ fn main() {
                 },
                 Err(_) => eprintln!("Faild to get read lid state"),
             },
+
             GetType::Turbo { raw } => match check_turbo_enabled() {
                 Ok(turbo_enabled) => print_turbo(turbo_enabled, raw),
                 Err(_) => println!("Failed to get turbo status"),
             },
+
             GetType::AvailableGovs { raw } => match check_available_governors() {
                 Ok(available_governors) => print_available_governors(available_governors, raw),
                 Err(_) => println!("Failed to get available governors"),
             },
+
             GetType::CPUS { raw } => match list_cpus() {
                 Ok(cpus) => match check_cpu_name() {
                     Ok(name) => print_cpus(cpus, name, raw),
@@ -188,14 +206,17 @@ fn main() {
                 },
                 Err(_) => println!("Failed get list of cpus"),
             },
+
             GetType::Speeds { raw } => match list_cpu_speeds() {
                 Ok(cpu_speeds) => print_cpu_speeds(cpu_speeds, raw),
                 Err(_) => println!("Failed to get list of cpu speeds"),
             },
+
             GetType::Temp { raw } => match list_cpu_temp() {
                 Ok(cpu_temp) => print_cpu_temp(cpu_temp, raw),
                 Err(_) => println!("Failed to get list of cpu temperature"),
             },
+
             GetType::Govs { raw } => match list_cpu_governors() {
                 Ok(cpu_governors) => print_cpu_governors(cpu_governors, raw),
                 Err(_) => println!("Failed to get list of cpu governors"),
@@ -204,7 +225,7 @@ fn main() {
 
         // Everything starting with "set"
         Command::Set { set } => match set {
-            SetType::Gov { value } => match daemon_init(true, 0, false, config) {
+            SetType::Gov { value } => match daemon_init(true, 0, false, config, true, false) {
                 Ok(mut d) => match d.set_govs(value.clone()) {
                     Ok(_) => {}
                     Err(e) => eprint!("Could not set gov, {:?}", e),
@@ -214,21 +235,43 @@ fn main() {
         },
 
         // Run command
-        Command::Run { quiet, delay } => match daemon_init(!quiet, delay, true, config) {
+        Command::Run {
+            quiet,
+            delay,
+            no_animation,
+            should_graph,
+        } => match daemon_init(!quiet, delay, true, config, no_animation, should_graph) {
             Ok(d) => {
-                main_daemon = d;
-                main_daemon.run().unwrap_err();
+                daemon = d;
+                daemon.run().unwrap_err();
             }
             Err(_) => eprint!("Could not run daemon in edit mode"),
         },
 
         // Monitor command
-        Command::Monitor { delay } => match daemon_init(true, delay, false, config) {
+        Command::Monitor {
+            delay,
+            no_animation,
+            should_graph,
+        } => match daemon_init(true, delay, false, config, no_animation, should_graph) {
             Ok(d) => {
-                main_daemon = d;
-                main_daemon.run().unwrap_err();
+                daemon = d;
+                daemon.run().unwrap_err();
             }
             Err(_) => eprint!("Could not run daemon in monitor mode"),
         },
     }
+}
+
+fn main() {
+    env_logger::init();
+
+    // Create config directory if it doesn't exist
+    if !local_config_dir_exists() {
+        create_local_config_dir();
+    }
+
+    let config: config::Config = get_config();
+
+    parse_args(config);
 }

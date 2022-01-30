@@ -17,6 +17,11 @@ pub trait Checker {
         operation: &dyn Fn(&mut CPU) -> Result<(), Error>,
     ) -> Result<(), Error>;
 
+    // Rules
+    fn charging_rule(&mut self) -> Result<(), Error>;
+    fn lid_close_rule(&mut self) -> Result<(), Error>;
+    fn under_powersave_under_rule(&mut self) -> Result<(), Error>;
+
     fn run(&mut self) -> Result<(), Error>;
     fn update_all(&mut self) -> Result<(), Error>;
     fn print(&mut self);
@@ -35,6 +40,9 @@ pub struct Daemon {
     pub logger: logger::Logger,
     pub config: Config,
     pub no_animation: bool,
+    pub already_charging: bool,
+    pub already_closed: bool,
+    pub already_under_powersave_under_percent: bool,
     pub graph: bool,
     pub grapher: Graph,
 }
@@ -108,13 +116,93 @@ impl Checker for Daemon {
         Ok(())
     }
 
+    fn charging_rule(&mut self) -> Result<(), Error> {
+        // Charging rule -> gov performance
+        // If the battery is charging, set to performance
+        if self.charging && !self.already_charging {
+            if self.lid_state == LidState::Closed || self.charge < self.config.powersave_under {
+                self.logger.log(
+                    "Battery is charging however the governor remains unchanged",
+                    logger::Severity::Log,
+                );
+            } else {
+                self.logger.log(
+                    "Governor set to performance because battery is charging",
+                    logger::Severity::Log,
+                );
+            }
+            self.apply_to_cpus(&make_gov_performance)?;
+            self.already_charging = true;
+        }
+        if !self.charging && self.already_charging {
+            self.logger.log(
+                "Governor set to powersave because battery is not charging",
+                logger::Severity::Log,
+            );
+            self.apply_to_cpus(&make_gov_powersave)?;
+            self.already_charging = false;
+        }
+        Ok(())
+    }
+
+    fn lid_close_rule(&mut self) -> Result<(), Error> {
+        // Lid close rule -> gov powersave
+        // If the lid just closed, turn on powersave
+        if self.lid_state == LidState::Closed && !self.already_closed {
+            self.logger.log(
+                "Governor set to powersave because lid closed",
+                logger::Severity::Log,
+            );
+            self.apply_to_cpus(&make_gov_powersave)?;
+            self.already_closed = true;
+        }
+
+        if self.lid_state == LidState::Open && self.already_closed {
+            // A few checks inorder to insure the computer should actually be in performance
+            if !(self.charge < self.config.powersave_under) && self.charging {
+                self.logger.log(
+                    "Governor set to performance because lid opened",
+                    logger::Severity::Log,
+                );
+                self.apply_to_cpus(&make_gov_performance)?;
+            } else {
+                self.logger.log(
+                    "Lid opened however the governor remains unchanged",
+                    logger::Severity::Log,
+                );
+            }
+            self.already_closed = false;
+        }
+
+        Ok(())
+    }
+
+    fn under_powersave_under_rule(&mut self) -> Result<(), Error> {
+        // Under self.config.powersave_under% rule -> gov powersave
+        // If the battery life is below self.config.powersave_under%, set gov to powersave
+        if self.charge < self.config.powersave_under && !self.already_under_powersave_under_percent
+        {
+            self.logger.log(
+                &format!(
+                    "Governor set to powersave because battery was less than {}",
+                    self.config.powersave_under
+                ),
+                logger::Severity::Log,
+            );
+            self.apply_to_cpus(&make_gov_powersave)?;
+            self.already_under_powersave_under_percent = true;
+            // Make sure to reset state
+        }
+        if self.charge >= self.config.powersave_under {
+            self.already_under_powersave_under_percent = false;
+        }
+        Ok(())
+    }
+
     fn run(&mut self) -> Result<(), Error> {
         let timeout = time::Duration::from_millis(self.delay);
 
         // The state for rules
-        let mut already_under_powersave_under_percent: bool = false;
-        let mut already_charging: bool = false;
-        let mut already_closed: bool = false;
         let mut first_run: bool = true;
 
         loop {
@@ -131,90 +219,17 @@ impl Checker for Daemon {
                 // The logic after this block will make sure that they are set to the correct state
                 // but only if the previous states were incorrect
                 if first_run == true {
-                    already_charging = !self.charging;
-                    already_under_powersave_under_percent =
+                    self.already_charging = !self.charging;
+                    self.already_under_powersave_under_percent =
                         !(self.charge < self.config.powersave_under);
-                    already_closed = self.lid_state == LidState::Closed;
+                    self.already_closed = self.lid_state == LidState::Closed;
                     first_run = false;
                 }
 
-                // Lid close rule -> gov powersave
-                // If the lid just closed, turn on powersave
-                if self.lid_state == LidState::Closed && !already_closed {
-                    self.logger.log(
-                        "Governor set to powersave because lid closed",
-                        logger::Severity::Log,
-                    );
-                    self.apply_to_cpus(&make_gov_powersave)?;
-                    already_closed = true;
-                }
-
-                if self.lid_state == LidState::Open && already_closed {
-                    // A few checks inorder to insure the computer should actually be in performance
-                    if !(self.charge < self.config.powersave_under) && self.charging {
-                        self.logger.log(
-                            "Governor set to performance because lid opened",
-                            logger::Severity::Log,
-                        );
-                        self.apply_to_cpus(&make_gov_performance)?;
-                    } else {
-                        self.logger.log(
-                            "Lid opened however the governor remains unchanged",
-                            logger::Severity::Log,
-                        );
-                    }
-
-                    already_closed = false;
-                }
-
-                // Under self.config.powersave_under% rule -> gov powersave
-                // If the battery life is below self.config.powersave_under%, set gov to powersave
-                if self.charge < self.config.powersave_under
-                    && !already_under_powersave_under_percent
-                {
-                    self.logger.log(
-                        &format!(
-                            "Governor set to powersave because battery was less than {}",
-                            self.config.powersave_under
-                        ),
-                        logger::Severity::Log,
-                    );
-                    self.apply_to_cpus(&make_gov_powersave)?;
-                    already_under_powersave_under_percent = true;
-                    // Make sure to reset state
-                }
-                if self.charge >= self.config.powersave_under {
-                    already_under_powersave_under_percent = false;
-                }
-
-                // Charging rule -> gov performance
-                // If the battery is charging, set to performance
-                if self.charging && !already_charging {
-                    if self.lid_state == LidState::Closed
-                        || self.charge < self.config.powersave_under
-                    {
-                        self.logger.log(
-                            "Battery is charging however the governor remains unchanged",
-                            logger::Severity::Log,
-                        );
-                    } else {
-                        self.logger.log(
-                            "Governor set to performance because battery is charging",
-                            logger::Severity::Log,
-                        );
-                    }
-
-                    self.apply_to_cpus(&make_gov_performance)?;
-                    already_charging = true;
-                }
-                if !self.charging && already_charging {
-                    self.logger.log(
-                        "Governor set to powersave because battery is not charging",
-                        logger::Severity::Log,
-                    );
-                    self.apply_to_cpus(&make_gov_powersave)?;
-                    already_charging = false;
-                }
+                // Call all rules
+                self.charging_rule()?;
+                self.lid_close_rule()?;
+                self.under_powersave_under_rule()?;
             }
 
             // Print the each cpu, each iteration
@@ -372,6 +387,9 @@ pub fn daemon_init(
         },
         config,
         no_animation,
+        already_charging: false,
+        already_closed: false,
+        already_under_powersave_under_percent: false,
         graph,
         grapher: Graph { freqs: vec![0.0] },
     };

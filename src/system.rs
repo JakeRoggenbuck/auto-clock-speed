@@ -10,14 +10,16 @@ use std::string::String;
 pub fn check_cpu_freq() -> Result<i32, Error> {
     let freqs: Vec<i32> = list_cpus()?.into_iter().map(|x| x.cur_freq).collect();
     let sum: i32 = Iterator::sum(freqs.iter());
-
     Ok((sum as f32 / freqs.len() as f32) as i32)
 }
 
-pub fn check_cpu_name() -> Result<String, Error> {
+fn open_cpu_info() -> Result<String, Error> {
     let mut cpu_info: String = String::new();
     File::open("/proc/cpuinfo")?.read_to_string(&mut cpu_info)?;
+    Ok(cpu_info)
+}
 
+fn get_name_from_cpu_info(cpu_info: String) -> Result<String, Error> {
     // Find all lines that begin with cpu MHz
     let find_cpu_mhz = cpu_info
         .split('\n')
@@ -31,12 +33,20 @@ pub fn check_cpu_name() -> Result<String, Error> {
         .ok_or(Error::Unknown)
 }
 
-/// Check if turbo is enabled for the machine, (enabled in bios)
-pub fn check_turbo_enabled() -> Result<bool, Error> {
+pub fn check_cpu_name() -> Result<String, Error> {
+    let cpu_info: String = open_cpu_info()?;
+    let name: String = get_name_from_cpu_info(cpu_info)?;
+    Ok(name)
+}
+
+fn read_turbo_file() -> Result<String, Error> {
     let mut is_turbo: String = String::new();
     let turbo_path: &str = "/sys/devices/system/cpu/intel_pstate/no_turbo";
     File::open(turbo_path)?.read_to_string(&mut is_turbo)?;
+    Ok(is_turbo)
+}
 
+fn interpret_turbo(is_turbo: &mut String) -> Result<bool, Error> {
     // Remove the last character (the newline)
     is_turbo.pop();
     // The file will be something like 0 or 1, parse this into an int
@@ -47,12 +57,21 @@ pub fn check_turbo_enabled() -> Result<bool, Error> {
     }
 }
 
-/// Check the governors available for the cpu
-pub fn check_available_governors() -> Result<Vec<String>, Error> {
+/// Check if turbo is enabled for the machine, (enabled in bios)
+pub fn check_turbo_enabled() -> Result<bool, Error> {
+    let mut turbo_string = read_turbo_file()?;
+    let is_turbo = interpret_turbo(&mut turbo_string)?;
+    Ok(is_turbo)
+}
+
+fn read_govs_file() -> Result<String, Error> {
     let mut governors_string: String = String::new();
     let governors_path: &str = "/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors";
     File::open(governors_path)?.read_to_string(&mut governors_string)?;
+    Ok(governors_string)
+}
 
+fn interpret_govs(governors_string: &mut String) -> Result<Vec<String>, Error> {
     // Remove the newline at the end
     governors_string.pop();
     let governors: Vec<String> = governors_string
@@ -61,7 +80,14 @@ pub fn check_available_governors() -> Result<Vec<String>, Error> {
         .into_iter()
         .map(|x| x.to_owned())
         .collect();
-    return Ok(governors);
+    Ok(governors)
+}
+
+/// Check the governors available for the cpu
+pub fn check_available_governors() -> Result<Vec<String>, Error> {
+    let mut govs_string = read_govs_file()?;
+    let governors = interpret_govs(&mut govs_string)?;
+    Ok(governors)
 }
 
 /// Get all the cpus (cores), returns cpus from 0 to the (amount of cores -1) the machine has

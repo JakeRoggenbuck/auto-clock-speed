@@ -38,6 +38,7 @@ dependencies = [
  "log",
  "nix",
  "num_cpus",
+ "rasciigraph",
  "regex",
  "serde",
  "structopt",
@@ -255,6 +256,12 @@ checksum = "c3d0b9745dc2debf507c8422de05d7226cc1f0644216dfdfead988f9b1ab32a7"
 dependencies = [
  "proc-macro2",
 ]
+
+[[package]]
+name = "rasciigraph"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "10f9690d7e935db7c1475554993ec7162d11a83fae5261be2d9191294a31ac82"
 
 [[package]]
 name = "redox_syscall"

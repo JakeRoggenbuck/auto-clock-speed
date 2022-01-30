@@ -100,11 +100,17 @@ rm /etc/systemd/system/acs.service
 
 # Example Usage
 ```
+# Monitor mode
 acs monitor
 
+# Run as root
 sudo acs run
 
+# Get all speeds
 acs get speeds
+
+# Select gov from dmenu
+sudo acs set gov $(acs get available-govs --raw | dmenu)
 ```
 
 # Detailed Usage

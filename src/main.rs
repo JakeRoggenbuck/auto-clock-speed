@@ -20,6 +20,7 @@ pub mod cpu;
 pub mod daemon;
 pub mod display;
 pub mod error;
+pub mod graph;
 pub mod local;
 pub mod logger;
 pub mod power;
@@ -127,6 +128,10 @@ enum Command {
         /// No animations, for systemctl updating issue
         #[structopt(short, long)]
         no_animation: bool,
+
+        /// Graph
+        #[structopt(short, long)]
+        graph: bool,
     },
 
     /// Monitor each cpu, it's min, max, and current speed, along with the governor
@@ -139,20 +144,16 @@ enum Command {
         /// No animations, for systemctl updating issue
         #[structopt(short, long)]
         no_animation: bool,
+
+        /// Graph
+        #[structopt(short, long)]
+        graph: bool,
     },
 }
 
-fn main() {
-    env_logger::init();
-    let mut main_daemon: daemon::Daemon;
-
-    // Create config directory if it doesn't exist
-    if !local_config_dir_exists() {
-        create_local_config_dir();
-    }
-
+fn get_config() -> config::Config {
     // Config will always exist, default or otherwise
-    let config: config::Config = match open_config() {
+    match open_config() {
         Ok(conf) => conf,
         Err(_) => {
             warn_user!(
@@ -161,7 +162,11 @@ fn main() {
             // Use default config as config
             default_config()
         }
-    };
+    }
+}
+
+fn parse_args(config: config::Config) {
+    let mut daemon: daemon::Daemon;
 
     match Command::from_args() {
         // Everything starting with "get"
@@ -220,7 +225,7 @@ fn main() {
 
         // Everything starting with "set"
         Command::Set { set } => match set {
-            SetType::Gov { value } => match daemon_init(true, 0, false, config, true) {
+            SetType::Gov { value } => match daemon_init(true, 0, false, config, true, false) {
                 Ok(mut d) => match d.set_govs(value.clone()) {
                     Ok(_) => {}
                     Err(e) => eprint!("Could not set gov, {:?}", e),
@@ -234,10 +239,11 @@ fn main() {
             quiet,
             delay,
             no_animation,
-        } => match daemon_init(!quiet, delay, true, config, no_animation) {
+            graph,
+        } => match daemon_init(!quiet, delay, true, config, no_animation, graph) {
             Ok(d) => {
-                main_daemon = d;
-                main_daemon.run().unwrap_err();
+                daemon = d;
+                daemon.run().unwrap_err();
             }
             Err(_) => eprint!("Could not run daemon in edit mode"),
         },
@@ -246,12 +252,26 @@ fn main() {
         Command::Monitor {
             delay,
             no_animation,
-        } => match daemon_init(true, delay, false, config, no_animation) {
+            graph,
+        } => match daemon_init(true, delay, false, config, no_animation, graph) {
             Ok(d) => {
-                main_daemon = d;
-                main_daemon.run().unwrap_err();
+                daemon = d;
+                daemon.run().unwrap_err();
             }
             Err(_) => eprint!("Could not run daemon in monitor mode"),
         },
     }
+}
+
+fn main() {
+    env_logger::init();
+
+    // Create config directory if it doesn't exist
+    if !local_config_dir_exists() {
+        create_local_config_dir();
+    }
+
+    let config: config::Config = get_config();
+
+    parse_args(config);
 }

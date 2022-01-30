@@ -52,7 +52,7 @@ pub fn read_lid_state() -> Result<LidState, Error> {
                 // Make sure to return IO error if one occurs
                 return Err(error);
             }
-            eprintln!("We could not detect your lid state.");
+            eprintln!("Could not detect your lid state.");
             create_issue!("If you are on a laptop");
             return Ok(LidState::Unapplicable);
         }

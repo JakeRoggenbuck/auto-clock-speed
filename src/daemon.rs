@@ -33,6 +33,7 @@ pub struct Daemon {
     pub charge: i8,
     pub logger: logger::Logger,
     pub config: Config,
+    pub no_animation: bool,
 }
 
 fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
@@ -54,14 +55,14 @@ fn print_battery_status() {
                     Err(e) => eprintln!("Battery charge could not be read\n{:?}", e),
                 }
             } else {
-                println!("Battery: {}{}%{}", style::Bold, "N/A", style::Reset);
+                println!("Battery: {}{}{}", style::Bold, "N/A", style::Reset);
             }
         }
         Err(e) => eprintln!("Could not find battery\n{:?}", e),
     }
 }
 
-fn print_turbo_status(cores: usize) {
+fn print_turbo_status(cores: usize, no_animation: bool) {
     match check_turbo_enabled() {
         Ok(turbo) => {
             let enabled_message = if turbo { "yes" } else { "no" };
@@ -73,7 +74,9 @@ fn print_turbo_status(cores: usize) {
                 style::Reset
             );
 
-            print_turbo_animation(turbo, cores)
+            if !no_animation {
+                print_turbo_animation(turbo, cores);
+            }
         }
         Err(e) => eprintln!("Could not check turbo\n{:?}", e),
     }
@@ -134,7 +137,6 @@ impl Checker for Daemon {
 
                 // Lid close rule -> gov powersave
                 // If the lid just closed, turn on powersave
-
                 if self.lid_state == LidState::Closed && !already_closed {
                     self.logger.log(
                         "Governor set to powersave because lid closed",
@@ -164,7 +166,6 @@ impl Checker for Daemon {
 
                 // Under self.config.powersave_under% rule -> gov powersave
                 // If the battery life is below self.config.powersave_under%, set gov to powersave
-
                 if self.charge < self.config.powersave_under
                     && !already_under_powersave_under_percent
                 {
@@ -185,7 +186,6 @@ impl Checker for Daemon {
 
                 // Charging rule -> gov performance
                 // If the battery is charging, set to performance
-
                 if self.charging && !already_charging {
                     if self.lid_state == LidState::Closed
                         || self.charge < self.config.powersave_under
@@ -200,6 +200,7 @@ impl Checker for Daemon {
                             logger::Severity::Log,
                         );
                     }
+
                     self.apply_to_cpus(&make_gov_performance)?;
                     already_charging = true;
                 }
@@ -256,7 +257,7 @@ impl Checker for Daemon {
         print_battery_status();
 
         // Shows if turbo is enabled with an amazing turbo animation
-        print_turbo_status(cores);
+        print_turbo_status(cores, self.no_animation);
 
         // Tells user how to stop
         println!("\nctrl+c to stop running\n\n");
@@ -303,6 +304,7 @@ pub fn daemon_init(
     delay: u64,
     mut edit: bool,
     config: Config,
+    no_animation: bool,
 ) -> Result<Daemon, Error> {
     let started_as_edit: bool = edit;
     let mut forced_reason: String = String::new();
@@ -356,6 +358,7 @@ pub fn daemon_init(
             logs: Vec::<logger::Log>::new(),
         },
         config,
+        no_animation,
     };
 
     // Make a cpu struct for each cpu listed

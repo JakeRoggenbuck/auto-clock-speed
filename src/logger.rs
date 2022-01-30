@@ -8,9 +8,9 @@ use std::time::SystemTime;
 use termion::{color, style};
 
 pub enum Severity {
-    Error, // There is a problem that causing the program to be unstable to be unable to run properly
-    Warning, // There is a problem that might cause the program to be unstable or to be unable to run properly
-    Log,     // There is information to note
+    Error,
+    Warning,
+    Log,
 }
 
 pub trait Interface {

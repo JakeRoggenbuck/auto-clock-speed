@@ -123,6 +123,10 @@ enum Command {
         /// Milliseconds between update
         #[structopt(short, long, default_value = "1000")]
         delay: u64,
+
+        /// No animations, for systemctl updating issue
+        #[structopt(short, long)]
+        no_animation: bool,
     },
 
     /// Monitor each cpu, it's min, max, and current speed, along with the governor
@@ -131,6 +135,10 @@ enum Command {
         /// Milliseconds between update
         #[structopt(short, long, default_value = "1000")]
         delay: u64,
+
+        /// No animations, for systemctl updating issue
+        #[structopt(short, long)]
+        no_animation: bool,
     },
 }
 
@@ -208,7 +216,7 @@ fn parse_args(config: config::Config) {
 
         // Everything starting with "set"
         Command::Set { set } => match set {
-            SetType::Gov { value } => match daemon_init(true, 0, false, config) {
+            SetType::Gov { value } => match daemon_init(true, 0, false, config, true) {
                 Ok(mut d) => match d.set_govs(value.clone()) {
                     Ok(_) => {}
                     Err(e) => eprint!("Could not set gov, {:?}", e),
@@ -218,7 +226,11 @@ fn parse_args(config: config::Config) {
         },
 
         // Run command
-        Command::Run { quiet, delay } => match daemon_init(!quiet, delay, true, config) {
+        Command::Run {
+            quiet,
+            delay,
+            no_animation,
+        } => match daemon_init(!quiet, delay, true, config, no_animation) {
             Ok(d) => {
                 daemon = d;
                 daemon.run().unwrap_err();
@@ -227,7 +239,10 @@ fn parse_args(config: config::Config) {
         },
 
         // Monitor command
-        Command::Monitor { delay } => match daemon_init(true, delay, false, config) {
+        Command::Monitor {
+            delay,
+            no_animation,
+        } => match daemon_init(true, delay, false, config, no_animation) {
             Ok(d) => {
                 daemon = d;
                 daemon.run().unwrap_err();

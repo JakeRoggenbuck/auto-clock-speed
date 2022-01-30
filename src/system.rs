@@ -250,6 +250,23 @@ microcode	: 0xea
         Ok(())
     }
 
+    // Non-Platform dependent
+    #[test]
+    fn interpret_govs_test() -> Result<(), Error> {
+        let mut governors_string = String::from("performance powersave\n");
+        let govs = interpret_govs(&mut governors_string)?;
+        assert_eq!(vec!["performance", "powersave"], govs);
+
+        let mut governors_string = String::from("performance\n");
+        let govs = interpret_govs(&mut governors_string)?;
+        assert_eq!(vec!["performance"], govs);
+
+        let mut governors_string = String::from("calvin hobbes\n");
+        let govs = interpret_govs(&mut governors_string)?;
+        assert_eq!(vec!["calvin", "hobbes"], govs);
+        Ok(())
+    }
+
     #[test]
     fn list_cpus_test() -> Result<(), Error> {
         assert_eq!(type_of(list_cpus()?), type_of(Vec::<CPU>::new()));

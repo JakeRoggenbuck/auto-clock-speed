@@ -99,7 +99,7 @@ rm /etc/systemd/system/acs.service
 ```
 
 # Example Usage
-```
+```sh
 # Monitor mode
 acs monitor
 

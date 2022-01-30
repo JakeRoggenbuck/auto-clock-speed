@@ -7,6 +7,27 @@ use std::fs::{read_dir, File};
 use std::io::Read;
 use std::path::Path;
 
+const LID_STATUS_PATH: [&'static str; 4] = [
+    "/proc/acpi/button/lid/LID/state",
+    "/proc/acpi/button/lid/LID0/state",
+    "/proc/acpi/button/lid/LID1/state",
+    "/proc/acpi/button/lid/LID2/state",
+];
+
+const BATTERY_CHARGE_PATH: [&'static str; 4] = [
+    "/sys/class/power_supply/BAT/capacity",
+    "/sys/class/power_supply/BAT0/capacity",
+    "/sys/class/power_supply/BAT1/capacity",
+    "/sys/class/power_supply/BAT2/capacity",
+];
+
+const POWER_SOURCE_PATH: [&'static str; 4] = [
+    "/sys/class/power_supply/AC/online",
+    "/sys/class/power_supply/AC0/online",
+    "/sys/class/power_supply/AC1/online",
+    "/sys/class/power_supply/ACAD/online",
+];
+
 #[derive(PartialEq)]
 pub enum LidState {
     Open,
@@ -29,6 +50,8 @@ impl fmt::Display for LidState {
 pub fn has_battery() -> Result<bool, Error> {
     let power_dir = Path::new("/sys/class/power_supply/");
     let dir = read_dir(power_dir)?;
+
+    // Check if there is more than one item in the directory
     Ok(dir
         .into_iter()
         .map(|x| x.unwrap().path().to_str().unwrap().to_string())
@@ -37,15 +60,18 @@ pub fn has_battery() -> Result<bool, Error> {
         > 0)
 }
 
-pub fn read_lid_state() -> Result<LidState, Error> {
-    let lid_status_path: Vec<&str> = vec![
-        "/proc/acpi/button/lid/LID/state",
-        "/proc/acpi/button/lid/LID0/state",
-        "/proc/acpi/button/lid/LID1/state",
-        "/proc/acpi/button/lid/LID2/state",
-    ];
+pub fn get_best_path(paths: [&'static str; 4]) -> Result<&str, Error> {
+    for path in paths.iter() {
+        if Path::new(path).exists() {
+            return Ok(path);
+        }
+    }
 
-    let path: &str = match get_best_path(lid_status_path) {
+    return Err(Error::Unknown);
+}
+
+pub fn read_lid_state() -> Result<LidState, Error> {
+    let path: &str = match get_best_path(LID_STATUS_PATH) {
         Ok(path) => path,
         Err(error) => {
             if error.type_id() == Error::IO.type_id() {
@@ -73,14 +99,7 @@ pub fn read_lid_state() -> Result<LidState, Error> {
 }
 
 pub fn read_battery_charge() -> Result<i8, Error> {
-    let battery_charge_path: Vec<&str> = vec![
-        "/sys/class/power_supply/BAT/capacity",
-        "/sys/class/power_supply/BAT0/capacity",
-        "/sys/class/power_supply/BAT1/capacity",
-        "/sys/class/power_supply/BAT2/capacity",
-    ];
-
-    let path: &str = match get_best_path(battery_charge_path) {
+    let path: &str = match get_best_path(BATTERY_CHARGE_PATH) {
         Ok(path) => path,
         Err(error) => {
             if error.type_id() == Error::IO.type_id() {
@@ -104,14 +123,7 @@ pub fn read_battery_charge() -> Result<i8, Error> {
 }
 
 pub fn read_power_source() -> Result<bool, Error> {
-    let power_source_path: Vec<&str> = vec![
-        "/sys/class/power_supply/AC/online",
-        "/sys/class/power_supply/AC0/online",
-        "/sys/class/power_supply/AC1/online",
-        "/sys/class/power_supply/ACAD/online",
-    ];
-
-    let path: &str = match get_best_path(power_source_path) {
+    let path: &str = match get_best_path(POWER_SOURCE_PATH) {
         Ok(path) => path,
         Err(error) => {
             if error.type_id() == Error::IO.type_id() {
@@ -131,14 +143,4 @@ pub fn read_power_source() -> Result<bool, Error> {
     pwr_str.pop();
 
     return Ok(pwr_str == "1");
-}
-
-pub fn get_best_path(paths: Vec<&str>) -> Result<&str, Error> {
-    for path in paths.iter() {
-        if Path::new(path).exists() {
-            return Ok(path);
-        }
-    }
-
-    return Err(Error::Unknown);
 }

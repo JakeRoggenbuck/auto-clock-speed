@@ -53,7 +53,6 @@ pub fn open_config() -> Result<Config, std::io::Error> {
     Ok(config_toml)
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -72,13 +71,21 @@ mod tests {
     }
 
     #[test]
-    fn read_as_string_test() {
+    fn read_as_string_test() -> Result<(), std::io::Error> {
         let conf_file = "acs.toml";
-        read_as_string(&mut File::open(conf_path));
+        let conf_str: String = read_as_string(&mut File::open(conf_file)?);
+
+        assert!(conf_str.contains("# acs.toml\n"));
+        assert!(conf_str.contains("powersave_under = 20\n"));
+        Ok(())
     }
 
     #[test]
-    fn parse_as_toml_test() {
-        
+    fn parse_as_toml_test() -> Result<(), std::io::Error> {
+        let conf_file = "acs.toml";
+        let conf_str: String = read_as_string(&mut File::open(conf_file)?);
+        let toml = parse_as_toml(conf_str);
+        assert_eq!(toml.powersave_under, 20);
+        Ok(())
     }
 }

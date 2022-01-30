@@ -1,9 +1,10 @@
 use super::config::Config;
 use super::cpu::{Speed, CPU};
+use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
 use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
-use super::system::{check_turbo_enabled, list_cpus};
+use super::system::{check_cpu_freq, check_turbo_enabled, list_cpus};
 use super::Error;
 use crate::display::print_turbo_animation;
 use nix::unistd::Uid;
@@ -18,7 +19,7 @@ pub trait Checker {
 
     fn run(&mut self) -> Result<(), Error>;
     fn update_all(&mut self) -> Result<(), Error>;
-    fn print(&self);
+    fn print(&mut self);
     fn set_govs(&mut self, gov: String) -> Result<(), Error>;
 }
 
@@ -34,6 +35,8 @@ pub struct Daemon {
     pub logger: logger::Logger,
     pub config: Config,
     pub no_animation: bool,
+    pub graph: bool,
+    pub grapher: Graph,
 }
 
 fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
@@ -228,11 +231,16 @@ impl Checker for Daemon {
         for cpu in self.cpus.iter_mut() {
             cpu.update()?;
         }
+
+        if self.graph {
+            self.grapher.freqs.push(check_cpu_freq()? as f64);
+        }
+
         Ok(())
     }
 
     /// Output the values from each cpu
-    fn print(&self) {
+    fn print(&mut self) {
         let cores = num_cpus::get();
 
         // Clear screen
@@ -258,6 +266,10 @@ impl Checker for Daemon {
 
         // Shows if turbo is enabled with an amazing turbo animation
         print_turbo_status(cores, self.no_animation);
+
+        if self.graph {
+            self.grapher.update_all();
+        }
 
         // Tells user how to stop
         println!("\nctrl+c to stop running\n\n");
@@ -305,6 +317,7 @@ pub fn daemon_init(
     mut edit: bool,
     config: Config,
     no_animation: bool,
+    graph: bool,
 ) -> Result<Daemon, Error> {
     let started_as_edit: bool = edit;
     let mut forced_reason: String = String::new();
@@ -359,6 +372,8 @@ pub fn daemon_init(
         },
         config,
         no_animation,
+        graph,
+        grapher: Graph { freqs: vec![0.0] },
     };
 
     // Make a cpu struct for each cpu listed

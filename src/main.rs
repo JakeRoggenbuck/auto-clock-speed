@@ -130,8 +130,8 @@ enum Command {
         no_animation: bool,
 
         /// Graph
-        #[structopt(short, long)]
-        graph: bool,
+        #[structopt(short = "g", long = "--graph")]
+        should_graph: bool,
     },
 
     /// Monitor each cpu, it's min, max, and current speed, along with the governor
@@ -146,8 +146,8 @@ enum Command {
         no_animation: bool,
 
         /// Graph
-        #[structopt(short, long)]
-        graph: bool,
+        #[structopt(short = "g", long = "--graph")]
+        should_graph: bool,
     },
 }
 
@@ -239,8 +239,8 @@ fn parse_args(config: config::Config) {
             quiet,
             delay,
             no_animation,
-            graph,
-        } => match daemon_init(!quiet, delay, true, config, no_animation, graph) {
+            should_graph,
+        } => match daemon_init(!quiet, delay, true, config, no_animation, should_graph) {
             Ok(d) => {
                 daemon = d;
                 daemon.run().unwrap_err();
@@ -252,8 +252,8 @@ fn parse_args(config: config::Config) {
         Command::Monitor {
             delay,
             no_animation,
-            graph,
-        } => match daemon_init(true, delay, false, config, no_animation, graph) {
+            should_graph,
+        } => match daemon_init(true, delay, false, config, no_animation, should_graph) {
             Ok(d) => {
                 daemon = d;
                 daemon.run().unwrap_err();

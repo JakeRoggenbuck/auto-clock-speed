@@ -43,7 +43,8 @@ pub struct Daemon {
     pub already_charging: bool,
     pub already_closed: bool,
     pub already_under_powersave_under_percent: bool,
-    pub graph: bool,
+    pub should_graph: bool,
+    pub graph: String,
     pub grapher: Graph,
 }
 
@@ -247,7 +248,7 @@ impl Checker for Daemon {
             cpu.update()?;
         }
 
-        if self.graph {
+        if self.should_graph {
             self.grapher.freqs.push(check_cpu_freq()? as f64);
         }
 
@@ -258,8 +259,12 @@ impl Checker for Daemon {
     fn print(&mut self) {
         let cores = num_cpus::get();
 
+        // Compute graph before screen is cleared
+        if self.should_graph {
+            self.graph = self.grapher.update_one(&mut self.grapher.freqs.clone());
+        }
+
         // Clear screen
-        // TODO: Don't clear each print, clear at start and replace the first lines
         println!("{}", termion::clear::All);
 
         // Print initial banner
@@ -282,8 +287,8 @@ impl Checker for Daemon {
         // Shows if turbo is enabled with an amazing turbo animation
         print_turbo_status(cores, self.no_animation);
 
-        if self.graph {
-            self.grapher.update_all();
+        if self.should_graph {
+            println!("{}", self.graph);
         }
 
         // Tells user how to stop
@@ -332,7 +337,7 @@ pub fn daemon_init(
     mut edit: bool,
     config: Config,
     no_animation: bool,
-    graph: bool,
+    should_graph: bool,
 ) -> Result<Daemon, Error> {
     let started_as_edit: bool = edit;
     let mut forced_reason: String = String::new();
@@ -390,7 +395,8 @@ pub fn daemon_init(
         already_charging: false,
         already_closed: false,
         already_under_powersave_under_percent: false,
-        graph,
+        should_graph,
+        graph: String::new(),
         grapher: Graph { freqs: vec![0.0] },
     };
 

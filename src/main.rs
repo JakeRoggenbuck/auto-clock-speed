@@ -134,17 +134,9 @@ enum Command {
     },
 }
 
-fn main() {
-    env_logger::init();
-    let mut main_daemon: daemon::Daemon;
-
-    // Create config directory if it doesn't exist
-    if !local_config_dir_exists() {
-        create_local_config_dir();
-    }
-
+fn get_config() -> config::Config {
     // Config will always exist, default or otherwise
-    let config: config::Config = match open_config() {
+    match open_config() {
         Ok(conf) => conf,
         Err(_) => {
             warn_user!(
@@ -153,7 +145,11 @@ fn main() {
             // Use default config as config
             default_config()
         }
-    };
+    }
+}
+
+fn parse_args(config: config::Config) {
+    let mut daemon: daemon::Daemon;
 
     match Command::from_args() {
         // Everything starting with "get"
@@ -224,8 +220,8 @@ fn main() {
         // Run command
         Command::Run { quiet, delay } => match daemon_init(!quiet, delay, true, config) {
             Ok(d) => {
-                main_daemon = d;
-                main_daemon.run().unwrap_err();
+                daemon = d;
+                daemon.run().unwrap_err();
             }
             Err(_) => eprint!("Could not run daemon in edit mode"),
         },
@@ -233,10 +229,23 @@ fn main() {
         // Monitor command
         Command::Monitor { delay } => match daemon_init(true, delay, false, config) {
             Ok(d) => {
-                main_daemon = d;
-                main_daemon.run().unwrap_err();
+                daemon = d;
+                daemon.run().unwrap_err();
             }
             Err(_) => eprint!("Could not run daemon in monitor mode"),
         },
     }
+}
+
+fn main() {
+    env_logger::init();
+
+    // Create config directory if it doesn't exist
+    if !local_config_dir_exists() {
+        create_local_config_dir();
+    }
+
+    let config: config::Config = get_config();
+
+    parse_args(config);
 }

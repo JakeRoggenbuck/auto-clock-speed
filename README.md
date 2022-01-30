@@ -36,6 +36,9 @@ Do steps 1 and 2 from other install if you don't have rust installed, then do th
    cargo install --path auto-clock-speed
    ```
 
+## In Action
+[![image](https://user-images.githubusercontent.com/35516367/151716685-a3ed3c53-07f4-459f-a3ae-e1de1ba16429.png)](https://www.youtube.com/watch?v=T9nN_rQOYsg)
+
 ## Systemd
 In order to have auto-clock-speed start when you restart your computer you must follow these instruction
 ```sh

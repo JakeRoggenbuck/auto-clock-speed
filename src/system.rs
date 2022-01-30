@@ -166,17 +166,68 @@ mod tests {
     }
 
     #[test]
-    fn acs_check_cpu_freq_test() -> Result<(), Error> {
+    fn check_cpu_freq_test() -> Result<(), Error> {
         assert_eq!(type_of(check_cpu_freq()?), type_of(1));
 
         assert!(check_cpu_freq()? > 0);
         Ok(())
     }
 
+    // Non-Platform dependent
     #[test]
-    fn acs_check_cpu_name_test() -> Result<(), Error> {
+    fn get_name_from_cpu_info_test() -> Result<(), Error> {
+        let cpu_info = String::from(
+            "
+processor	: 0
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i5-7600K CPU @ 3.80GHz
+stepping	: 9
+microcode	: 0xea
+processor	: 1
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i5-7600K CPU @ 3.80GHz
+stepping	: 9
+microcode	: 0xea
+processor	: 2
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i5-7600K CPU @ 3.80GHz
+stepping	: 9
+microcode	: 0xea
+processor	: 3
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i5-7600K CPU @ 3.80GHz
+stepping	: 9
+microcode	: 0xea
+            ",
+        );
+        let name = get_name_from_cpu_info(cpu_info)?;
+        assert_eq!(name, "Intel(R) Core(TM) i5-7600K CPU @ 3.80GHz");
+        Ok(())
+    }
+
+    #[test]
+    fn check_cpu_name_test() -> Result<(), Error> {
         assert_eq!(type_of(check_cpu_name()?), type_of(String::new()));
         assert!(check_cpu_name()?.len() > 0);
+        Ok(())
+    }
+
+    // Non-Platform dependent
+    #[test]
+    fn interpret_turbo_test() -> Result<(), Error> {
+        let mut is_turbo = String::from("0\n");
+        assert!(interpret_turbo(&mut is_turbo)?);
+
+        let mut is_turbo = String::from("2\n");
+        assert!(!interpret_turbo(&mut is_turbo)?);
         Ok(())
     }
 
@@ -187,7 +238,7 @@ mod tests {
     }
 
     #[test]
-    fn acs_check_available_governors_test() -> Result<(), Error> {
+    fn check_available_governors_test() -> Result<(), Error> {
         assert_eq!(
             type_of(check_available_governors()?),
             type_of(Vec::<String>::new())
@@ -200,7 +251,7 @@ mod tests {
     }
 
     #[test]
-    fn acs_list_cpus_test() -> Result<(), Error> {
+    fn list_cpus_test() -> Result<(), Error> {
         assert_eq!(type_of(list_cpus()?), type_of(Vec::<CPU>::new()));
 
         for x in list_cpus()? {
@@ -217,7 +268,7 @@ mod tests {
     }
 
     #[test]
-    fn acs_list_cpu_speeds_test() -> Result<(), Error> {
+    fn list_cpu_speeds_test() -> Result<(), Error> {
         // Type check
         assert_eq!(type_of(list_cpu_speeds()?), type_of(Vec::<i32>::new()));
 
@@ -228,7 +279,7 @@ mod tests {
     }
 
     #[test]
-    fn acs_list_cpu_temp_test() -> Result<(), Error> {
+    fn list_cpu_temp_test() -> Result<(), Error> {
         // Type check
         assert_eq!(type_of(list_cpu_temp()?), type_of(Vec::<i32>::new()));
 
@@ -239,7 +290,7 @@ mod tests {
     }
 
     #[test]
-    fn acs_list_cpu_governors_test() -> Result<(), Error> {
+    fn list_cpu_governors_test() -> Result<(), Error> {
         // Type check
         assert_eq!(
             type_of(list_cpu_governors()?),

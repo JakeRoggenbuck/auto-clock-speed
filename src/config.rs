@@ -65,13 +65,16 @@ mod tests {
     }
 
     #[test]
-    fn open_config_file_test() {
-
+    fn open_config_file_test() -> Result<(), std::io::Error> {
+        let conf_file = "acs.toml";
+        open_config_file(conf_file)?;
+        Ok(())
     }
 
     #[test]
     fn read_as_string_test() {
-        
+        let conf_file = "acs.toml";
+        read_as_string(&mut File::open(conf_path));
     }
 
     #[test]

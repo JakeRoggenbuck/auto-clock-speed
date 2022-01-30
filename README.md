@@ -67,12 +67,17 @@ WARN: Using default config. Create file ~/.config/acs/acs.toml for custom config
 ```
 This warning recommends creating a config file, use the following example and install at `~/.config/acs/acs.toml`
 
+```sh
+mkdir -p ~/.config/acs
+cp ./acs.toml ~/.config/acs/acs.toml
+```
+
 ### This is an example config
 also the default settings if not config is provided
 
 ```yaml
 # acs.toml
-powersave_under: 20
+powersave_under = 20
 ```
 
 ## Turn Off

@@ -135,7 +135,7 @@ enum ACSCommand {
 
         /// Commit hash
         #[structopt(short, long)]
-        commit: String,
+        commit: bool,
     },
 
     /// Monitor each cpu, it's min, max, and current speed, along with the governor
@@ -155,7 +155,7 @@ enum ACSCommand {
 
         /// Commit hash
         #[structopt(short, long)]
-        commit: String,
+        commit: bool,
     },
 }
 
@@ -233,7 +233,7 @@ fn parse_args(config: config::Config) {
 
         // Everything starting with "set"
         ACSCommand::Set { set } => match set {
-            SetType::Gov { value } => match daemon_init(true, 0, false, config, true, false) {
+            SetType::Gov { value } => match daemon_init(true, 0, false, config, true, false, false) {
                 Ok(mut d) => match d.set_govs(value.clone()) {
                     Ok(_) => {}
                     Err(e) => eprint!("Could not set gov, {:?}", e),
@@ -248,7 +248,8 @@ fn parse_args(config: config::Config) {
             delay,
             no_animation,
             should_graph,
-        } => match daemon_init(!quiet, delay, true, config, no_animation, should_graph) {
+            commit,
+        } => match daemon_init(!quiet, delay, true, config, no_animation, should_graph, commit) {
             Ok(d) => {
                 daemon = d;
                 daemon.run().unwrap_err();
@@ -261,7 +262,8 @@ fn parse_args(config: config::Config) {
             delay,
             no_animation,
             should_graph,
-        } => match daemon_init(true, delay, false, config, no_animation, should_graph) {
+            commit,
+        } => match daemon_init(true, delay, false, config, no_animation, should_graph, commit) {
             Ok(d) => {
                 daemon = d;
                 daemon.run().unwrap_err();

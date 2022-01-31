@@ -2,7 +2,7 @@
 Description=Manages Clock Speed
 
 [Service]
-ExecStart=/home/cameron/.cargo/bin/acs run
+ExecStart=/home/[Your Directory Name Here]/.cargo/bin/acs run
 
 [Install]
 WantedBy=multi-user.target

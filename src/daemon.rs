@@ -1,5 +1,6 @@
 use super::config::Config;
 use super::cpu::{Speed, CPU};
+use super::debug;
 use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
@@ -17,11 +18,26 @@ pub trait Checker {
         operation: &dyn Fn(&mut CPU) -> Result<(), Error>,
     ) -> Result<(), Error>;
 
-    // Rules
-    fn charging_rule(&mut self) -> Result<(), Error>;
+    // Start Charging Rule
+    fn lid_closed_or_charge_under(&mut self);
+    fn lid_open_and_charge_over(&mut self) -> Result<(), Error>;
+    fn start_charging_rule(&mut self) -> Result<(), Error>;
+
+    // End Charging Rule
+    fn end_charging_rule(&mut self) -> Result<(), Error>;
+
+    // Lid Close Rule
     fn lid_close_rule(&mut self) -> Result<(), Error>;
+
+    // Lid Open Rule
+    fn not_charging_or_charge_under(&mut self) -> Result<(), Error>;
+    fn charging_and_charge_over(&mut self) -> Result<(), Error>;
+    fn lid_open_rule(&mut self) -> Result<(), Error>;
+
+    // Under Powersave Under Rule
     fn under_powersave_under_rule(&mut self) -> Result<(), Error>;
 
+    // Other methods
     fn run(&mut self) -> Result<(), Error>;
     fn update_all(&mut self) -> Result<(), Error>;
     fn print(&mut self);
@@ -117,24 +133,37 @@ impl Checker for Daemon {
         Ok(())
     }
 
-    fn charging_rule(&mut self) -> Result<(), Error> {
-        // Charging rule -> gov performance
-        // If the battery is charging, set to performance
+    fn lid_closed_or_charge_under(&mut self) {
+        debug!("Just started charging && (lid is closed || charge is lower than powersave_under)");
+        self.logger.log(
+            "Battery is charging however the governor remains unchanged",
+            logger::Severity::Log,
+        );
+    }
+
+    fn lid_open_and_charge_over(&mut self) -> Result<(), Error> {
+        debug!("Just started charging && (lid is open && charge is higher than powersave_under)");
+        self.logger.log(
+            "Governor set to performance because battery is charging",
+            logger::Severity::Log,
+        );
+        self.apply_to_cpus(&make_gov_performance)?;
+        Ok(())
+    }
+
+    fn start_charging_rule(&mut self) -> Result<(), Error> {
         if self.charging && !self.already_charging {
             if self.lid_state == LidState::Closed || self.charge < self.config.powersave_under {
-                self.logger.log(
-                    "Battery is charging however the governor remains unchanged",
-                    logger::Severity::Log,
-                );
+                self.lid_closed_or_charge_under();
             } else {
-                self.logger.log(
-                    "Governor set to performance because battery is charging",
-                    logger::Severity::Log,
-                );
+                self.lid_open_and_charge_over()?;
             }
-            self.apply_to_cpus(&make_gov_performance)?;
             self.already_charging = true;
         }
+        Ok(())
+    }
+
+    fn end_charging_rule(&mut self) -> Result<(), Error> {
         if !self.charging && self.already_charging {
             self.logger.log(
                 "Governor set to powersave because battery is not charging",
@@ -147,8 +176,6 @@ impl Checker for Daemon {
     }
 
     fn lid_close_rule(&mut self) -> Result<(), Error> {
-        // Lid close rule -> gov powersave
-        // If the lid just closed, turn on powersave
         if self.lid_state == LidState::Closed && !self.already_closed {
             self.logger.log(
                 "Governor set to powersave because lid closed",
@@ -157,20 +184,33 @@ impl Checker for Daemon {
             self.apply_to_cpus(&make_gov_powersave)?;
             self.already_closed = true;
         }
+        Ok(())
+    }
 
+    fn charging_and_charge_over(&mut self) -> Result<(), Error> {
+        self.logger.log(
+            "Governor set to performance because lid opened",
+            logger::Severity::Log,
+        );
+        self.apply_to_cpus(&make_gov_performance)?;
+        Ok(())
+    }
+
+    fn not_charging_or_charge_under(&mut self) -> Result<(), Error> {
+        self.logger.log(
+            "Lid opened however the governor remains unchanged",
+            logger::Severity::Log,
+        );
+        Ok(())
+    }
+
+    fn lid_open_rule(&mut self) -> Result<(), Error> {
         if self.lid_state == LidState::Open && self.already_closed {
-            // A few checks inorder to insure the computer should actually be in performance
-            if !(self.charge < self.config.powersave_under) && self.charging {
-                self.logger.log(
-                    "Governor set to performance because lid opened",
-                    logger::Severity::Log,
-                );
-                self.apply_to_cpus(&make_gov_performance)?;
+            // A few checks in order to insure the computer should actually be in performance
+            if self.charging && !(self.charge < self.config.powersave_under) {
+                self.charging_and_charge_over()?;
             } else {
-                self.logger.log(
-                    "Lid opened however the governor remains unchanged",
-                    logger::Severity::Log,
-                );
+                self.not_charging_or_charge_under()?;
             }
             self.already_closed = false;
         }
@@ -179,8 +219,6 @@ impl Checker for Daemon {
     }
 
     fn under_powersave_under_rule(&mut self) -> Result<(), Error> {
-        // Under self.config.powersave_under% rule -> gov powersave
-        // If the battery life is below self.config.powersave_under%, set gov to powersave
         if self.charge < self.config.powersave_under && !self.already_under_powersave_under_percent
         {
             self.logger.log(
@@ -192,7 +230,6 @@ impl Checker for Daemon {
             );
             self.apply_to_cpus(&make_gov_powersave)?;
             self.already_under_powersave_under_percent = true;
-            // Make sure to reset state
         }
         if self.charge >= self.config.powersave_under {
             self.already_under_powersave_under_percent = false;
@@ -228,8 +265,10 @@ impl Checker for Daemon {
                 }
 
                 // Call all rules
-                self.charging_rule()?;
+                self.start_charging_rule()?;
+                self.end_charging_rule()?;
                 self.lid_close_rule()?;
+                self.lid_open_rule()?;
                 self.under_powersave_under_rule()?;
             }
 

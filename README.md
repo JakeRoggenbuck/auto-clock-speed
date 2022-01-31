@@ -42,8 +42,8 @@ Do steps 1 and 2 from other install if you don't have rust installed, then do th
 ## Systemd
 In order to have auto-clock-speed start when you restart your computer you must follow these instruction
 ```sh
-# IMPORTANT: Modify the service file to include
-# the path to the binary file 
+# IMPORTANT: Modify the service file (acs.service) in the
+# project directory to include the path to the binary file 
 # (usually /home/username/.cargo/bin/acs)
 ```
 

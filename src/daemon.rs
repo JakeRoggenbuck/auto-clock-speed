@@ -1,16 +1,19 @@
+use std::{thread, time};
+
+use nix::unistd::Uid;
+use termion::{color, style};
+
+use crate::display::print_turbo_animation;
+
 use super::config::Config;
-use super::cpu::{Speed, CPU};
+use super::cpu::{CPU, Speed};
+use super::Error;
 use super::debug;
 use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
-use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
+use super::power::{has_battery, LidState, read_battery_charge, read_lid_state, read_power_source};
 use super::system::{check_cpu_freq, check_turbo_enabled, list_cpus};
-use super::Error;
-use crate::display::print_turbo_animation;
-use nix::unistd::Uid;
-use std::{thread, time};
-use termion::{color, style};
 
 pub trait Checker {
     fn apply_to_cpus(
@@ -399,7 +402,7 @@ pub fn daemon_init(
             println!(
                 "{}{}{}{}",
                 color::Fg(color::Red),
-                "In order to properly run the daemon in edit mode you must give the executable root privileges.\n", 
+                "In order to properly run the daemon in edit mode you must give the executable root privileges.\n",
                 "Continuing anyway in 5 seconds...",
                 style::Reset
             );

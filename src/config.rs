@@ -1,8 +1,10 @@
-use super::local::config_path;
-use super::warn_user;
-use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Read;
+
+use serde::{Deserialize, Serialize};
+
+use super::local::config_path;
+use super::warn_user;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Config {

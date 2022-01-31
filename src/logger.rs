@@ -1,10 +1,10 @@
 extern crate chrono;
 
-use chrono::prelude::DateTime;
-use chrono::Utc;
-
 use std::fmt;
 use std::time::SystemTime;
+
+use chrono::prelude::DateTime;
+use chrono::Utc;
 use termion::{color, style};
 
 pub enum Severity {

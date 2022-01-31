@@ -1,15 +1,17 @@
+use std::process::exit;
+
+use log::debug;
+use structopt::StructOpt;
+
 use config::{default_config, open_config};
-use daemon::{daemon_init, Checker};
+use daemon::{Checker, daemon_init};
 use display::{
     print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpu_temp, print_cpus,
     print_freq, print_power, print_turbo,
 };
 use error::Error;
 use local::{create_local_config_dir, local_config_dir_exists};
-use log::debug;
 use power::{read_battery_charge, read_lid_state, read_power_source};
-use std::process::exit;
-use structopt::StructOpt;
 use system::{
     check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
     list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus,
@@ -96,8 +98,8 @@ enum SetType {
 
 #[derive(StructOpt)]
 #[structopt(
-    name = "autoclockspeed",
-    about = "Automatic CPU frequency scaler and power saver"
+name = "autoclockspeed",
+about = "Automatic CPU frequency scaler and power saver"
 )]
 enum Command {
     /// Get a specific value or status

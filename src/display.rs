@@ -76,7 +76,7 @@ pub fn print_turbo(t: bool, raw: bool) {
 
 pub fn print_turbo_animation(t: bool, cpu: usize) {
     let frames = ['◷', '◶', '◵', '◴'];
-    let y_pos = cpu + 6;
+    let y_pos = cpu + 7;
     let mut current = 0;
 
     if t {

@@ -18,8 +18,10 @@ pub trait Checker {
     ) -> Result<(), Error>;
 
     // Rules
-    fn charging_rule(&mut self) -> Result<(), Error>;
+    fn start_charging_rule(&mut self) -> Result<(), Error>;
+    fn end_charging_rule(&mut self) -> Result<(), Error>;
     fn lid_close_rule(&mut self) -> Result<(), Error>;
+    fn lid_open_rule(&mut self) -> Result<(), Error>;
     fn under_powersave_under_rule(&mut self) -> Result<(), Error>;
 
     fn run(&mut self) -> Result<(), Error>;
@@ -117,9 +119,7 @@ impl Checker for Daemon {
         Ok(())
     }
 
-    fn charging_rule(&mut self) -> Result<(), Error> {
-        // Charging rule -> gov performance
-        // If the battery is charging, set to performance
+    fn start_charging_rule(&mut self) -> Result<(), Error> {
         if self.charging && !self.already_charging {
             if self.lid_state == LidState::Closed || self.charge < self.config.powersave_under {
                 self.logger.log(
@@ -135,6 +135,10 @@ impl Checker for Daemon {
             self.apply_to_cpus(&make_gov_performance)?;
             self.already_charging = true;
         }
+        Ok(())
+    }
+
+    fn end_charging_rule(&mut self) -> Result<(), Error> {
         if !self.charging && self.already_charging {
             self.logger.log(
                 "Governor set to powersave because battery is not charging",
@@ -147,8 +151,6 @@ impl Checker for Daemon {
     }
 
     fn lid_close_rule(&mut self) -> Result<(), Error> {
-        // Lid close rule -> gov powersave
-        // If the lid just closed, turn on powersave
         if self.lid_state == LidState::Closed && !self.already_closed {
             self.logger.log(
                 "Governor set to powersave because lid closed",
@@ -157,7 +159,10 @@ impl Checker for Daemon {
             self.apply_to_cpus(&make_gov_powersave)?;
             self.already_closed = true;
         }
+        Ok(())
+    }
 
+    fn lid_open_rule(&mut self) -> Result<(), Error> {
         if self.lid_state == LidState::Open && self.already_closed {
             // A few checks inorder to insure the computer should actually be in performance
             if !(self.charge < self.config.powersave_under) && self.charging {
@@ -179,8 +184,6 @@ impl Checker for Daemon {
     }
 
     fn under_powersave_under_rule(&mut self) -> Result<(), Error> {
-        // Under self.config.powersave_under% rule -> gov powersave
-        // If the battery life is below self.config.powersave_under%, set gov to powersave
         if self.charge < self.config.powersave_under && !self.already_under_powersave_under_percent
         {
             self.logger.log(
@@ -192,7 +195,6 @@ impl Checker for Daemon {
             );
             self.apply_to_cpus(&make_gov_powersave)?;
             self.already_under_powersave_under_percent = true;
-            // Make sure to reset state
         }
         if self.charge >= self.config.powersave_under {
             self.already_under_powersave_under_percent = false;
@@ -228,8 +230,10 @@ impl Checker for Daemon {
                 }
 
                 // Call all rules
-                self.charging_rule()?;
+                self.start_charging_rule()?;
+                self.end_charging_rule()?;
                 self.lid_close_rule()?;
+                self.lid_open_rule()?;
                 self.under_powersave_under_rule()?;
             }
 

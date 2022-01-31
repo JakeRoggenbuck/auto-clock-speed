@@ -22,9 +22,11 @@ impl fmt::Debug for Error {
 }
 
 pub struct GovSetError;
+
 pub struct SpeedSetError;
 
 pub struct GovGetError;
+
 pub struct SpeedGetError;
 
 pub struct TempGetError;

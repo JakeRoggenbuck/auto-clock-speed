@@ -1,9 +1,10 @@
-use super::display::print_cpu;
-use super::exit;
-use super::Error;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
+
+use super::display::print_cpu;
+use super::Error;
+use super::exit;
 
 pub trait Speed {
     fn read_int(&mut self, sub_path: String) -> Result<i32, Error>;

@@ -42,6 +42,7 @@ pub trait Checker {
 
     // Other methods
     fn run(&mut self) -> Result<(), Error>;
+    fn init(&mut self);
     fn update_all(&mut self) -> Result<(), Error>;
     fn print(&mut self);
     fn set_govs(&mut self, gov: String) -> Result<(), Error>;
@@ -49,10 +50,10 @@ pub trait Checker {
 
 pub struct Daemon {
     pub cpus: Vec<CPU>,
+    pub message: String,
     pub verbose: bool,
     pub delay: u64,
     pub edit: bool,
-    pub message: String,
     pub lid_state: LidState,
     pub charging: bool,
     pub charge: i8,
@@ -65,6 +66,8 @@ pub struct Daemon {
     pub should_graph: bool,
     pub graph: String,
     pub grapher: Graph,
+    pub commit: bool,
+    pub commit_hash: String,
 }
 
 fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
@@ -240,8 +243,16 @@ impl Checker for Daemon {
         Ok(())
     }
 
+    fn init(&mut self) {
+        if self.commit {
+            self.commit_hash = env!("GIT_HASH").to_string();
+        }
+    }
+
     fn run(&mut self) -> Result<(), Error> {
         let timeout = time::Duration::from_millis(self.delay);
+
+        self.init();
 
         // The state for rules
         let mut first_run: bool = true;
@@ -343,6 +354,10 @@ impl Checker for Daemon {
                 println!("{}", log)
             }
         }
+
+        if self.commit {
+            println!("Commit hash: {}", self.commit_hash);
+        }
     }
 }
 
@@ -380,6 +395,7 @@ pub fn daemon_init(
     config: Config,
     no_animation: bool,
     should_graph: bool,
+    commit: bool,
 ) -> Result<Daemon, Error> {
     let started_as_edit: bool = edit;
     let mut forced_reason: String = String::new();
@@ -440,6 +456,8 @@ pub fn daemon_init(
         should_graph,
         graph: String::new(),
         grapher: Graph { freqs: vec![0.0] },
+        commit,
+        commit_hash: String::new(),
     };
 
     // Make a cpu struct for each cpu listed

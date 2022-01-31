@@ -1,7 +1,7 @@
 use std::any::Any;
 use std::cmp::PartialEq;
 use std::fmt;
-use std::fs::{File, read_dir};
+use std::fs::{read_dir, File};
 use std::io::Read;
 use std::path::Path;
 

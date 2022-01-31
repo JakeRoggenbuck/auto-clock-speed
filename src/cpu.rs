@@ -3,8 +3,8 @@ use std::io::{Read, Write};
 use std::path::Path;
 
 use super::display::print_cpu;
-use super::Error;
 use super::exit;
+use super::Error;
 
 pub trait Speed {
     fn read_int(&mut self, sub_path: String) -> Result<i32, Error>;

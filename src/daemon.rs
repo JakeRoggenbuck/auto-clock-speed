@@ -6,14 +6,14 @@ use termion::{color, style};
 use crate::display::print_turbo_animation;
 
 use super::config::Config;
-use super::cpu::{CPU, Speed};
-use super::Error;
+use super::cpu::{Speed, CPU};
 use super::debug;
 use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
-use super::power::{has_battery, LidState, read_battery_charge, read_lid_state, read_power_source};
+use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
 use super::system::{check_cpu_freq, check_turbo_enabled, list_cpus};
+use super::Error;
 
 pub trait Checker {
     fn apply_to_cpus(

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 service="acs.service"
-sed -i "s/cameron/$USER/" $service
+sed -i "s/your-user-here/$USER/" $service
 
 cp $service /etc/systemd/system/
 

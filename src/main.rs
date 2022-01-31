@@ -4,7 +4,7 @@ use log::debug;
 use structopt::StructOpt;
 
 use config::{default_config, open_config};
-use daemon::{Checker, daemon_init};
+use daemon::{daemon_init, Checker};
 use display::{
     print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpu_temp, print_cpus,
     print_freq, print_power, print_turbo,
@@ -98,8 +98,8 @@ enum SetType {
 
 #[derive(StructOpt)]
 #[structopt(
-name = "autoclockspeed",
-about = "Automatic CPU frequency scaler and power saver"
+    name = "autoclockspeed",
+    about = "Automatic CPU frequency scaler and power saver"
 )]
 enum ACSCommand {
     /// Get a specific value or status

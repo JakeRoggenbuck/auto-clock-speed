@@ -99,7 +99,7 @@ enum SetType {
     name = "autoclockspeed",
     about = "Automatic CPU frequency scaler and power saver"
 )]
-enum Command {
+enum ACSCommand {
     /// Get a specific value or status
     #[structopt(name = "get")]
     Get {
@@ -132,6 +132,10 @@ enum Command {
         /// Graph
         #[structopt(short = "g", long = "--graph")]
         should_graph: bool,
+
+        /// Commit hash
+        #[structopt(short, long)]
+        commit: String,
     },
 
     /// Monitor each cpu, it's min, max, and current speed, along with the governor
@@ -148,6 +152,10 @@ enum Command {
         /// Graph
         #[structopt(short = "g", long = "--graph")]
         should_graph: bool,
+
+        /// Commit hash
+        #[structopt(short, long)]
+        commit: String,
     },
 }
 
@@ -168,9 +176,9 @@ fn get_config() -> config::Config {
 fn parse_args(config: config::Config) {
     let mut daemon: daemon::Daemon;
 
-    match Command::from_args() {
+    match ACSCommand::from_args() {
         // Everything starting with "get"
-        Command::Get { get } => match get {
+        ACSCommand::Get { get } => match get {
             GetType::Freq { raw } => match check_cpu_freq() {
                 Ok(f) => print_freq(f, raw),
                 Err(_) => eprintln!("Faild to get cpu frequency"),
@@ -224,7 +232,7 @@ fn parse_args(config: config::Config) {
         },
 
         // Everything starting with "set"
-        Command::Set { set } => match set {
+        ACSCommand::Set { set } => match set {
             SetType::Gov { value } => match daemon_init(true, 0, false, config, true, false) {
                 Ok(mut d) => match d.set_govs(value.clone()) {
                     Ok(_) => {}
@@ -235,7 +243,7 @@ fn parse_args(config: config::Config) {
         },
 
         // Run command
-        Command::Run {
+        ACSCommand::Run {
             quiet,
             delay,
             no_animation,
@@ -249,7 +257,7 @@ fn parse_args(config: config::Config) {
         },
 
         // Monitor command
-        Command::Monitor {
+        ACSCommand::Monitor {
             delay,
             no_animation,
             should_graph,

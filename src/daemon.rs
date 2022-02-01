@@ -88,19 +88,19 @@ fn make_gov_performance(cpu: &mut CPU) -> Result<(), Error> {
     Ok(())
 }
 
-fn print_battery_status() {
+fn get_battery_status() -> String {
     match has_battery() {
         Ok(has) => {
             if has {
                 match read_battery_charge() {
-                    Ok(bat) => println!("Battery: {}{}%{}", style::Bold, bat, style::Reset),
-                    Err(e) => eprintln!("Battery charge could not be read\n{:?}", e),
+                    Ok(bat) => format!("Battery: {}{}%{}", style::Bold, bat, style::Reset),
+                    Err(e) => format!("Battery charge could not be read\n{:?}", e),
                 }
             } else {
-                println!("Battery: {}{}{}", style::Bold, "N/A", style::Reset);
+                format!("Battery: {}{}{}", style::Bold, "N/A", style::Reset)
             }
         }
-        Err(e) => eprintln!("Could not find battery\n{:?}", e),
+        Err(e) => format!("Could not find battery\n{:?}", e),
     }
 }
 
@@ -342,6 +342,9 @@ impl Checker for Daemon {
             self.graph = self.grapher.update_one(&mut self.grapher.freqs.clone());
         }
 
+        // Prints batter percent or N/A if not
+        let battery_status = get_battery_status();
+
         // Clear screen
         println!("{}", termion::clear::All);
 
@@ -359,8 +362,7 @@ impl Checker for Daemon {
         // Just need a little space
         println!("");
 
-        // Prints batter percent or N/A if not
-        print_battery_status();
+        println!("{}", battery_status);
 
         // Shows if turbo is enabled with an amazing turbo animation
         print_turbo_status(cores, self.no_animation);

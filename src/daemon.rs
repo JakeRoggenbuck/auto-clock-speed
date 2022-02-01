@@ -105,6 +105,7 @@ fn get_battery_status() -> String {
 }
 
 fn print_turbo_status(cores: usize, no_animation: bool) {
+    let turbo_y_pos :usize = 7;
     match check_turbo_enabled() {
         Ok(turbo) => {
             let enabled_message = if turbo { "yes" } else { "no" };
@@ -117,7 +118,7 @@ fn print_turbo_status(cores: usize, no_animation: bool) {
             );
 
             if !no_animation {
-                print_turbo_animation(turbo, cores);
+                print_turbo_animation(turbo, cores, turbo_y_pos);
             }
         }
         Err(e) => eprintln!("Could not check turbo\n{:?}", e),

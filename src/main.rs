@@ -1,3 +1,8 @@
+use std::process::exit;
+
+use log::debug;
+use structopt::StructOpt;
+
 use config::{default_config, open_config};
 use daemon::{daemon_init, Checker};
 use display::{
@@ -6,10 +11,7 @@ use display::{
 };
 use error::Error;
 use local::{create_local_config_dir, local_config_dir_exists};
-use log::debug;
 use power::{read_battery_charge, read_lid_state, read_power_source};
-use std::process::exit;
-use structopt::StructOpt;
 use system::{
     check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
     list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus,
@@ -99,7 +101,7 @@ enum SetType {
     name = "autoclockspeed",
     about = "Automatic CPU frequency scaler and power saver"
 )]
-enum Command {
+enum ACSCommand {
     /// Get a specific value or status
     #[structopt(name = "get")]
     Get {
@@ -132,6 +134,10 @@ enum Command {
         /// Graph
         #[structopt(short = "g", long = "--graph")]
         should_graph: bool,
+
+        /// Commit hash
+        #[structopt(short, long)]
+        commit: bool,
     },
 
     /// Monitor each cpu, it's min, max, and current speed, along with the governor
@@ -148,6 +154,10 @@ enum Command {
         /// Graph
         #[structopt(short = "g", long = "--graph")]
         should_graph: bool,
+
+        /// Commit hash
+        #[structopt(short, long)]
+        commit: bool,
     },
 }
 
@@ -168,9 +178,9 @@ fn get_config() -> config::Config {
 fn parse_args(config: config::Config) {
     let mut daemon: daemon::Daemon;
 
-    match Command::from_args() {
+    match ACSCommand::from_args() {
         // Everything starting with "get"
-        Command::Get { get } => match get {
+        ACSCommand::Get { get } => match get {
             GetType::Freq { raw } => match check_cpu_freq() {
                 Ok(f) => print_freq(f, raw),
                 Err(_) => eprintln!("Faild to get cpu frequency"),
@@ -224,8 +234,9 @@ fn parse_args(config: config::Config) {
         },
 
         // Everything starting with "set"
-        Command::Set { set } => match set {
-            SetType::Gov { value } => match daemon_init(true, 0, false, config, true, false) {
+        ACSCommand::Set { set } => match set {
+            SetType::Gov { value } => match daemon_init(true, 0, false, config, true, false, false)
+            {
                 Ok(mut d) => match d.set_govs(value.clone()) {
                     Ok(_) => {}
                     Err(e) => eprint!("Could not set gov, {:?}", e),
@@ -235,12 +246,21 @@ fn parse_args(config: config::Config) {
         },
 
         // Run command
-        Command::Run {
+        ACSCommand::Run {
             quiet,
             delay,
             no_animation,
             should_graph,
-        } => match daemon_init(!quiet, delay, true, config, no_animation, should_graph) {
+            commit,
+        } => match daemon_init(
+            !quiet,
+            delay,
+            true,
+            config,
+            no_animation,
+            should_graph,
+            commit,
+        ) {
             Ok(d) => {
                 daemon = d;
                 daemon.run().unwrap_err();
@@ -249,11 +269,20 @@ fn parse_args(config: config::Config) {
         },
 
         // Monitor command
-        Command::Monitor {
+        ACSCommand::Monitor {
             delay,
             no_animation,
             should_graph,
-        } => match daemon_init(true, delay, false, config, no_animation, should_graph) {
+            commit,
+        } => match daemon_init(
+            true,
+            delay,
+            false,
+            config,
+            no_animation,
+            should_graph,
+            commit,
+        ) {
             Ok(d) => {
                 daemon = d;
                 daemon.run().unwrap_err();

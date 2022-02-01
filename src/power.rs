@@ -1,11 +1,12 @@
-use super::create_issue;
-use super::Error;
 use std::any::Any;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::fs::{read_dir, File};
 use std::io::Read;
 use std::path::Path;
+
+use super::create_issue;
+use super::Error;
 
 const LID_STATUS_PATH: [&'static str; 4] = [
     "/proc/acpi/button/lid/LID/state",

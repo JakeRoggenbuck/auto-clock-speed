@@ -1,8 +1,10 @@
-use super::cpu::CPU;
-use super::power::LidState;
 use std::fmt::Display;
 use std::thread;
+
 use termion::{color, style};
+
+use super::cpu::CPU;
+use super::power::LidState;
 
 #[macro_export]
 macro_rules! bold_color_text {

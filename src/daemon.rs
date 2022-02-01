@@ -1,15 +1,19 @@
+use std::{thread, time};
+
+use nix::unistd::Uid;
+use termion::{color, style};
+
+use crate::display::print_turbo_animation;
+
 use super::config::Config;
 use super::cpu::{Speed, CPU};
+use super::debug;
 use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
 use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
 use super::system::{check_cpu_freq, check_turbo_enabled, list_cpus};
 use super::Error;
-use crate::display::print_turbo_animation;
-use nix::unistd::Uid;
-use std::{thread, time};
-use termion::{color, style};
 
 pub trait Checker {
     fn apply_to_cpus(
@@ -17,12 +21,35 @@ pub trait Checker {
         operation: &dyn Fn(&mut CPU) -> Result<(), Error>,
     ) -> Result<(), Error>;
 
-    // Rules
-    fn charging_rule(&mut self) -> Result<(), Error>;
+    // Start Charging Rule
+    fn lid_closed_or_charge_under(&mut self);
+    fn lid_open_and_charge_over(&mut self) -> Result<(), Error>;
+    fn start_charging_rule(&mut self) -> Result<(), Error>;
+
+    // End Charging Rule
+    fn end_charging_rule(&mut self) -> Result<(), Error>;
+
+    // Lid Close Rule
     fn lid_close_rule(&mut self) -> Result<(), Error>;
+
+    // Lid Open Rule
+    fn not_charging_or_charge_under(&mut self) -> Result<(), Error>;
+    fn charging_and_charge_over(&mut self) -> Result<(), Error>;
+    fn lid_open_rule(&mut self) -> Result<(), Error>;
+
+    // Under Powersave Under Rule
     fn under_powersave_under_rule(&mut self) -> Result<(), Error>;
 
+    // Other methods
     fn run(&mut self) -> Result<(), Error>;
+    fn init(&mut self);
+
+    fn start_loop(&mut self) -> Result<(), Error>;
+    fn end_loop(&mut self);
+
+    fn loop_edit(&mut self) -> Result<(), Error>;
+    fn loop_monit(&mut self) -> Result<(), Error>;
+
     fn update_all(&mut self) -> Result<(), Error>;
     fn print(&mut self);
     fn set_govs(&mut self, gov: String) -> Result<(), Error>;
@@ -30,10 +57,10 @@ pub trait Checker {
 
 pub struct Daemon {
     pub cpus: Vec<CPU>,
+    pub message: String,
     pub verbose: bool,
     pub delay: u64,
     pub edit: bool,
-    pub message: String,
     pub lid_state: LidState,
     pub charging: bool,
     pub charge: i8,
@@ -46,6 +73,9 @@ pub struct Daemon {
     pub should_graph: bool,
     pub graph: String,
     pub grapher: Graph,
+    pub commit: bool,
+    pub commit_hash: String,
+    pub timeout: time::Duration,
 }
 
 fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
@@ -58,19 +88,19 @@ fn make_gov_performance(cpu: &mut CPU) -> Result<(), Error> {
     Ok(())
 }
 
-fn print_battery_status() {
+fn get_battery_status() -> String {
     match has_battery() {
         Ok(has) => {
             if has {
                 match read_battery_charge() {
-                    Ok(bat) => println!("Battery: {}{}%{}", style::Bold, bat, style::Reset),
-                    Err(e) => eprintln!("Battery charge could not be read\n{:?}", e),
+                    Ok(bat) => format!("Battery: {}{}%{}", style::Bold, bat, style::Reset),
+                    Err(e) => format!("Battery charge could not be read\n{:?}", e),
                 }
             } else {
-                println!("Battery: {}{}{}", style::Bold, "N/A", style::Reset);
+                format!("Battery: {}{}{}", style::Bold, "N/A", style::Reset)
             }
         }
-        Err(e) => eprintln!("Could not find battery\n{:?}", e),
+        Err(e) => format!("Could not find battery\n{:?}", e),
     }
 }
 
@@ -117,24 +147,37 @@ impl Checker for Daemon {
         Ok(())
     }
 
-    fn charging_rule(&mut self) -> Result<(), Error> {
-        // Charging rule -> gov performance
-        // If the battery is charging, set to performance
+    fn lid_closed_or_charge_under(&mut self) {
+        debug!("Just started charging && (lid is closed || charge is lower than powersave_under)");
+        self.logger.log(
+            "Battery is charging however the governor remains unchanged",
+            logger::Severity::Log,
+        );
+    }
+
+    fn lid_open_and_charge_over(&mut self) -> Result<(), Error> {
+        debug!("Just started charging && (lid is open && charge is higher than powersave_under)");
+        self.logger.log(
+            "Governor set to performance because battery is charging",
+            logger::Severity::Log,
+        );
+        self.apply_to_cpus(&make_gov_performance)?;
+        Ok(())
+    }
+
+    fn start_charging_rule(&mut self) -> Result<(), Error> {
         if self.charging && !self.already_charging {
             if self.lid_state == LidState::Closed || self.charge < self.config.powersave_under {
-                self.logger.log(
-                    "Battery is charging however the governor remains unchanged",
-                    logger::Severity::Log,
-                );
+                self.lid_closed_or_charge_under();
             } else {
-                self.logger.log(
-                    "Governor set to performance because battery is charging",
-                    logger::Severity::Log,
-                );
+                self.lid_open_and_charge_over()?;
             }
-            self.apply_to_cpus(&make_gov_performance)?;
             self.already_charging = true;
         }
+        Ok(())
+    }
+
+    fn end_charging_rule(&mut self) -> Result<(), Error> {
         if !self.charging && self.already_charging {
             self.logger.log(
                 "Governor set to powersave because battery is not charging",
@@ -147,8 +190,6 @@ impl Checker for Daemon {
     }
 
     fn lid_close_rule(&mut self) -> Result<(), Error> {
-        // Lid close rule -> gov powersave
-        // If the lid just closed, turn on powersave
         if self.lid_state == LidState::Closed && !self.already_closed {
             self.logger.log(
                 "Governor set to powersave because lid closed",
@@ -157,20 +198,33 @@ impl Checker for Daemon {
             self.apply_to_cpus(&make_gov_powersave)?;
             self.already_closed = true;
         }
+        Ok(())
+    }
 
+    fn charging_and_charge_over(&mut self) -> Result<(), Error> {
+        self.logger.log(
+            "Governor set to performance because lid opened",
+            logger::Severity::Log,
+        );
+        self.apply_to_cpus(&make_gov_performance)?;
+        Ok(())
+    }
+
+    fn not_charging_or_charge_under(&mut self) -> Result<(), Error> {
+        self.logger.log(
+            "Lid opened however the governor remains unchanged",
+            logger::Severity::Log,
+        );
+        Ok(())
+    }
+
+    fn lid_open_rule(&mut self) -> Result<(), Error> {
         if self.lid_state == LidState::Open && self.already_closed {
-            // A few checks inorder to insure the computer should actually be in performance
-            if !(self.charge < self.config.powersave_under) && self.charging {
-                self.logger.log(
-                    "Governor set to performance because lid opened",
-                    logger::Severity::Log,
-                );
-                self.apply_to_cpus(&make_gov_performance)?;
+            // A few checks in order to insure the computer should actually be in performance
+            if self.charging && !(self.charge < self.config.powersave_under) {
+                self.charging_and_charge_over()?;
             } else {
-                self.logger.log(
-                    "Lid opened however the governor remains unchanged",
-                    logger::Severity::Log,
-                );
+                self.not_charging_or_charge_under()?;
             }
             self.already_closed = false;
         }
@@ -179,8 +233,6 @@ impl Checker for Daemon {
     }
 
     fn under_powersave_under_rule(&mut self) -> Result<(), Error> {
-        // Under self.config.powersave_under% rule -> gov powersave
-        // If the battery life is below self.config.powersave_under%, set gov to powersave
         if self.charge < self.config.powersave_under && !self.already_under_powersave_under_percent
         {
             self.logger.log(
@@ -192,7 +244,6 @@ impl Checker for Daemon {
             );
             self.apply_to_cpus(&make_gov_powersave)?;
             self.already_under_powersave_under_percent = true;
-            // Make sure to reset state
         }
         if self.charge >= self.config.powersave_under {
             self.already_under_powersave_under_percent = false;
@@ -200,46 +251,73 @@ impl Checker for Daemon {
         Ok(())
     }
 
-    fn run(&mut self) -> Result<(), Error> {
-        let timeout = time::Duration::from_millis(self.delay);
-
-        // The state for rules
-        let mut first_run: bool = true;
-
-        loop {
-            // Update all the values for each cpu before they get used
-            self.update_all()?;
-
-            if self.edit {
-                // Update current states
-                self.charging = read_power_source()?;
-                self.charge = read_battery_charge()?;
-                self.lid_state = read_lid_state()?;
-
-                // If we just daemonized then make sure the states are the opposite of what they should
-                // The logic after this block will make sure that they are set to the correct state
-                // but only if the previous states were incorrect
-                if first_run == true {
-                    self.already_charging = !self.charging;
-                    self.already_under_powersave_under_percent =
-                        !(self.charge < self.config.powersave_under);
-                    self.already_closed = self.lid_state == LidState::Closed;
-                    first_run = false;
-                }
-
-                // Call all rules
-                self.charging_rule()?;
-                self.lid_close_rule()?;
-                self.under_powersave_under_rule()?;
-            }
-
-            // Print the each cpu, each iteration
-            if self.verbose {
-                self.print();
-            }
-
-            thread::sleep(timeout);
+    fn init(&mut self) {
+        if self.commit {
+            self.commit_hash = env!("GIT_HASH").to_string();
         }
+
+        self.timeout = time::Duration::from_millis(self.delay);
+
+        // If we just daemonized then make sure the states are the opposite of what they should
+        // The logic after this block will make sure that they are set to the correct state
+        // but only if the previous states were incorrect
+        self.already_charging = !self.charging;
+        self.already_under_powersave_under_percent = !(self.charge < self.config.powersave_under);
+        self.already_closed = self.lid_state == LidState::Closed;
+    }
+
+    fn start_loop(&mut self) -> Result<(), Error> {
+        // Update all the values for each cpu before they get used
+        self.update_all()?;
+        Ok(())
+    }
+
+    fn end_loop(&mut self) {
+        // Print the each cpu, each iteration
+        if self.verbose {
+            self.print();
+        }
+
+        thread::sleep(self.timeout);
+    }
+
+    fn loop_edit(&mut self) -> Result<(), Error> {
+        loop {
+            self.start_loop()?;
+
+            // Update current states
+            self.charging = read_power_source()?;
+            self.charge = read_battery_charge()?;
+            self.lid_state = read_lid_state()?;
+
+            // Call all rules
+            self.start_charging_rule()?;
+            self.end_charging_rule()?;
+            self.lid_close_rule()?;
+            self.lid_open_rule()?;
+            self.under_powersave_under_rule()?;
+
+            self.end_loop();
+        }
+    }
+
+    fn loop_monit(&mut self) -> Result<(), Error> {
+        loop {
+            self.start_loop()?;
+            self.end_loop();
+        }
+    }
+
+    fn run(&mut self) -> Result<(), Error> {
+        self.init();
+
+        if self.edit {
+            self.loop_edit()?;
+        } else {
+            self.loop_monit()?;
+        }
+
+        Ok(())
     }
 
     /// Calls update on each cpu to update the state of each one
@@ -264,6 +342,9 @@ impl Checker for Daemon {
             self.graph = self.grapher.update_one(&mut self.grapher.freqs.clone());
         }
 
+        // Prints batter percent or N/A if not
+        let battery_status = get_battery_status();
+
         // Clear screen
         println!("{}", termion::clear::All);
 
@@ -281,8 +362,7 @@ impl Checker for Daemon {
         // Just need a little space
         println!("");
 
-        // Prints batter percent or N/A if not
-        print_battery_status();
+        println!("{}", battery_status);
 
         // Shows if turbo is enabled with an amazing turbo animation
         print_turbo_status(cores, self.no_animation);
@@ -300,6 +380,10 @@ impl Checker for Daemon {
             for log in &self.logger.logs {
                 println!("{}", log)
             }
+        }
+
+        if self.commit {
+            println!("Commit hash: {}", self.commit_hash);
         }
     }
 }
@@ -338,6 +422,7 @@ pub fn daemon_init(
     config: Config,
     no_animation: bool,
     should_graph: bool,
+    commit: bool,
 ) -> Result<Daemon, Error> {
     let started_as_edit: bool = edit;
     let mut forced_reason: String = String::new();
@@ -360,7 +445,7 @@ pub fn daemon_init(
             println!(
                 "{}{}{}{}",
                 color::Fg(color::Red),
-                "In order to properly run the daemon in edit mode you must give the executable root privileges.\n", 
+                "In order to properly run the daemon in edit mode you must give the executable root privileges.\n",
                 "Continuing anyway in 5 seconds...",
                 style::Reset
             );
@@ -398,6 +483,9 @@ pub fn daemon_init(
         should_graph,
         graph: String::new(),
         grapher: Graph { freqs: vec![0.0] },
+        commit,
+        commit_hash: String::new(),
+        timeout: time::Duration::from_millis(1),
     };
 
     // Make a cpu struct for each cpu listed

@@ -1,6 +1,7 @@
-use super::debug;
 use std::fs;
 use std::path::Path;
+
+use super::debug;
 
 /// Return true if local path exists
 /// path_name -> check_for_local -> ~/path_name

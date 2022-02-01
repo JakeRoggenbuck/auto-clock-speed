@@ -1,10 +1,13 @@
-use super::cpu::CPU;
-use super::Error;
-use crate::cpu::Speed;
-use regex::Regex;
 use std::fs::{read_dir, File};
 use std::io::Read;
 use std::string::String;
+
+use regex::Regex;
+
+use crate::cpu::Speed;
+
+use super::cpu::CPU;
+use super::Error;
 
 /// Check the frequency of the cpu
 pub fn check_cpu_freq() -> Result<i32, Error> {
@@ -158,8 +161,9 @@ pub fn list_cpu_governors() -> Result<Vec<String>, Error> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::any::type_name;
+
+    use super::*;
 
     fn type_of<T>(_: T) -> &'static str {
         type_name::<T>()

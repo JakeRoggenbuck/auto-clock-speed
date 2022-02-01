@@ -43,6 +43,13 @@ pub trait Checker {
     // Other methods
     fn run(&mut self) -> Result<(), Error>;
     fn init(&mut self);
+
+    fn start_loop(&mut self) -> Result<(), Error>;
+    fn end_loop(&mut self);
+
+    fn loop_edit(&mut self) -> Result<(), Error>;
+    fn loop_monit(&mut self) -> Result<(), Error>;
+
     fn update_all(&mut self) -> Result<(), Error>;
     fn print(&mut self);
     fn set_govs(&mut self, gov: String) -> Result<(), Error>;
@@ -68,6 +75,7 @@ pub struct Daemon {
     pub grapher: Graph,
     pub commit: bool,
     pub commit_hash: String,
+    pub timeout: time::Duration,
 }
 
 fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
@@ -80,19 +88,19 @@ fn make_gov_performance(cpu: &mut CPU) -> Result<(), Error> {
     Ok(())
 }
 
-fn print_battery_status() {
+fn get_battery_status() -> String {
     match has_battery() {
         Ok(has) => {
             if has {
                 match read_battery_charge() {
-                    Ok(bat) => println!("Battery: {}{}%{}", style::Bold, bat, style::Reset),
-                    Err(e) => eprintln!("Battery charge could not be read\n{:?}", e),
+                    Ok(bat) => format!("Battery: {}{}%{}", style::Bold, bat, style::Reset),
+                    Err(e) => format!("Battery charge could not be read\n{:?}", e),
                 }
             } else {
-                println!("Battery: {}{}{}", style::Bold, "N/A", style::Reset);
+                format!("Battery: {}{}{}", style::Bold, "N/A", style::Reset)
             }
         }
-        Err(e) => eprintln!("Could not find battery\n{:?}", e),
+        Err(e) => format!("Could not find battery\n{:?}", e),
     }
 }
 
@@ -247,52 +255,69 @@ impl Checker for Daemon {
         if self.commit {
             self.commit_hash = env!("GIT_HASH").to_string();
         }
+
+        self.timeout = time::Duration::from_millis(self.delay);
+
+        // If we just daemonized then make sure the states are the opposite of what they should
+        // The logic after this block will make sure that they are set to the correct state
+        // but only if the previous states were incorrect
+        self.already_charging = !self.charging;
+        self.already_under_powersave_under_percent = !(self.charge < self.config.powersave_under);
+        self.already_closed = self.lid_state == LidState::Closed;
+    }
+
+    fn start_loop(&mut self) -> Result<(), Error> {
+        // Update all the values for each cpu before they get used
+        self.update_all()?;
+        Ok(())
+    }
+
+    fn end_loop(&mut self) {
+        // Print the each cpu, each iteration
+        if self.verbose {
+            self.print();
+        }
+
+        thread::sleep(self.timeout);
+    }
+
+    fn loop_edit(&mut self) -> Result<(), Error> {
+        loop {
+            self.start_loop()?;
+
+            // Update current states
+            self.charging = read_power_source()?;
+            self.charge = read_battery_charge()?;
+            self.lid_state = read_lid_state()?;
+
+            // Call all rules
+            self.start_charging_rule()?;
+            self.end_charging_rule()?;
+            self.lid_close_rule()?;
+            self.lid_open_rule()?;
+            self.under_powersave_under_rule()?;
+
+            self.end_loop();
+        }
+    }
+
+    fn loop_monit(&mut self) -> Result<(), Error> {
+        loop {
+            self.start_loop()?;
+            self.end_loop();
+        }
     }
 
     fn run(&mut self) -> Result<(), Error> {
-        let timeout = time::Duration::from_millis(self.delay);
-
         self.init();
 
-        // The state for rules
-        let mut first_run: bool = true;
-
-        loop {
-            // Update all the values for each cpu before they get used
-            self.update_all()?;
-
-            if self.edit {
-                // Update current states
-                self.charging = read_power_source()?;
-                self.charge = read_battery_charge()?;
-                self.lid_state = read_lid_state()?;
-
-                // If we just daemonized then make sure the states are the opposite of what they should
-                // The logic after this block will make sure that they are set to the correct state
-                // but only if the previous states were incorrect
-                if first_run == true {
-                    self.already_charging = !self.charging;
-                    self.already_under_powersave_under_percent =
-                        !(self.charge < self.config.powersave_under);
-                    self.already_closed = self.lid_state == LidState::Closed;
-                    first_run = false;
-                }
-
-                // Call all rules
-                self.start_charging_rule()?;
-                self.end_charging_rule()?;
-                self.lid_close_rule()?;
-                self.lid_open_rule()?;
-                self.under_powersave_under_rule()?;
-            }
-
-            // Print the each cpu, each iteration
-            if self.verbose {
-                self.print();
-            }
-
-            thread::sleep(timeout);
+        if self.edit {
+            self.loop_edit()?;
+        } else {
+            self.loop_monit()?;
         }
+
+        Ok(())
     }
 
     /// Calls update on each cpu to update the state of each one
@@ -317,6 +342,9 @@ impl Checker for Daemon {
             self.graph = self.grapher.update_one(&mut self.grapher.freqs.clone());
         }
 
+        // Prints batter percent or N/A if not
+        let battery_status = get_battery_status();
+
         // Clear screen
         println!("{}", termion::clear::All);
 
@@ -334,8 +362,7 @@ impl Checker for Daemon {
         // Just need a little space
         println!("");
 
-        // Prints batter percent or N/A if not
-        print_battery_status();
+        println!("{}", battery_status);
 
         // Shows if turbo is enabled with an amazing turbo animation
         print_turbo_status(cores, self.no_animation);
@@ -458,6 +485,7 @@ pub fn daemon_init(
         grapher: Graph { freqs: vec![0.0] },
         commit,
         commit_hash: String::new(),
+        timeout: time::Duration::from_millis(1),
     };
 
     // Make a cpu struct for each cpu listed

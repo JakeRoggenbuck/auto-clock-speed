@@ -7,14 +7,14 @@ use termion::{color, style};
 use crate::display::print_turbo_animation;
 
 use super::config::Config;
-use super::cpu::{CPU, Speed};
+use super::cpu::{Speed, CPU};
 use super::debug;
-use super::Error;
 use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
-use super::power::{has_battery, LidState, read_battery_charge, read_lid_state, read_power_source};
+use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
 use super::system::{check_cpu_freq, check_turbo_enabled, list_cpus};
+use super::Error;
 
 pub trait Checker {
     fn apply_to_cpus(
@@ -107,7 +107,9 @@ fn get_battery_status() -> String {
 
 fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize) {
     let mut turbo_y_pos: usize = 7;
-    if term_width > 94 { turbo_y_pos = 6 }
+    if term_width > 94 {
+        turbo_y_pos = 6
+    }
     match check_turbo_enabled() {
         Ok(turbo) => {
             let enabled_message = if turbo { "yes" } else { "no" };
@@ -141,7 +143,6 @@ fn terminal_width() -> usize {
         return size.col as usize;
     }
 }
-
 
 impl Checker for Daemon {
     /// Apply a function to every cpu

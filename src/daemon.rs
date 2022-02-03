@@ -53,6 +53,8 @@ pub trait Checker {
 
     fn update_all(&mut self) -> Result<(), Error>;
     fn print(&mut self);
+    fn preprint_render(&mut self) -> String;
+    fn postprint_render(&mut self) -> String;
     fn set_govs(&mut self, gov: String) -> Result<(), Error>;
 }
 
@@ -353,6 +355,43 @@ impl Checker for Daemon {
         Ok(())
     }
 
+    fn preprint_render(&mut self) -> String {
+        let message = format!("{}\n", self.message);
+        let title = format!("{}Name  Max\tMin\tFreq\tTemp\tGovernor\n", style::Bold);
+        let cpus = &self.cpus.iter().map(|c| c.render()).collect::<String>();
+
+        // Prints batter percent or N/A if not
+        let battery_status = get_battery_status();
+
+        format!("{}{}{}\n{}\n", message, title, cpus, battery_status)
+    }
+
+    fn postprint_render(&mut self) -> String {
+        let graph = if self.should_graph {
+            self.graph.clone()
+        } else {
+            String::from("")
+        };
+
+        let stop_message = String::from("ctrl+c to stop running");
+
+        // render all of the logs, e.g.
+        // notice: 2022-01-13 00:02:17 -> Governor set to performance because battery is charging
+        let logs = if self.verbose {
+            self.logger.logs.iter().map(|l| format!("{}\n", l)).collect::<String>()
+        } else {
+            String::from("")
+        };
+
+        let commit = if self.commit {
+            self.commit_hash.clone()
+        } else {
+            String::from("")
+        };
+
+        format!("{}\n\n{}\n\n{}\nCommit hash: {}", graph, stop_message, logs, commit)
+    }
+
     /// Output the values from each cpu
     fn print(&mut self) {
         let cores = num_cpus::get();
@@ -362,49 +401,23 @@ impl Checker for Daemon {
             self.graph = self.grapher.update_one(&mut self.grapher.freqs.clone());
         }
 
-        // Prints batter percent or N/A if not
-        let battery_status = get_battery_status();
+        let term_width = terminal_width();
+        let preprint = self.preprint_render();
+        let postprint = self.postprint_render();
 
         // Clear screen
         println!("{}", termion::clear::All);
 
-        // Print initial banner
-        println!("{}{}", termion::cursor::Goto(1, 1), self.message);
+        // Goto top
+        print!("{}", termion::cursor::Goto(1, 1));
 
-        // Print cpu label banner
-        println!("{}Name  Max\tMin\tFreq\tTemp\tGovernor", style::Bold);
-
-        // Print each cpu
-        for cpu in &self.cpus {
-            cpu.print();
-        }
-
-        // Just need a little space
-        println!("");
-
-        println!("{}", battery_status);
+        // Print all pre rendered items
+        print!("{}", preprint);
 
         // Shows if turbo is enabled with an amazing turbo animation
-        print_turbo_status(cores, self.no_animation, terminal_width());
+        print_turbo_status(cores, self.no_animation, term_width);
 
-        if self.should_graph {
-            println!("{}", self.graph);
-        }
-
-        // Tells user how to stop
-        println!("\nctrl+c to stop running\n\n");
-
-        // Print all of the logs, e.g.
-        // notice: 2022-01-13 00:02:17 -> Governor set to performance because battery is charging
-        if self.verbose {
-            for log in &self.logger.logs {
-                println!("{}", log)
-            }
-        }
-
-        if self.commit {
-            println!("Commit hash: {}", self.commit_hash);
-        }
+        print!("{}", postprint);
     }
 }
 

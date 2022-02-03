@@ -1,20 +1,20 @@
 use std::{mem, thread, time};
-use nix::libc::{c_short, c_ushort, ioctl, STDOUT_FILENO, TIOCGWINSZ};
 
+use nix::libc::{c_short, c_ushort, ioctl, STDOUT_FILENO, TIOCGWINSZ};
 use nix::unistd::Uid;
 use termion::{color, style};
 
 use crate::display::print_turbo_animation;
 
 use super::config::Config;
-use super::cpu::{Speed, CPU};
+use super::cpu::{CPU, Speed};
 use super::debug;
+use super::Error;
 use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
-use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
+use super::power::{has_battery, LidState, read_battery_charge, read_lid_state, read_power_source};
 use super::system::{check_cpu_freq, check_turbo_enabled, list_cpus};
-use super::Error;
 
 pub trait Checker {
     fn apply_to_cpus(
@@ -106,7 +106,7 @@ fn get_battery_status() -> String {
 }
 
 fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize) {
-    let mut turbo_y_pos:usize = 7;
+    let mut turbo_y_pos: usize = 7;
     if term_width > 94 { turbo_y_pos = 6 }
     match check_turbo_enabled() {
         Ok(turbo) => {

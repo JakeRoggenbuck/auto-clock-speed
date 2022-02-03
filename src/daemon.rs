@@ -1,5 +1,6 @@
-use std::{thread, time};
+use std::{mem, thread, time};
 
+use nix::libc::{c_short, c_ushort, ioctl, STDOUT_FILENO, TIOCGWINSZ};
 use nix::unistd::Uid;
 use termion::{color, style};
 
@@ -104,7 +105,11 @@ fn get_battery_status() -> String {
     }
 }
 
-fn print_turbo_status(cores: usize, no_animation: bool) {
+fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize) {
+    let mut turbo_y_pos: usize = 7;
+    if term_width > 94 {
+        turbo_y_pos = 6
+    }
     match check_turbo_enabled() {
         Ok(turbo) => {
             let enabled_message = if turbo { "yes" } else { "no" };
@@ -116,11 +121,26 @@ fn print_turbo_status(cores: usize, no_animation: bool) {
                 style::Reset
             );
 
+            // println!(" {}", term_width);
+
             if !no_animation {
-                print_turbo_animation(turbo, cores);
+                print_turbo_animation(turbo, cores, turbo_y_pos);
             }
         }
         Err(e) => eprintln!("Could not check turbo\n{:?}", e),
+    }
+}
+
+struct TermSize {
+    row: c_short,
+    col: c_ushort,
+}
+
+fn terminal_width() -> usize {
+    unsafe {
+        let mut size: TermSize = mem::zeroed();
+        ioctl(STDOUT_FILENO, TIOCGWINSZ.into(), &mut size as *mut _);
+        return size.col as usize;
     }
 }
 
@@ -365,7 +385,7 @@ impl Checker for Daemon {
         println!("{}", battery_status);
 
         // Shows if turbo is enabled with an amazing turbo animation
-        print_turbo_status(cores, self.no_animation);
+        print_turbo_status(cores, self.no_animation, terminal_width());
 
         if self.should_graph {
             println!("{}", self.graph);

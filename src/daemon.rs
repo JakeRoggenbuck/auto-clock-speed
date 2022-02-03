@@ -52,9 +52,11 @@ pub trait Checker {
     fn loop_monit(&mut self) -> Result<(), Error>;
 
     fn update_all(&mut self) -> Result<(), Error>;
-    fn print(&mut self);
+
     fn preprint_render(&mut self) -> String;
     fn postprint_render(&mut self) -> String;
+    fn print(&mut self);
+
     fn set_govs(&mut self, gov: String) -> Result<(), Error>;
 }
 
@@ -109,9 +111,12 @@ fn get_battery_status() -> String {
 
 fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize) {
     let mut turbo_y_pos: usize = 7;
-    if term_width > 94 {
+    let title_width = 94;
+
+    if term_width > title_width {
         turbo_y_pos = 6
     }
+
     match check_turbo_enabled() {
         Ok(turbo) => {
             let enabled_message = if turbo { "yes" } else { "no" };
@@ -122,8 +127,6 @@ fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize) {
                 enabled_message,
                 style::Reset
             );
-
-            // println!(" {}", term_width);
 
             if !no_animation {
                 print_turbo_animation(turbo, cores, turbo_y_pos);
@@ -274,6 +277,7 @@ impl Checker for Daemon {
     }
 
     fn init(&mut self) {
+        // Get the commit hash from the compile time env variable
         if self.commit {
             self.commit_hash = env!("GIT_HASH").to_string();
         }
@@ -304,6 +308,7 @@ impl Checker for Daemon {
     }
 
     fn loop_edit(&mut self) -> Result<(), Error> {
+        // Loop in run mode
         loop {
             self.start_loop()?;
 
@@ -324,6 +329,7 @@ impl Checker for Daemon {
     }
 
     fn loop_monit(&mut self) -> Result<(), Error> {
+        // Loop in monitor mode
         loop {
             self.start_loop()?;
             self.end_loop();
@@ -333,6 +339,7 @@ impl Checker for Daemon {
     fn run(&mut self) -> Result<(), Error> {
         self.init();
 
+        // Choose which mode acs runs in
         if self.edit {
             self.loop_edit()?;
         } else {
@@ -348,6 +355,7 @@ impl Checker for Daemon {
             cpu.update()?;
         }
 
+        // Update the data in the graph and render it
         if self.should_graph {
             self.grapher.freqs.push(check_cpu_freq()? as f64);
         }
@@ -358,6 +366,7 @@ impl Checker for Daemon {
     fn preprint_render(&mut self) -> String {
         let message = format!("{}\n", self.message);
         let title = format!("{}Name  Max\tMin\tFreq\tTemp\tGovernor\n", style::Bold);
+        // Render each line of cpu core
         let cpus = &self.cpus.iter().map(|c| c.render()).collect::<String>();
 
         // Prints batter percent or N/A if not
@@ -367,6 +376,7 @@ impl Checker for Daemon {
     }
 
     fn postprint_render(&mut self) -> String {
+        // Render the graph if should_graph
         let graph = if self.should_graph {
             self.graph.clone()
         } else {
@@ -378,18 +388,23 @@ impl Checker for Daemon {
         // render all of the logs, e.g.
         // notice: 2022-01-13 00:02:17 -> Governor set to performance because battery is charging
         let logs = if self.verbose {
-            self.logger.logs.iter().map(|l| format!("{}\n", l)).collect::<String>()
+            self.logger
+                .logs
+                .iter()
+                .map(|l| format!("{}\n", l))
+                .collect::<String>()
         } else {
             String::from("")
         };
 
+        // Render the commit hash and label
         let commit = if self.commit {
-            self.commit_hash.clone()
+            format!("Commit hash: {}", self.commit_hash.clone())
         } else {
             String::from("")
         };
 
-        format!("{}\n\n{}\n\n{}\nCommit hash: {}", graph, stop_message, logs, commit)
+        format!("{}\n\n{}\n\n{}\n{}", graph, stop_message, logs, commit)
     }
 
     /// Output the values from each cpu
@@ -402,6 +417,10 @@ impl Checker for Daemon {
         }
 
         let term_width = terminal_width();
+
+        // Render two sections of the output
+        // Rendering before screen is cleared reduces the time between clear and print
+        // This reduces and completely avoids all flickering
         let preprint = self.preprint_render();
         let postprint = self.postprint_render();
 
@@ -411,12 +430,13 @@ impl Checker for Daemon {
         // Goto top
         print!("{}", termion::cursor::Goto(1, 1));
 
-        // Print all pre rendered items
+        // Print all pre-rendered items
         print!("{}", preprint);
 
         // Shows if turbo is enabled with an amazing turbo animation
         print_turbo_status(cores, self.no_animation, term_width);
 
+        // Print more pre-rendered items
         print!("{}", postprint);
     }
 }

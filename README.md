@@ -118,6 +118,7 @@ sudo acs set gov $(acs get available-govs --raw | dmenu)
 
 # Detailed Usage
 ## Monitor
+Monitor will not edit anything
 ```sh
 # Show the min, max, and current cpu frequency
 # along with the cpu governor
@@ -130,8 +131,9 @@ acs monitor --delay 1000
 <br>
 
 ## Run
+Run will edit governor
 ```sh
-# Run requires sudo because it edits the cpu's frequency
+# Run requires sudo because it edits the gov
 
 # Edit speeds and shows exactly what monitor does
 sudo acs run

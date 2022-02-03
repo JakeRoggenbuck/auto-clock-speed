@@ -61,6 +61,18 @@ sudo systemctl enable acs
 # Check service is up and running
 systemctl status acs
 ```
+## Systemctl command
+The line after `[Service]` in `acs.service` is the command that will be run. You may want to add or remove arguments, mainly `--quiet`.
+```
+[Unit]
+Description=Manages Clock Speed
+
+[Service]
+ExecStart=/home/your-user-here/.cargo/bin/acs run --no-animation
+
+[Install]
+WantedBy=multi-user.target
+```
 
 # Config
 

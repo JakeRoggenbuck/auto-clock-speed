@@ -119,7 +119,7 @@ fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize) {
                 style::Reset
             );
 
-            println!(" {}", term_width);
+            // println!(" {}", term_width);
 
             if !no_animation {
                 print_turbo_animation(turbo, cores, turbo_y_pos);

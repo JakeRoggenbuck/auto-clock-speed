@@ -1,6 +1,5 @@
-use std::{mem, thread, time};
+use std::{thread, time};
 
-use nix::libc::{c_short, c_ushort, ioctl, STDOUT_FILENO, TIOCGWINSZ};
 use nix::unistd::Uid;
 use termion::{color, style};
 
@@ -14,6 +13,7 @@ use super::logger;
 use super::logger::Interface;
 use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
 use super::system::{check_cpu_freq, check_turbo_enabled, list_cpus};
+use super::terminal::terminal_width;
 use super::Error;
 
 pub trait Checker {
@@ -128,19 +128,6 @@ fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize) {
             }
         }
         Err(e) => eprintln!("Could not check turbo\n{:?}", e),
-    }
-}
-
-struct TermSize {
-    row: c_short,
-    col: c_ushort,
-}
-
-fn terminal_width() -> usize {
-    unsafe {
-        let mut size: TermSize = mem::zeroed();
-        ioctl(STDOUT_FILENO, TIOCGWINSZ.into(), &mut size as *mut _);
-        return size.col as usize;
     }
 }
 

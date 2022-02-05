@@ -113,7 +113,7 @@ cargo uninstall autoclockspeed
 rm /etc/systemd/system/acs.service
 ```
 
-# Example Usage
+## Example Usage
 ```sh
 # Monitor mode
 acs monitor
@@ -127,6 +127,9 @@ acs get speeds
 # Select gov from dmenu
 sudo acs set gov $(acs get available-govs --raw | dmenu)
 ```
+
+## Detailed usage
+Detailed usage can be found on [our wiki](https://github.com/JakeRoggenbuck/auto-clock-speed/wiki/Detailed-Usage)  
 
 ## Help
 ```sh

@@ -89,12 +89,28 @@ fn make_gov_performance(cpu: &mut CPU) -> Result<(), Error> {
     Ok(())
 }
 
-fn get_battery_status() -> String {
+fn green_or_red(boolean: bool) -> String {
+    if boolean {
+        color::Fg(color::Green).to_string()
+    } else {
+        color::Fg(color::Green).to_string()
+    }
+}
+
+fn get_battery_status(charging: bool) -> String {
     match has_battery() {
         Ok(has) => {
             if has {
                 match read_battery_charge() {
-                    Ok(bat) => format!("Battery: {}{}%{}", style::Bold, bat, style::Reset),
+                    Ok(bat) => {
+                        format!(
+                            "Battery: {}{}{}%{}",
+                            style::Bold,
+                            green_or_red(charging),
+                            bat,
+                            style::Reset
+                        )
+                    }
                     Err(e) => format!("Battery charge could not be read\n{:?}", e),
                 }
             } else {
@@ -363,7 +379,7 @@ impl Checker for Daemon {
         }
 
         // Prints batter percent or N/A if not
-        let battery_status = get_battery_status();
+        let battery_status = get_battery_status(self.charging);
 
         // Clear screen
         println!("{}", termion::clear::All);

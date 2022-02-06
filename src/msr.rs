@@ -94,7 +94,7 @@ Atom Silvermont / Valleyview 	6 	55 	        ? 	? 	? 	? 	N 	3.13 (ed93b71492d) 	
 
 /// Reads u64 from MSR
 ///
-/// CPR 0 Required
+/// CPL 0 Required
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 #[allow(unused_mut)]
 pub unsafe fn msr_read(reg: u32) -> u64 {

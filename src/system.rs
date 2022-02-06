@@ -120,14 +120,18 @@ pub fn list_cpus() -> Result<Vec<CPU>, Error> {
         .map(|x| x.to_owned())
         .collect();
 
-    cpus.sort();
-
     let mut to_return: Vec<CPU> = Vec::<CPU>::new();
 
     for cpu in cpus {
+        let num: i8 = match cpu[3..].parse::<i8>() {
+            Ok(a) => a,
+            Err(_) => 0,
+        };
+
         // Make a new cpu
         let mut new = CPU {
             name: cpu,
+            number: num,
             // Temporary initial values
             max_freq: 0,
             min_freq: 0,
@@ -140,6 +144,8 @@ pub fn list_cpus() -> Result<Vec<CPU>, Error> {
 
         to_return.push(new)
     }
+
+    to_return.sort_by(|a, b| a.number.cmp(&b.number));
 
     Ok(to_return)
 }

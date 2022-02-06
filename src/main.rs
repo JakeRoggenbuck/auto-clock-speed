@@ -7,7 +7,7 @@ use config::{config_dir_exists, default_config, open_config};
 use daemon::{daemon_init, Checker};
 use display::{
     print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpu_temp, print_cpus,
-    print_freq, print_power, print_turbo, show_config
+    print_freq, print_power, print_turbo, show_config,
 };
 use error::Error;
 use power::{read_battery_charge, read_lid_state, read_power_source};

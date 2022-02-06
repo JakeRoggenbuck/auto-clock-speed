@@ -334,7 +334,6 @@ impl Checker for Daemon {
         loop {
             self.start_loop()?;
 
-
             // Call all rules
             self.start_charging_rule()?;
             self.end_charging_rule()?;

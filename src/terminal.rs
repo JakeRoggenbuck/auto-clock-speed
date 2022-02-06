@@ -1,6 +1,5 @@
-use std::mem;
 use nix::libc::{c_short, c_ushort, ioctl, STDOUT_FILENO, TIOCGWINSZ};
-
+use std::mem;
 
 pub struct TermSize {
     pub row: c_short,

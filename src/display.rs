@@ -130,6 +130,10 @@ pub fn print_cpus(cpus: Vec<CPU>, name: String, raw: bool) {
 }
 
 pub fn print_cpu(cpu: &CPU) {
+    print!("{}", render_cpu(cpu));
+}
+
+pub fn render_cpu(cpu: &CPU) -> String {
     let mut temp_color: String = color::Fg(color::Green).to_string();
 
     if cpu.cur_temp / 1000 > 60 {
@@ -138,8 +142,8 @@ pub fn print_cpu(cpu: &CPU) {
         temp_color = color::Fg(color::Yellow).to_string();
     }
 
-    println!(
-        "{}{}:{} {}Hz\t{}Hz\t{}{}Hz{}\t{}C{}\t{}",
+    format!(
+        "{}{}:{} {}Hz\t{}Hz\t{}{}Hz{}\t{}C{}\t{}\n",
         style::Bold,
         cpu.name,
         style::Reset,
@@ -151,7 +155,7 @@ pub fn print_cpu(cpu: &CPU) {
         cpu.cur_temp / 1000,
         style::Reset,
         cpu.gov
-    );
+    )
 }
 
 pub fn print_cpu_speeds(cpu_speeds: Vec<i32>, raw: bool) {

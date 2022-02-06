@@ -66,7 +66,6 @@ impl Interface for Logger {
             timestamp: time,
         };
 
-        println!("{}", &loggable);
         self.logs.push(loggable);
     }
 }

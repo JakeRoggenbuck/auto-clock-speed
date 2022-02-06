@@ -1,5 +1,4 @@
-extern crate x86_64;
-use x86_64::registers::msr;
+use core::arch::asm;
 
 
 // MSR Dictionary
@@ -98,6 +97,9 @@ Atom Silvermont / Valleyview 	6 	55 	        ? 	? 	? 	? 	N 	3.13 (ed93b71492d) 	
 ///
 /// CPR 0 Required
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-pub unsafe fn read_msr(reg: u32) -> u64 {
-    return rdmsr(reg);
+#[allow(unused_mut)]
+pub unsafe fn msr_read(reg: u32) -> u64 {
+    let (high, low): (u32, u32);
+    asm!("msr_read", out("eax") low, out("edx") high, in("ecx") reg);
+    ((high as u64) << 32) | (low as u64)
 }

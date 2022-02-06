@@ -1,8 +1,10 @@
 use std::fmt::Display;
 use std::thread;
 
+use bat::PrettyPrinter;
 use termion::{color, style};
 
+use super::config::config_path;
 use super::cpu::CPU;
 use super::power::LidState;
 
@@ -43,6 +45,16 @@ macro_rules! create_issue {
             "please create an issue at https://github.com/JakeRoggenbuck/auto-clock-speed/issues/new",
         );
     }};
+}
+
+pub fn show_config() {
+    let conf = config_path();
+
+    PrettyPrinter::new()
+        .input_file(conf)
+        .language("toml")
+        .print()
+        .unwrap();
 }
 
 pub fn print_freq(f: i32, raw: bool) {

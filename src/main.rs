@@ -7,7 +7,7 @@ use config::{config_dir_exists, default_config, open_config};
 use daemon::{daemon_init, Checker};
 use display::{
     print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpu_temp, print_cpus,
-    print_freq, print_power, print_turbo,
+    print_freq, print_power, print_turbo, show_config
 };
 use error::Error;
 use power::{read_battery_charge, read_lid_state, read_power_source};
@@ -113,6 +113,9 @@ enum ACSCommand {
         #[structopt(subcommand)]
         set: SetType,
     },
+
+    #[structopt(name = "showconfig", alias = "conf")]
+    ShowConfig {},
 
     /// Run the daemon, this checks and edit your cpu's speed
     #[structopt(name = "run")]
@@ -240,6 +243,8 @@ fn parse_args(config: config::Config) {
                 Err(_) => eprint!("Could not run daemon in edit mode"),
             },
         },
+
+        ACSCommand::ShowConfig {} => show_config(),
 
         // Run command
         ACSCommand::Run {

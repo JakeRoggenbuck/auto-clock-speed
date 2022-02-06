@@ -3,7 +3,7 @@ use std::process::exit;
 use log::debug;
 use structopt::StructOpt;
 
-use config::{default_config, open_config, config_dir_exists};
+use config::{config_dir_exists, default_config, open_config};
 use daemon::{daemon_init, Checker};
 use display::{
     print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpu_temp, print_cpus,
@@ -164,9 +164,7 @@ fn get_config() -> config::Config {
     match open_config() {
         Ok(conf) => conf,
         Err(_) => {
-            warn_user!(
-                "Using default config. Create file '/etc/acs/acs.toml' for custom config."
-            );
+            warn_user!("Using default config. Create file '/etc/acs/acs.toml' for custom config.");
             // Use default config as config
             default_config()
         }

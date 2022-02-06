@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
 
-use super::display::print_cpu;
+use super::display::{print_cpu, render_cpu};
 use super::exit;
 use super::Error;
 
@@ -22,6 +22,7 @@ pub trait Speed {
     fn get_gov(&mut self) -> Result<(), Error>;
     fn set_gov(&mut self, gov: String) -> Result<(), Error>;
     fn print(&self);
+    fn render(&self) -> String;
 }
 
 #[derive(Debug)]
@@ -188,5 +189,9 @@ impl Speed for CPU {
 
     fn print(&self) {
         print_cpu(self);
+    }
+
+    fn render(&self) -> String {
+        render_cpu(self)
     }
 }

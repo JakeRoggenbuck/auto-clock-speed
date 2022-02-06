@@ -3,14 +3,13 @@ use std::process::exit;
 use log::debug;
 use structopt::StructOpt;
 
-use config::{default_config, open_config};
+use config::{config_dir_exists, default_config, open_config};
 use daemon::{daemon_init, Checker};
 use display::{
     print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpu_temp, print_cpus,
     print_freq, print_power, print_turbo,
 };
 use error::Error;
-use local::{create_local_config_dir, local_config_dir_exists};
 use power::{read_battery_charge, read_lid_state, read_power_source};
 use system::{
     check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
@@ -23,7 +22,6 @@ pub mod daemon;
 pub mod display;
 pub mod error;
 pub mod graph;
-pub mod local;
 pub mod logger;
 pub mod msr;
 pub mod power;
@@ -167,9 +165,7 @@ fn get_config() -> config::Config {
     match open_config() {
         Ok(conf) => conf,
         Err(_) => {
-            warn_user!(
-                "Using default config. Create file ~/.config/acs/acs.toml for custom config."
-            );
+            warn_user!("Using default config. Create file '/etc/acs/acs.toml' for custom config.");
             // Use default config as config
             default_config()
         }
@@ -296,9 +292,8 @@ fn parse_args(config: config::Config) {
 fn main() {
     env_logger::init();
 
-    // Create config directory if it doesn't exist
-    if !local_config_dir_exists() {
-        create_local_config_dir();
+    if !config_dir_exists() {
+        warn_user!("Config directory '/etc/acs' does not exist!");
     }
 
     let config: config::Config = get_config();

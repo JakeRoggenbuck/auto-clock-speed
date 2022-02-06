@@ -1,10 +1,25 @@
+use super::warn_user;
+use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Read;
+use std::path::Path;
 
-use serde::{Deserialize, Serialize};
+/// Return the local config path
+pub fn config_path() -> String {
+    String::from("/etc/acs/acs.toml")
+}
 
-use super::local::config_path;
-use super::warn_user;
+/// Check if the config file exists
+/// /etc/acs/acs.toml
+pub fn config_file_exists() -> bool {
+    Path::new(&config_path()).exists()
+}
+
+/// Check if the config directory exists
+/// /etc/acs/acs.toml
+pub fn config_dir_exists() -> bool {
+    Path::new("/etc/acs/").exists()
+}
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Config {

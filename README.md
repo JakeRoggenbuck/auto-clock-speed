@@ -78,13 +78,13 @@ WantedBy=multi-user.target
 
 ### Using default config
 ```sh
-WARN: Using default config. Create file ~/.config/acs/acs.toml for custom config.
+WARN: Using default config. Create file /etc/acs/acs.toml for custom config.
 ```
-This warning recommends creating a config file, use the following example and install at `~/.config/acs/acs.toml`
+This warning recommends creating a config file, use the following example and install at `/etc/acs/acs.toml`
 
 ```sh
-mkdir -p ~/.config/acs
-cp ./acs.toml ~/.config/acs/acs.toml
+mkdir /etc/acs
+cp ./acs.toml /etc/acs/acs.toml
 ```
 
 ### This is an example config

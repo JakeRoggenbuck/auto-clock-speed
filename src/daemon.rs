@@ -97,7 +97,7 @@ fn green_or_red(boolean: bool) -> String {
     if boolean {
         color::Fg(color::Green).to_string()
     } else {
-        color::Fg(color::Green).to_string()
+        color::Fg(color::Red).to_string()
     }
 }
 

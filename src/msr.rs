@@ -50,7 +50,6 @@ pub const MSR_PP0_POLICY: u32 = 0x63a;
 /// PP0 Performance Throttling Status (Read Only)
 pub const MSR_PP0_PERF_STATUS: u32 = 0x63b;
 
-
 /// PP1 (Usually GPU) Energy Status
 pub const MSR_PP1_ENERGY_STATUS: u32 = 0x641;
 

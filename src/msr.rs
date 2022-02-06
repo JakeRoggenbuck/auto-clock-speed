@@ -1,5 +1,6 @@
-extern crate rusty_asm;
-use rusty_asm::rusty_asm;
+extern crate x86_64;
+use x86_64::registers::msr;
+
 
 // MSR Dictionary
 /// Platform Information, CPU Multiplier
@@ -96,28 +97,7 @@ Atom Silvermont / Valleyview 	6 	55 	        ? 	? 	? 	? 	N 	3.13 (ed93b71492d) 	
 /// Reads u64 from MSR
 ///
 /// CPR 0 Required
-#[allow(unused_mut)]
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub unsafe fn read_msr(reg: u32) -> u64 {
-    rusty_asm! {
-        let low: out("{eax}") = l as u32;
-        let high: out("{eax}") = h as u32;
-        let msr: in("{ecx}") = reg as u32;
-        asm("volatile", "intel"){
-            "read_msr"
-            "out $port, $low"
-            "out $port, high"
-            "in $port, $msr"
-        };
-        ((h as u64) << 32) | (l as u64)
-    };
-}
-
-/// Disables interrupts on an x86 CPU.
-unsafe fn disable_interrupts() {
-    rusty_asm! {
-        asm("volatile") {
-           "cli"
-        }
-    };
+    return rdmsr(reg);
 }

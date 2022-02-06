@@ -15,6 +15,7 @@ use super::logger::Interface;
 use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
 use super::system::{check_cpu_freq, check_turbo_enabled, list_cpus};
 use super::Error;
+use super::Settings;
 
 pub trait Checker {
     fn apply_to_cpus(
@@ -63,24 +64,19 @@ pub trait Checker {
 pub struct Daemon {
     pub cpus: Vec<CPU>,
     pub message: String,
-    pub verbose: bool,
-    pub delay: u64,
-    pub edit: bool,
     pub lid_state: LidState,
     pub charging: bool,
     pub charge: i8,
     pub logger: logger::Logger,
     pub config: Config,
-    pub no_animation: bool,
     pub already_charging: bool,
     pub already_closed: bool,
     pub already_under_powersave_under_percent: bool,
-    pub should_graph: bool,
     pub graph: String,
     pub grapher: Graph,
-    pub commit: bool,
     pub commit_hash: String,
     pub timeout: time::Duration,
+    pub settings: Settings,
 }
 
 fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
@@ -278,11 +274,11 @@ impl Checker for Daemon {
 
     fn init(&mut self) {
         // Get the commit hash from the compile time env variable
-        if self.commit {
+        if self.settings.commit {
             self.commit_hash = env!("GIT_HASH").to_string();
         }
 
-        self.timeout = time::Duration::from_millis(self.delay);
+        self.timeout = time::Duration::from_millis(self.settings.delay);
 
         // If we just daemonized then make sure the states are the opposite of what they should
         // The logic after this block will make sure that they are set to the correct state
@@ -300,7 +296,7 @@ impl Checker for Daemon {
 
     fn end_loop(&mut self) {
         // Print the each cpu, each iteration
-        if self.verbose {
+        if self.settings.verbose {
             self.print();
         }
 
@@ -340,7 +336,7 @@ impl Checker for Daemon {
         self.init();
 
         // Choose which mode acs runs in
-        if self.edit {
+        if self.settings.edit {
             self.loop_edit()?;
         } else {
             self.loop_monit()?;
@@ -356,7 +352,7 @@ impl Checker for Daemon {
         }
 
         // Update the data in the graph and render it
-        if self.should_graph {
+        if self.settings.should_graph {
             self.grapher.freqs.push(check_cpu_freq()? as f64);
         }
 
@@ -377,7 +373,7 @@ impl Checker for Daemon {
 
     fn postprint_render(&mut self) -> String {
         // Render the graph if should_graph
-        let graph = if self.should_graph {
+        let graph = if self.settings.should_graph {
             self.graph.clone()
         } else {
             String::from("")
@@ -387,7 +383,7 @@ impl Checker for Daemon {
 
         // render all of the logs, e.g.
         // notice: 2022-01-13 00:02:17 -> Governor set to performance because battery is charging
-        let logs = if self.verbose {
+        let logs = if self.settings.verbose {
             self.logger
                 .logs
                 .iter()
@@ -398,7 +394,7 @@ impl Checker for Daemon {
         };
 
         // Render the commit hash and label
-        let commit = if self.commit {
+        let commit = if self.settings.commit {
             format!("Commit hash: {}", self.commit_hash.clone())
         } else {
             String::from("")
@@ -412,7 +408,7 @@ impl Checker for Daemon {
         let cores = num_cpus::get();
 
         // Compute graph before screen is cleared
-        if self.should_graph {
+        if self.settings.should_graph {
             self.graph = self.grapher.update_one(&mut self.grapher.freqs.clone());
         }
 
@@ -434,7 +430,7 @@ impl Checker for Daemon {
         print!("{}", preprint);
 
         // Shows if turbo is enabled with an amazing turbo animation
-        print_turbo_status(cores, self.no_animation, term_width);
+        print_turbo_status(cores, self.settings.no_animation, term_width);
 
         // Print more pre-rendered items
         print!("{}", postprint);
@@ -468,16 +464,9 @@ fn format_message(edit: bool, started_as_edit: bool, forced_reason: String, dela
     )
 }
 
-pub fn daemon_init(
-    verbose: bool,
-    delay: u64,
-    mut edit: bool,
-    config: Config,
-    no_animation: bool,
-    should_graph: bool,
-    commit: bool,
-) -> Result<Daemon, Error> {
-    let started_as_edit: bool = edit;
+pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> {
+    let started_as_edit: bool = settings.edit;
+    let mut edit = settings.edit;
     let mut forced_reason: String = String::new();
 
     // Check if the device has a battery, otherwise force it to monitor mode
@@ -511,14 +500,10 @@ pub fn daemon_init(
         }
     }
 
-    let message = format_message(edit, started_as_edit, forced_reason, delay);
+    let message = format_message(edit, started_as_edit, forced_reason, settings.delay);
     // Create a new Daemon
     let mut daemon: Daemon = Daemon {
         cpus: Vec::<CPU>::new(),
-        verbose,
-        delay,
-        // If the program is supposed to change any values (needs root)
-        edit,
         message,
         lid_state: LidState::Unknown,
         // If edit is still true, then there is definitely a bool result to read_power_source
@@ -529,16 +514,14 @@ pub fn daemon_init(
             logs: Vec::<logger::Log>::new(),
         },
         config,
-        no_animation,
         already_charging: false,
         already_closed: false,
         already_under_powersave_under_percent: false,
-        should_graph,
         graph: String::new(),
         grapher: Graph { freqs: vec![0.0] },
-        commit,
         commit_hash: String::new(),
         timeout: time::Duration::from_millis(1),
+        settings,
     };
 
     // Make a cpu struct for each cpu listed

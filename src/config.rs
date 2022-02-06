@@ -1,5 +1,6 @@
 use super::warn_user;
 use serde::{Deserialize, Serialize};
+use std::fmt;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
@@ -26,6 +27,12 @@ pub struct Config {
     pub powersave_under: i8,
     // Future variables
     // pub charging_powersave_under: i32,
+}
+
+impl fmt::Display for Config {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
+        write!(f, "powersave_under = {}", self.powersave_under)
+    }
 }
 
 pub fn default_config() -> Config {
@@ -68,6 +75,18 @@ pub fn open_config() -> Result<Config, std::io::Error> {
     let config_toml = parse_as_toml(config_string);
 
     Ok(config_toml)
+}
+
+pub fn get_config() -> Config {
+    // Config will always exist, default or otherwise
+    match open_config() {
+        Ok(conf) => conf,
+        Err(_) => {
+            warn_user!("Using default config. Create file '/etc/acs/acs.toml' for custom config.");
+            // Use default config as config
+            default_config()
+        }
+    }
 }
 
 #[cfg(test)]

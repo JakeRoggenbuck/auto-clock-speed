@@ -1,10 +1,9 @@
 use std::fmt::Display;
 use std::thread;
 
-use bat::PrettyPrinter;
 use termion::{color, style};
 
-use super::config::config_path;
+use super::config::get_config;
 use super::cpu::CPU;
 use super::power::LidState;
 
@@ -48,13 +47,7 @@ macro_rules! create_issue {
 }
 
 pub fn show_config() {
-    let conf = config_path();
-
-    PrettyPrinter::new()
-        .input_file(conf)
-        .language("toml")
-        .print()
-        .unwrap();
+    println!("{}", get_config());
 }
 
 pub fn print_freq(f: i32, raw: bool) {

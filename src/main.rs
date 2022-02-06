@@ -3,7 +3,7 @@ use std::process::exit;
 use log::debug;
 use structopt::StructOpt;
 
-use config::{config_dir_exists, default_config, open_config};
+use config::{config_dir_exists, get_config};
 use daemon::{daemon_init, Checker};
 use display::{
     print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpu_temp, print_cpus,
@@ -160,18 +160,6 @@ enum ACSCommand {
         #[structopt(short, long)]
         commit: bool,
     },
-}
-
-fn get_config() -> config::Config {
-    // Config will always exist, default or otherwise
-    match open_config() {
-        Ok(conf) => conf,
-        Err(_) => {
-            warn_user!("Using default config. Create file '/etc/acs/acs.toml' for custom config.");
-            // Use default config as config
-            default_config()
-        }
-    }
 }
 
 fn parse_args(config: config::Config) {

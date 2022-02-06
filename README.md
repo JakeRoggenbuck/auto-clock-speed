@@ -154,3 +154,8 @@ SUBCOMMANDS:
     run        Run the daemon, this checks and edit your cpu's speed
     set
 ```
+
+<!--       _
+       .__(.)< (qwak)
+        \___)   
+ ~~~~~~~~~~~~~~~~~~-->

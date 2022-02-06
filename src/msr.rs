@@ -1,3 +1,4 @@
+#![feature(asm)]
 use core::arch::asm;
 
 // MSR Dictionary
@@ -31,11 +32,30 @@ pub const MSR_TURBO_POWER_CURRENT_LIMIT: u32 = 0x1ac;
 /// Intel CPU Package Energy Status
 pub const MSR_INTEL_PKG_ENERGY_STATUS: u32 = 0x611;
 
+/// Package RAPL Parameters (Read/Write)
+pub const MSR_PKG_POWER_INFO: u32 = 0x614;
+
 /// DRAM Energy Status
 pub const MSR_DRAM_ENERGY_STATUS: u32 = 0x619;
 
+/// PP0 RAPL Power Limit Control (Read/Write)
+pub const MSR_PP0_POWER_LIMIT: u32 = 0x638;
+
+/// PP0 Energy Status (Read Only)
+pub const MSR_PP0_ENERGY_STATUS: u32 = 0x639;
+
+/// PP0 Balance Policy (Read/Write)
+pub const MSR_PP0_POLICY: u32 = 0x63a;
+
+/// PP0 Performance Throttling Status (Read Only)
+pub const MSR_PP0_PERF_STATUS: u32 = 0x63b;
+
+
 /// PP1 (Usually GPU) Energy Status
 pub const MSR_PP1_ENERGY_STATUS: u32 = 0x641;
+
+/// DRAM Performance Throttling Status (Read Only)
+pub const MSR_DRAM_PERF_STATUS: u32 = 0x61b;
 
 /// Control TDP Limit (Read/Write)
 pub const MSR_CONFIG_TDP_CONTROL: u32 = 0x64B;
@@ -79,6 +99,6 @@ Atom Silvermont / Valleyview 	6 	55 	        ? 	? 	? 	? 	N 	3.13 (ed93b71492d) 	
 #[allow(unused_mut)]
 pub unsafe fn rdmsr(msr: u32) -> u64 {
     let (high, low): (u32, u32);
-    asm!("rdmsr", out("eax") low, out("edx") high, in("ecx") msr);
+    core::arch::asm!("rdmsr", out("eax") low, out("edx") high, in("ecx") msr);
     ((high as u64) << 32) | (low as u64)
 }

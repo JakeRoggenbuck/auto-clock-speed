@@ -25,6 +25,7 @@ pub mod error;
 pub mod graph;
 pub mod local;
 pub mod logger;
+pub mod msr;
 pub mod power;
 pub mod system;
 

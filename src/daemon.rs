@@ -386,7 +386,7 @@ impl Checker for Daemon {
         let cpus = &self.cpus.iter().map(|c| c.render()).collect::<String>();
 
         // Prints batter percent or N/A if not
-        let battery_status = get_battery_status();
+        let battery_status = get_battery_status(self.charging);
 
         format!("{}{}{}\n{}\n", message, title, cpus, battery_status)
     }
@@ -432,8 +432,6 @@ impl Checker for Daemon {
             self.graph = self.grapher.update_one(&mut self.grapher.freqs.clone());
         }
 
-        // Prints batter percent or N/A if not
-        let battery_status = get_battery_status(self.charging);
         let term_width = terminal_width();
 
         // Render two sections of the output

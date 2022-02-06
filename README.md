@@ -137,7 +137,7 @@ sudo acs set gov $(acs get available-govs --raw | dmenu)
 Detailed usage can be found on [our wiki](https://github.com/JakeRoggenbuck/auto-clock-speed/wiki/Detailed-Usage)  
 
 ## Help
-```sh
+```
 Automatic CPU frequency scaler and power saver
 
 USAGE:

@@ -311,6 +311,12 @@ impl Checker for Daemon {
     fn start_loop(&mut self) -> Result<(), Error> {
         // Update all the values for each cpu before they get used
         self.update_all()?;
+
+        // Update current states
+        self.charging = read_power_source()?;
+        self.charge = read_battery_charge()?;
+        self.lid_state = read_lid_state()?;
+
         Ok(())
     }
 
@@ -328,10 +334,6 @@ impl Checker for Daemon {
         loop {
             self.start_loop()?;
 
-            // Update current states
-            self.charging = read_power_source()?;
-            self.charge = read_battery_charge()?;
-            self.lid_state = read_lid_state()?;
 
             // Call all rules
             self.start_charging_rule()?;

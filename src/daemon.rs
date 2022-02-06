@@ -93,12 +93,28 @@ fn make_gov_performance(cpu: &mut CPU) -> Result<(), Error> {
     Ok(())
 }
 
-fn get_battery_status() -> String {
+fn green_or_red(boolean: bool) -> String {
+    if boolean {
+        color::Fg(color::Green).to_string()
+    } else {
+        color::Fg(color::Red).to_string()
+    }
+}
+
+fn get_battery_status(charging: bool) -> String {
     match has_battery() {
         Ok(has) => {
             if has {
                 match read_battery_charge() {
-                    Ok(bat) => format!("Battery: {}{}%{}", style::Bold, bat, style::Reset),
+                    Ok(bat) => {
+                        format!(
+                            "Battery: {}{}{}%{}",
+                            style::Bold,
+                            green_or_red(charging),
+                            bat,
+                            style::Reset
+                        )
+                    }
                     Err(e) => format!("Battery charge could not be read\n{:?}", e),
                 }
             } else {
@@ -282,6 +298,12 @@ impl Checker for Daemon {
     fn start_loop(&mut self) -> Result<(), Error> {
         // Update all the values for each cpu before they get used
         self.update_all()?;
+
+        // Update current states
+        self.charging = read_power_source()?;
+        self.charge = read_battery_charge()?;
+        self.lid_state = read_lid_state()?;
+
         Ok(())
     }
 
@@ -298,11 +320,6 @@ impl Checker for Daemon {
         // Loop in run mode
         loop {
             self.start_loop()?;
-
-            // Update current states
-            self.charging = read_power_source()?;
-            self.charge = read_battery_charge()?;
-            self.lid_state = read_lid_state()?;
 
             // Call all rules
             self.start_charging_rule()?;
@@ -357,7 +374,7 @@ impl Checker for Daemon {
         let cpus = &self.cpus.iter().map(|c| c.render()).collect::<String>();
 
         // Prints batter percent or N/A if not
-        let battery_status = get_battery_status();
+        let battery_status = get_battery_status(self.charging);
 
         format!("{}{}{}\n{}\n", message, title, cpus, battery_status)
     }

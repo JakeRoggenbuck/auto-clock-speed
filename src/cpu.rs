@@ -50,15 +50,11 @@ impl Speed for CPU {
 
         File::open(cpu_info_path)?.read_to_string(&mut info)?;
 
-        // Remove the last character (the newline)
+        // Remove newline
         info.pop();
-        match info.parse::<i32>() {
-            Err(_) => {
-                eprintln!("Could not read {}", sub_path);
-                exit(1);
-            }
-            Ok(a) => Ok(a),
-        }
+        Ok(info
+            .parse::<i32>()
+            .unwrap_or_else(|e| panic!("Could not parse {}\n{}", sub_path, e)))
     }
 
     fn read_str(&mut self, sub_path: &str) -> Result<String, Error> {
@@ -67,7 +63,7 @@ impl Speed for CPU {
 
         File::open(cpu_info_path)?.read_to_string(&mut info)?;
 
-        // Remove the last character (the newline)
+        // Remove newline
         info.pop();
         Ok(info)
     }
@@ -89,13 +85,9 @@ impl Speed for CPU {
         // Remove the last character (the newline)
         info.pop();
 
-        match info.parse::<i32>() {
-            Err(_) => {
-                eprintln!("Could not read {}", sub_path);
-                exit(1);
-            }
-            Ok(a) => Ok(a),
-        }
+        Ok(info
+            .parse::<i32>()
+            .unwrap_or_else(|e| panic!("Could not parse {}\n{}", sub_path, e)))
     }
 
     fn write_value(&mut self, value: WritableValue) -> Result<(), Error> {

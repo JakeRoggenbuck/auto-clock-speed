@@ -1,5 +1,3 @@
-use std::process::exit;
-
 use log::debug;
 use structopt::StructOpt;
 

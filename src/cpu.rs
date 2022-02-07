@@ -3,7 +3,6 @@ use std::io::{Read, Write};
 use std::path::Path;
 
 use super::display::{print_cpu, render_cpu};
-use super::exit;
 use super::Error;
 
 pub trait Speed {

@@ -7,9 +7,9 @@ use super::exit;
 use super::Error;
 
 pub trait Speed {
-    fn read_int(&mut self, sub_path: String) -> Result<i32, Error>;
-    fn read_str(&mut self, sub_path: String) -> Result<String, Error>;
-    fn read_temp(&mut self, sub_path: String) -> Result<i32, Error>;
+    fn read_int(&mut self, sub_path: &str) -> Result<i32, Error>;
+    fn read_str(&mut self, sub_path: &str) -> Result<String, Error>;
+    fn read_temp(&mut self, sub_path: &str) -> Result<i32, Error>;
     fn write_value(&mut self, value: WritableValue) -> Result<(), Error>;
     fn update(&mut self) -> Result<(), Error>;
     fn init_cpu(&mut self) -> Result<(), Error>;
@@ -44,7 +44,7 @@ pub enum WritableValue {
 
 impl Speed for CPU {
     /// A generic function to take a path and a single cpu (single core) and get an i32
-    fn read_int(&mut self, sub_path: String) -> Result<i32, Error> {
+    fn read_int(&mut self, sub_path: &str) -> Result<i32, Error> {
         let mut info: String = String::new();
         let cpu_info_path: String = format!("/sys/devices/system/cpu/{}/{}", self.name, sub_path);
 
@@ -61,13 +61,25 @@ impl Speed for CPU {
         }
     }
 
-    fn read_temp(&mut self, sub_path: String) -> Result<i32, Error> {
+    fn read_str(&mut self, sub_path: &str) -> Result<String, Error> {
+        let mut info: String = String::new();
+        let cpu_info_path: String = format!("/sys/devices/system/cpu/{}/{}", self.name, sub_path);
+
+        File::open(cpu_info_path)?.read_to_string(&mut info)?;
+
+        // Remove the last character (the newline)
+        info.pop();
+        Ok(info)
+    }
+
+    fn read_temp(&mut self, sub_path: &str) -> Result<i32, Error> {
         let mut info: String = String::new();
         let cpu_info_path: String = format!(
             "/sys/class/thermal/{}/{}",
             self.name.replace("cpu", "thermal_zone"),
             sub_path
         );
+
         if !Path::new(&cpu_info_path).exists() {
             return Ok(-1);
         }
@@ -84,17 +96,6 @@ impl Speed for CPU {
             }
             Ok(a) => Ok(a),
         }
-    }
-
-    fn read_str(&mut self, sub_path: String) -> Result<String, Error> {
-        let mut info: String = String::new();
-        let cpu_info_path: String = format!("/sys/devices/system/cpu/{}/{}", self.name, sub_path);
-
-        File::open(cpu_info_path)?.read_to_string(&mut info)?;
-
-        // Remove the last character (the newline)
-        info.pop();
-        Ok(info)
     }
 
     fn write_value(&mut self, value: WritableValue) -> Result<(), Error> {
@@ -152,32 +153,27 @@ impl Speed for CPU {
     }
 
     fn get_max(&mut self) -> Result<(), Error> {
-        let path = "cpufreq/scaling_max_freq";
-        self.max_freq = self.read_int(path.to_string())?;
+        self.max_freq = self.read_int("cpufreq/scaling_max_freq")?;
         Ok(())
     }
 
     fn get_min(&mut self) -> Result<(), Error> {
-        let path = "cpufreq/scaling_min_freq";
-        self.min_freq = self.read_int(path.to_string())?;
+        self.min_freq = self.read_int("cpufreq/scaling_min_freq")?;
         Ok(())
     }
 
     fn get_cur(&mut self) -> Result<(), Error> {
-        let path = "cpufreq/scaling_cur_freq";
-        self.cur_freq = self.read_int(path.to_string())?;
+        self.cur_freq = self.read_int("cpufreq/scaling_cur_freq")?;
         Ok(())
     }
 
     fn get_temp(&mut self) -> Result<(), Error> {
-        let path = "temp";
-        self.cur_temp = self.read_temp(path.to_string())?;
+        self.cur_temp = self.read_temp("temp")?;
         Ok(())
     }
 
     fn get_gov(&mut self) -> Result<(), Error> {
-        let path = "cpufreq/scaling_governor";
-        self.gov = self.read_str(path.to_string())?;
+        self.gov = self.read_str("cpufreq/scaling_governor")?;
         Ok(())
     }
 

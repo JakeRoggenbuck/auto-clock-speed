@@ -98,26 +98,21 @@ fn green_or_red(boolean: bool) -> String {
 }
 
 fn get_battery_status(charging: bool) -> String {
-    match has_battery() {
-        Ok(has) => {
-            if has {
-                match read_battery_charge() {
-                    Ok(bat) => {
-                        format!(
-                            "Battery: {}{}{}%{}",
-                            style::Bold,
-                            green_or_red(charging),
-                            bat,
-                            style::Reset
-                        )
-                    }
-                    Err(e) => format!("Battery charge could not be read\n{:?}", e),
-                }
-            } else {
-                format!("Battery: {}{}{}", style::Bold, "N/A", style::Reset)
+    if has_battery() {
+        match read_battery_charge() {
+            Ok(bat) => {
+                format!(
+                    "Battery: {}{}{}%{}",
+                    style::Bold,
+                    green_or_red(charging),
+                    bat,
+                    style::Reset
+                )
             }
+            Err(e) => format!("Battery charge could not be read\n{:?}", e),
         }
-        Err(e) => format!("Could not find battery\n{:?}", e),
+    } else {
+        format!("Battery: {}{}{}", style::Bold, "N/A", style::Reset)
     }
 }
 
@@ -141,7 +136,7 @@ fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize) {
             );
 
             if !no_animation {
-                print_turbo_animation(turbo, cores, turbo_y_pos);
+                print_turbo_animation(cores, turbo_y_pos);
             }
         }
         Err(e) => eprintln!("Could not check turbo\n{:?}", e),
@@ -474,14 +469,9 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
     let mut forced_reason: String = String::new();
 
     // Check if the device has a battery, otherwise force it to monitor mode
-    match has_battery() {
-        Ok(has) => {
-            if !has {
-                edit = false;
-                forced_reason = "the device has no battery".to_string();
-            }
-        }
-        Err(e) => eprintln!("Could not find battery\n{:?}", e),
+    if !has_battery() {
+        edit = false;
+        forced_reason = "the device has no battery".to_string();
     }
 
     // Check if effective permissions are enough for edit

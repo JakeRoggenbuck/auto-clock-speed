@@ -76,27 +76,22 @@ pub fn print_turbo(t: bool, raw: bool) {
     }
 }
 
-pub fn print_turbo_animation(t: bool, cpu: usize, y_pos: usize) {
+pub fn print_turbo_animation(cpu: usize, y_pos: usize) {
     let frames = ['◷', '◶', '◵', '◴'];
     let y_pos = cpu + y_pos;
     let mut current = 0;
 
-    if t {
-        thread::spawn(move || {
-            for _ in 0..20 {
-                termion::cursor::Goto(3, 7);
-                println!("{}[{};1H{}", 27 as char, y_pos, frames[current]);
-                current += 1;
-                if current == 4 {
-                    current = 0;
-                }
-                std::thread::sleep(std::time::Duration::from_millis(100));
+    thread::spawn(move || {
+        for _ in 0..20 {
+            termion::cursor::Goto(3, 7);
+            println!("{}[{};1H{}", 27 as char, y_pos, frames[current]);
+            current += 1;
+            if current == 4 {
+                current = 0;
             }
-        });
-    } else {
-        println!("{esc}[2J{esc}[18;1H", esc = 27 as char);
-        println!("{}[;F{}", 27 as char, frames[current]);
-    }
+            std::thread::sleep(std::time::Duration::from_millis(100));
+        }
+    });
 }
 
 fn print_vec<T: Display>(t: Vec<T>, raw: bool) {

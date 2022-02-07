@@ -140,7 +140,7 @@ fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize) {
             );
 
             if !no_animation {
-                print_turbo_animation(turbo, cores, turbo_y_pos);
+                print_turbo_animation(cores, turbo_y_pos);
             }
         }
         Err(e) => eprintln!("Could not check turbo\n{:?}", e),

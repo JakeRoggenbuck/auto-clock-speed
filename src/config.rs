@@ -34,10 +34,6 @@ pub fn default_config() -> Config {
     }
 }
 
-fn open_config_file(conf_path: &str) -> Result<File, std::io::Error> {
-    File::open(conf_path)
-}
-
 fn read_as_string(config_file: &mut File) -> String {
     // Read it to new string
     let mut config: String = String::new();
@@ -59,7 +55,7 @@ fn parse_as_toml(config: String) -> Config {
 
 pub fn open_config() -> Result<Config, std::io::Error> {
     let conf_path = config_path();
-    let mut config_file: File = match open_config_file(&conf_path) {
+    let mut config_file: File = match File::open(&conf_path) {
         Ok(a) => a,
         Err(e) => return Err(e),
     };
@@ -78,13 +74,6 @@ mod tests {
     fn default_config_test() {
         let config: Config = default_config();
         assert!(config.powersave_under > 0 && config.powersave_under < 100);
-    }
-
-    #[test]
-    fn open_config_file_test() -> Result<(), std::io::Error> {
-        let conf_file = "acs.toml";
-        open_config_file(conf_file)?;
-        Ok(())
     }
 
     #[test]

@@ -11,6 +11,7 @@ use display::{
 };
 use error::Error;
 use power::{read_battery_charge, read_lid_state, read_power_source};
+use settings::Settings;
 use system::{
     check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
     list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus,
@@ -24,6 +25,7 @@ pub mod error;
 pub mod graph;
 pub mod logger;
 pub mod power;
+pub mod settings;
 pub mod system;
 pub mod terminal;
 
@@ -175,6 +177,16 @@ fn get_config() -> config::Config {
 fn parse_args(config: config::Config) {
     let mut daemon: daemon::Daemon;
 
+    // default settings used by set command
+    let set_settings = Settings {
+        verbose: true,
+        delay: 0,
+        edit: false,
+        no_animation: false,
+        should_graph: false,
+        commit: false,
+    };
+
     match ACSCommand::from_args() {
         // Everything starting with "get"
         ACSCommand::Get { get } => match get {
@@ -232,8 +244,7 @@ fn parse_args(config: config::Config) {
 
         // Everything starting with "set"
         ACSCommand::Set { set } => match set {
-            SetType::Gov { value } => match daemon_init(true, 0, false, config, true, false, false)
-            {
+            SetType::Gov { value } => match daemon_init(set_settings, config) {
                 Ok(mut d) => match d.set_govs(value.clone()) {
                     Ok(_) => {}
                     Err(e) => eprint!("Could not set gov, {:?}", e),
@@ -249,21 +260,24 @@ fn parse_args(config: config::Config) {
             no_animation,
             should_graph,
             commit,
-        } => match daemon_init(
-            !quiet,
-            delay,
-            true,
-            config,
-            no_animation,
-            should_graph,
-            commit,
-        ) {
-            Ok(d) => {
-                daemon = d;
-                daemon.run().unwrap_err();
+        } => {
+            let settings = Settings {
+                verbose: !quiet,
+                delay,
+                edit: true,
+                no_animation,
+                should_graph,
+                commit,
+            };
+
+            match daemon_init(settings, config) {
+                Ok(d) => {
+                    daemon = d;
+                    daemon.run().unwrap_err();
+                }
+                Err(_) => eprint!("Could not run daemon in edit mode"),
             }
-            Err(_) => eprint!("Could not run daemon in edit mode"),
-        },
+        }
 
         // Monitor command
         ACSCommand::Monitor {
@@ -271,21 +285,24 @@ fn parse_args(config: config::Config) {
             no_animation,
             should_graph,
             commit,
-        } => match daemon_init(
-            true,
-            delay,
-            false,
-            config,
-            no_animation,
-            should_graph,
-            commit,
-        ) {
-            Ok(d) => {
-                daemon = d;
-                daemon.run().unwrap_err();
+        } => {
+            let settings = Settings {
+                verbose: true,
+                delay,
+                edit: false,
+                no_animation,
+                should_graph,
+                commit,
+            };
+
+            match daemon_init(settings, config) {
+                Ok(d) => {
+                    daemon = d;
+                    daemon.run().unwrap_err();
+                }
+                Err(_) => eprint!("Could not run daemon in monitor mode"),
             }
-            Err(_) => eprint!("Could not run daemon in monitor mode"),
-        },
+        }
     }
 }
 

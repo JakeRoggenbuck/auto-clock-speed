@@ -404,7 +404,7 @@ impl Checker for Daemon {
 
     /// Output the values from each cpu
     fn print(&mut self) {
-        let cores = num_cpus::get();
+        let cores = self.cpus.len();
 
         // Compute graph before screen is cleared
         if self.settings.should_graph {

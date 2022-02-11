@@ -27,7 +27,7 @@ jobs:
         run: cargo build --verbose
         
       - name: Test
-        run: cargo test --verbose
+        run: cargo test unit_test --verbose
       
       - name: Format
         run: cargo fmt --check

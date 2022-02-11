@@ -27,6 +27,7 @@ pub trait Speed {
 #[derive(Debug)]
 pub struct CPU {
     pub name: String,
+    pub number: i8,
     pub max_freq: i32,
     pub min_freq: i32,
     pub cur_freq: i32,

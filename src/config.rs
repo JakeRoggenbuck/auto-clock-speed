@@ -64,13 +64,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn default_config_test() {
+    fn default_config_unit_test() {
         let config: Config = default_config();
         assert!(config.powersave_under > 0 && config.powersave_under < 100);
     }
 
     #[test]
-    fn read_as_string_test() -> Result<(), std::io::Error> {
+    fn read_as_string_unit_test() -> Result<(), std::io::Error> {
         let conf_file = "acs.toml";
         let conf_str: String = read_as_string(&mut File::open(conf_file)?);
 
@@ -80,7 +80,7 @@ mod tests {
     }
 
     #[test]
-    fn parse_as_toml_test() -> Result<(), std::io::Error> {
+    fn parse_as_toml_unit_test() -> Result<(), std::io::Error> {
         let conf_file = "acs.toml";
         let conf_str: String = read_as_string(&mut File::open(conf_file)?);
         let toml = parse_as_toml(conf_str);

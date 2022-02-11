@@ -181,16 +181,15 @@ mod tests {
     }
 
     #[test]
-    fn check_cpu_freq_test() -> Result<(), Error> {
+    fn check_cpu_freq_acs_test() -> Result<(), Error> {
         assert_eq!(type_of(check_cpu_freq()?), type_of(1));
 
         assert!(check_cpu_freq()? > 0);
         Ok(())
     }
 
-    // Non-Platform dependent
     #[test]
-    fn get_name_from_cpu_info_test() -> Result<(), Error> {
+    fn get_name_from_cpu_info_unit_test() -> Result<(), Error> {
         let cpu_info = String::from(
             "
 processor	: 0
@@ -229,7 +228,7 @@ microcode	: 0xea
     }
 
     #[test]
-    fn check_cpu_name_test() -> Result<(), Error> {
+    fn check_cpu_name_unit_test() -> Result<(), Error> {
         assert_eq!(type_of(check_cpu_name()?), type_of(String::new()));
         assert!(check_cpu_name()?.len() > 0);
         Ok(())
@@ -237,7 +236,7 @@ microcode	: 0xea
 
     // Non-Platform dependent
     #[test]
-    fn interpret_turbo_test() -> Result<(), Error> {
+    fn interpret_turbo_unit_test() -> Result<(), Error> {
         let mut is_turbo = String::from("0\n");
         assert!(interpret_turbo(&mut is_turbo)?);
 
@@ -247,13 +246,13 @@ microcode	: 0xea
     }
 
     #[test]
-    fn acs_check_turbo_enabled_test() -> Result<(), Error> {
+    fn check_turbo_enabled_acs_test() -> Result<(), Error> {
         assert_eq!(type_of(check_turbo_enabled()?), type_of(true));
         Ok(())
     }
 
     #[test]
-    fn check_available_governors_test() -> Result<(), Error> {
+    fn check_available_governors_acs_test() -> Result<(), Error> {
         assert_eq!(
             type_of(check_available_governors()?),
             type_of(Vec::<String>::new())
@@ -267,7 +266,7 @@ microcode	: 0xea
 
     // Non-Platform dependent
     #[test]
-    fn interpret_govs_test() -> Result<(), Error> {
+    fn interpret_govs_unit_test() -> Result<(), Error> {
         let mut governors_string = String::from("performance powersave\n");
         let govs = interpret_govs(&mut governors_string)?;
         assert_eq!(vec!["performance", "powersave"], govs);
@@ -283,7 +282,7 @@ microcode	: 0xea
     }
 
     #[test]
-    fn list_cpus_test() -> Result<(), Error> {
+    fn list_cpus_acs_test() -> Result<(), Error> {
         assert_eq!(type_of(list_cpus()?), type_of(Vec::<CPU>::new()));
 
         for x in list_cpus()? {
@@ -300,7 +299,7 @@ microcode	: 0xea
     }
 
     #[test]
-    fn list_cpu_speeds_test() -> Result<(), Error> {
+    fn list_cpu_speeds_acs_test() -> Result<(), Error> {
         // Type check
         assert_eq!(type_of(list_cpu_speeds()?), type_of(Vec::<i32>::new()));
 
@@ -311,7 +310,7 @@ microcode	: 0xea
     }
 
     #[test]
-    fn list_cpu_temp_test() -> Result<(), Error> {
+    fn list_cpu_temp_acs_test() -> Result<(), Error> {
         // Type check
         assert_eq!(type_of(list_cpu_temp()?), type_of(Vec::<i32>::new()));
 
@@ -322,7 +321,7 @@ microcode	: 0xea
     }
 
     #[test]
-    fn list_cpu_governors_test() -> Result<(), Error> {
+    fn list_cpu_governors_acs_test() -> Result<(), Error> {
         // Type check
         assert_eq!(
             type_of(list_cpu_governors()?),

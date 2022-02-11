@@ -1,7 +1,7 @@
 use std::any::Any;
 use std::cmp::PartialEq;
 use std::fmt;
-use std::fs::{File, read_dir};
+use std::fs::{read_dir, File};
 use std::io::Read;
 use std::path::Path;
 
@@ -48,17 +48,10 @@ impl fmt::Display for LidState {
     }
 }
 
-pub fn has_battery() -> Result<bool, Error> {
+pub fn has_battery() -> bool {
     let power_dir = Path::new("/sys/class/power_supply/");
-    let dir = read_dir(power_dir)?;
-
-    // Check if there is more than one item in the directory
-    Ok(dir
-        .into_iter()
-        .map(|x| x.unwrap().path().to_str().unwrap().to_string())
-        .collect::<String>()
-        .len()
-        > 0)
+    let dir_count = read_dir(power_dir).into_iter().len();
+    dir_count > 0
 }
 
 pub fn get_best_path(paths: [&'static str; 4]) -> Result<&str, Error> {

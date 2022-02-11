@@ -1,4 +1,4 @@
-use std::fs::{File, read_dir};
+use std::fs::{read_dir, File};
 use std::io::Read;
 use std::string::String;
 
@@ -16,10 +16,15 @@ pub fn check_cpu_freq() -> Result<i32, Error> {
     Ok((sum as f32 / freqs.len() as f32) as i32)
 }
 
-fn open_cpu_info() -> Result<String, Error> {
+fn open_cpu_info() -> String {
     let mut cpu_info: String = String::new();
-    File::open("/proc/cpuinfo")?.read_to_string(&mut cpu_info)?;
-    Ok(cpu_info)
+    File::open("/proc/cpuinfo")
+        .unwrap()
+        .read_to_string(&mut cpu_info)
+        .unwrap_or_else(|_| {
+            panic!("Could not read /proc/cpuinfo");
+        });
+    cpu_info
 }
 
 fn get_name_from_cpu_info(cpu_info: String) -> Result<String, Error> {
@@ -37,7 +42,7 @@ fn get_name_from_cpu_info(cpu_info: String) -> Result<String, Error> {
 }
 
 pub fn check_cpu_name() -> Result<String, Error> {
-    let cpu_info: String = open_cpu_info()?;
+    let cpu_info: String = open_cpu_info();
     let name: String = get_name_from_cpu_info(cpu_info)?;
     Ok(name)
 }
@@ -101,7 +106,7 @@ pub fn list_cpus() -> Result<Vec<CPU>, Error> {
 
     // Get each item in the cpu directory
     for a in read_dir("/sys/devices/system/cpu")? {
-        let path_string: String = format!("{:?}", a?.path()).to_string();
+        let path_string: String = format!("{:?}", a?.path());
         let path: String = path_string
             .chars()
             // Skip the characters that are before the cpu name
@@ -120,14 +125,18 @@ pub fn list_cpus() -> Result<Vec<CPU>, Error> {
         .map(|x| x.to_owned())
         .collect();
 
-    cpus.sort();
-
     let mut to_return: Vec<CPU> = Vec::<CPU>::new();
 
     for cpu in cpus {
+        let num: i8 = match cpu[3..].parse::<i8>() {
+            Ok(a) => a,
+            Err(_) => 0,
+        };
+
         // Make a new cpu
         let mut new = CPU {
             name: cpu,
+            number: num,
             // Temporary initial values
             max_freq: 0,
             min_freq: 0,
@@ -140,6 +149,8 @@ pub fn list_cpus() -> Result<Vec<CPU>, Error> {
 
         to_return.push(new)
     }
+
+    to_return.sort_by(|a, b| a.number.cmp(&b.number));
 
     Ok(to_return)
 }

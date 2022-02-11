@@ -1,4 +1,4 @@
-use rasciigraph::{Config, plot};
+use rasciigraph::{plot, Config};
 
 pub trait Grapher {
     fn update_all(&mut self);

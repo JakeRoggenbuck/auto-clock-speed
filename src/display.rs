@@ -3,6 +3,7 @@ use std::thread;
 
 use termion::{color, style};
 
+use super::config::get_config;
 use super::cpu::CPU;
 use super::power::LidState;
 
@@ -43,6 +44,10 @@ macro_rules! create_issue {
             "please create an issue at https://github.com/JakeRoggenbuck/auto-clock-speed/issues/new",
         );
     }};
+}
+
+pub fn show_config() {
+    println!("{}", get_config());
 }
 
 pub fn print_freq(f: i32, raw: bool) {

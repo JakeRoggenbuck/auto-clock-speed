@@ -40,6 +40,10 @@ pub trait Checker {
     // Under Powersave Under Rule
     fn under_powersave_under_rule(&mut self) -> Result<(), Error>;
 
+    // High Temperature Rule
+    fn start_high_temperature_rule(&mut self) -> Result<(), Error>;
+    fn end_high_temperature_rule(&mut self) -> Result<(), Error>;
+
     // Other methods
     fn run(&mut self) -> Result<(), Error>;
     fn init(&mut self);
@@ -70,10 +74,12 @@ pub struct Daemon {
     pub already_charging: bool,
     pub already_closed: bool,
     pub already_under_powersave_under_percent: bool,
+    pub already_high_temp: bool,
     pub should_graph: bool,
     pub graph: String,
     pub grapher: Graph,
     pub commit: bool,
+    pub temp_max: i32,
     pub commit_hash: String,
     pub timeout: time::Duration,
 }
@@ -86,6 +92,16 @@ fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
 fn make_gov_performance(cpu: &mut CPU) -> Result<(), Error> {
     cpu.set_gov("performance".to_string())?;
     Ok(())
+}
+
+fn get_highest_temp(cpus: &Vec<CPU>) -> i32 {
+    let mut temp_max: i32 = 0;
+    for cpu in cpus {
+        if cpu.cur_temp > temp_max {
+            temp_max = cpu.cur_temp;
+        }
+    }
+    temp_max
 }
 
 fn get_battery_status() -> String {
@@ -189,6 +205,31 @@ impl Checker for Daemon {
         Ok(())
     }
 
+    fn start_high_temperature_rule(&mut self) -> Result<(), Error> {
+        if !self.already_high_temp && self.temp_max > 80 {
+            self.logger.log(
+                "Governor set to powersave because CPU temperature is high",
+                logger::Severity::Log,
+            );
+            self.apply_to_cpus(&make_gov_powersave)?;
+            self.already_high_temp = true;
+        }
+        Ok(())
+    }
+
+    fn end_high_temperature_rule(&mut self) -> Result<(), Error> {
+        if self.already_high_temp && self.temp_max < 70 {
+
+            self.logger.log(
+                "Governor set to powesave because CPU temperature is high",
+                logger::Severity::Log,
+            );
+            self.already_high_temp = false;
+        }
+        Ok(())
+    }
+
+
     fn lid_close_rule(&mut self) -> Result<(), Error> {
         if self.lid_state == LidState::Closed && !self.already_closed {
             self.logger.log(
@@ -291,6 +332,8 @@ impl Checker for Daemon {
             self.lid_state = read_lid_state()?;
 
             // Call all rules
+            self.start_high_temperature_rule()?;
+            self.end_high_temperature_rule()?;
             self.start_charging_rule()?;
             self.end_charging_rule()?;
             self.lid_close_rule()?;
@@ -325,6 +368,8 @@ impl Checker for Daemon {
         for cpu in self.cpus.iter_mut() {
             cpu.update()?;
         }
+
+        self.temp_max = get_highest_temp(&self.cpus) / 1000;
 
         if self.should_graph {
             self.grapher.freqs.push(check_cpu_freq()? as f64);
@@ -480,10 +525,12 @@ pub fn daemon_init(
         already_charging: false,
         already_closed: false,
         already_under_powersave_under_percent: false,
+        already_high_temp: false,
         should_graph,
         graph: String::new(),
         grapher: Graph { freqs: vec![0.0] },
         commit,
+        temp_max: 0,
         commit_hash: String::new(),
         timeout: time::Duration::from_millis(1),
     };

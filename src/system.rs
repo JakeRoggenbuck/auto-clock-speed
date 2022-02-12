@@ -16,10 +16,15 @@ pub fn check_cpu_freq() -> Result<i32, Error> {
     Ok((sum as f32 / freqs.len() as f32) as i32)
 }
 
-fn open_cpu_info() -> Result<String, Error> {
+fn open_cpu_info() -> String {
     let mut cpu_info: String = String::new();
-    File::open("/proc/cpuinfo")?.read_to_string(&mut cpu_info)?;
-    Ok(cpu_info)
+    File::open("/proc/cpuinfo")
+        .unwrap()
+        .read_to_string(&mut cpu_info)
+        .unwrap_or_else(|_| {
+            panic!("Could not read /proc/cpuinfo");
+        });
+    cpu_info
 }
 
 fn get_name_from_cpu_info(cpu_info: String) -> Result<String, Error> {
@@ -37,7 +42,7 @@ fn get_name_from_cpu_info(cpu_info: String) -> Result<String, Error> {
 }
 
 pub fn check_cpu_name() -> Result<String, Error> {
-    let cpu_info: String = open_cpu_info()?;
+    let cpu_info: String = open_cpu_info();
     let name: String = get_name_from_cpu_info(cpu_info)?;
     Ok(name)
 }
@@ -101,7 +106,7 @@ pub fn list_cpus() -> Result<Vec<CPU>, Error> {
 
     // Get each item in the cpu directory
     for a in read_dir("/sys/devices/system/cpu")? {
-        let path_string: String = format!("{:?}", a?.path()).to_string();
+        let path_string: String = format!("{:?}", a?.path());
         let path: String = path_string
             .chars()
             // Skip the characters that are before the cpu name
@@ -120,14 +125,18 @@ pub fn list_cpus() -> Result<Vec<CPU>, Error> {
         .map(|x| x.to_owned())
         .collect();
 
-    cpus.sort();
-
     let mut to_return: Vec<CPU> = Vec::<CPU>::new();
 
     for cpu in cpus {
+        let num: i8 = match cpu[3..].parse::<i8>() {
+            Ok(a) => a,
+            Err(_) => 0,
+        };
+
         // Make a new cpu
         let mut new = CPU {
             name: cpu,
+            number: num,
             // Temporary initial values
             max_freq: 0,
             min_freq: 0,
@@ -140,6 +149,8 @@ pub fn list_cpus() -> Result<Vec<CPU>, Error> {
 
         to_return.push(new)
     }
+
+    to_return.sort_by(|a, b| a.number.cmp(&b.number));
 
     Ok(to_return)
 }
@@ -170,16 +181,15 @@ mod tests {
     }
 
     #[test]
-    fn check_cpu_freq_test() -> Result<(), Error> {
+    fn check_cpu_freq_acs_test() -> Result<(), Error> {
         assert_eq!(type_of(check_cpu_freq()?), type_of(1));
 
         assert!(check_cpu_freq()? > 0);
         Ok(())
     }
 
-    // Non-Platform dependent
     #[test]
-    fn get_name_from_cpu_info_test() -> Result<(), Error> {
+    fn get_name_from_cpu_info_unit_test() -> Result<(), Error> {
         let cpu_info = String::from(
             "
 processor	: 0
@@ -218,7 +228,7 @@ microcode	: 0xea
     }
 
     #[test]
-    fn check_cpu_name_test() -> Result<(), Error> {
+    fn check_cpu_name_unit_test() -> Result<(), Error> {
         assert_eq!(type_of(check_cpu_name()?), type_of(String::new()));
         assert!(check_cpu_name()?.len() > 0);
         Ok(())
@@ -226,7 +236,7 @@ microcode	: 0xea
 
     // Non-Platform dependent
     #[test]
-    fn interpret_turbo_test() -> Result<(), Error> {
+    fn interpret_turbo_unit_test() -> Result<(), Error> {
         let mut is_turbo = String::from("0\n");
         assert!(interpret_turbo(&mut is_turbo)?);
 
@@ -236,13 +246,13 @@ microcode	: 0xea
     }
 
     #[test]
-    fn acs_check_turbo_enabled_test() -> Result<(), Error> {
+    fn check_turbo_enabled_acs_test() -> Result<(), Error> {
         assert_eq!(type_of(check_turbo_enabled()?), type_of(true));
         Ok(())
     }
 
     #[test]
-    fn check_available_governors_test() -> Result<(), Error> {
+    fn check_available_governors_acs_test() -> Result<(), Error> {
         assert_eq!(
             type_of(check_available_governors()?),
             type_of(Vec::<String>::new())
@@ -256,7 +266,7 @@ microcode	: 0xea
 
     // Non-Platform dependent
     #[test]
-    fn interpret_govs_test() -> Result<(), Error> {
+    fn interpret_govs_unit_test() -> Result<(), Error> {
         let mut governors_string = String::from("performance powersave\n");
         let govs = interpret_govs(&mut governors_string)?;
         assert_eq!(vec!["performance", "powersave"], govs);
@@ -272,7 +282,7 @@ microcode	: 0xea
     }
 
     #[test]
-    fn list_cpus_test() -> Result<(), Error> {
+    fn list_cpus_acs_test() -> Result<(), Error> {
         assert_eq!(type_of(list_cpus()?), type_of(Vec::<CPU>::new()));
 
         for x in list_cpus()? {
@@ -289,7 +299,7 @@ microcode	: 0xea
     }
 
     #[test]
-    fn list_cpu_speeds_test() -> Result<(), Error> {
+    fn list_cpu_speeds_acs_test() -> Result<(), Error> {
         // Type check
         assert_eq!(type_of(list_cpu_speeds()?), type_of(Vec::<i32>::new()));
 
@@ -300,7 +310,7 @@ microcode	: 0xea
     }
 
     #[test]
-    fn list_cpu_temp_test() -> Result<(), Error> {
+    fn list_cpu_temp_acs_test() -> Result<(), Error> {
         // Type check
         assert_eq!(type_of(list_cpu_temp()?), type_of(Vec::<i32>::new()));
 
@@ -311,7 +321,7 @@ microcode	: 0xea
     }
 
     #[test]
-    fn list_cpu_governors_test() -> Result<(), Error> {
+    fn list_cpu_governors_acs_test() -> Result<(), Error> {
         // Type check
         assert_eq!(
             type_of(list_cpu_governors()?),

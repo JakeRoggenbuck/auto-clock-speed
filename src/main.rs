@@ -1,17 +1,15 @@
-use std::process::exit;
-
 use log::debug;
 use structopt::StructOpt;
 
-use config::{default_config, open_config};
+use config::{config_dir_exists, default_config, open_config};
 use daemon::{daemon_init, Checker};
 use display::{
     print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpu_temp, print_cpus,
     print_freq, print_power, print_turbo,
 };
 use error::Error;
-use local::{create_local_config_dir, local_config_dir_exists};
 use power::{read_battery_charge, read_lid_state, read_power_source};
+use settings::Settings;
 use system::{
     check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
     list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus,
@@ -23,10 +21,11 @@ pub mod daemon;
 pub mod display;
 pub mod error;
 pub mod graph;
-pub mod local;
 pub mod logger;
 pub mod power;
+pub mod settings;
 pub mod system;
+pub mod terminal;
 
 #[derive(StructOpt)]
 enum GetType {
@@ -166,9 +165,7 @@ fn get_config() -> config::Config {
     match open_config() {
         Ok(conf) => conf,
         Err(_) => {
-            warn_user!(
-                "Using default config. Create file ~/.config/acs/acs.toml for custom config."
-            );
+            warn_user!("Using default config. Create file '/etc/acs/acs.toml' for custom config.");
             // Use default config as config
             default_config()
         }
@@ -177,6 +174,16 @@ fn get_config() -> config::Config {
 
 fn parse_args(config: config::Config) {
     let mut daemon: daemon::Daemon;
+
+    // default settings used by set command
+    let set_settings = Settings {
+        verbose: true,
+        delay: 0,
+        edit: false,
+        no_animation: false,
+        should_graph: false,
+        commit: false,
+    };
 
     match ACSCommand::from_args() {
         // Everything starting with "get"
@@ -235,8 +242,7 @@ fn parse_args(config: config::Config) {
 
         // Everything starting with "set"
         ACSCommand::Set { set } => match set {
-            SetType::Gov { value } => match daemon_init(true, 0, false, config, true, false, false)
-            {
+            SetType::Gov { value } => match daemon_init(set_settings, config) {
                 Ok(mut d) => match d.set_govs(value.clone()) {
                     Ok(_) => {}
                     Err(e) => eprint!("Could not set gov, {:?}", e),
@@ -252,21 +258,24 @@ fn parse_args(config: config::Config) {
             no_animation,
             should_graph,
             commit,
-        } => match daemon_init(
-            !quiet,
-            delay,
-            true,
-            config,
-            no_animation,
-            should_graph,
-            commit,
-        ) {
-            Ok(d) => {
-                daemon = d;
-                daemon.run().unwrap_err();
+        } => {
+            let settings = Settings {
+                verbose: !quiet,
+                delay,
+                edit: true,
+                no_animation,
+                should_graph,
+                commit,
+            };
+
+            match daemon_init(settings, config) {
+                Ok(d) => {
+                    daemon = d;
+                    daemon.run().unwrap_err();
+                }
+                Err(_) => eprint!("Could not run daemon in edit mode"),
             }
-            Err(_) => eprint!("Could not run daemon in edit mode"),
-        },
+        }
 
         // Monitor command
         ACSCommand::Monitor {
@@ -274,30 +283,32 @@ fn parse_args(config: config::Config) {
             no_animation,
             should_graph,
             commit,
-        } => match daemon_init(
-            true,
-            delay,
-            false,
-            config,
-            no_animation,
-            should_graph,
-            commit,
-        ) {
-            Ok(d) => {
-                daemon = d;
-                daemon.run().unwrap_err();
+        } => {
+            let settings = Settings {
+                verbose: true,
+                delay,
+                edit: false,
+                no_animation,
+                should_graph,
+                commit,
+            };
+
+            match daemon_init(settings, config) {
+                Ok(d) => {
+                    daemon = d;
+                    daemon.run().unwrap_err();
+                }
+                Err(_) => eprint!("Could not run daemon in monitor mode"),
             }
-            Err(_) => eprint!("Could not run daemon in monitor mode"),
-        },
+        }
     }
 }
 
 fn main() {
     env_logger::init();
 
-    // Create config directory if it doesn't exist
-    if !local_config_dir_exists() {
-        create_local_config_dir();
+    if !config_dir_exists() {
+        warn_user!("Config directory '/etc/acs' does not exist!");
     }
 
     let config: config::Config = get_config();

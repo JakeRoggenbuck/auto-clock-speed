@@ -1,5 +1,10 @@
 # Auto Clock Speed (acs) ![Rust](https://img.shields.io/github/workflow/status/jakeroggenbuck/auto-clock-speed/Rust?style=for-the-badge)
+
 A utility to check stats about your CPU, and auto regulate clock speeds to help with either performance or battery life.
+
+This proram is designed for Linux and Intel laptops, although it should theoretically work on AMD systems and sometimes desktops as well.
+
+If you encounter any issues or bugs, please refer to the [wiki](https://github.com/JakeRoggenbuck/auto-clock-speed/wiki) to see if there is a solution
  
 ![image](https://user-images.githubusercontent.com/35516367/151893537-1ed4241d-9e3c-4e02-a620-568820ce13d0.png)
 
@@ -61,18 +66,30 @@ sudo systemctl enable acs
 # Check service is up and running
 systemctl status acs
 ```
+## Systemctl command
+The line after `[Service]` in `acs.service` is the command that will be run. You may want to add or remove arguments, mainly `--quiet`.
+```
+[Unit]
+Description=Manages Clock Speed
+
+[Service]
+ExecStart=/home/your-user-here/.cargo/bin/acs run --no-animation
+
+[Install]
+WantedBy=multi-user.target
+```
 
 # Config
 
 ### Using default config
 ```sh
-WARN: Using default config. Create file ~/.config/acs/acs.toml for custom config.
+WARN: Using default config. Create file /etc/acs/acs.toml for custom config.
 ```
-This warning recommends creating a config file, use the following example and install at `~/.config/acs/acs.toml`
+This warning recommends creating a config file, use the following example and install at `/etc/acs/acs.toml`
 
 ```sh
-mkdir -p ~/.config/acs
-cp ./acs.toml ~/.config/acs/acs.toml
+mkdir /etc/acs
+cp ./acs.toml /etc/acs/acs.toml
 ```
 
 ### This is an example config
@@ -101,7 +118,7 @@ cargo uninstall autoclockspeed
 rm /etc/systemd/system/acs.service
 ```
 
-# Example Usage
+## Example Usage
 ```sh
 # Monitor mode
 acs monitor
@@ -116,239 +133,11 @@ acs get speeds
 sudo acs set gov $(acs get available-govs --raw | dmenu)
 ```
 
-# Detailed Usage
-## Monitor
-```sh
-# Show the min, max, and current cpu frequency
-# along with the cpu governor
-acs monitor
-
-# A delay (in milliseconds) can be set for both monitor and run
-acs monitor --delay 1000
-```
-
-<br>
-
-## Run
-```sh
-# Run requires sudo because it edits the cpu's frequency
-
-# Edit speeds and shows exactly what monitor does
-sudo acs run
-
-# Shows no output but still edits speeds
-sudo acs run --quiet
-```
-
-<br>
-
-## Get
-
-### Flags
-`--raw` is the only used flag for the `get` command.
-
-### Subcommands
-
-### available-govs
-<details><summary>more (click to expand)</summary>
-<p>
-
-Normal
-```sh
-~ λ acs get available-govs
-performance powersave
-```
-
-Raw
-```sh
-~ λ acs get available-govs --raw
-performance
-powersave
-```
-
-</p>
-</details>
-
-### cpus
-<details><summary>more</summary>
-<p>
-
-Normal
-```sh
-~ λ acs get cpus
-Name: Intel(R) Core(TM) i5-7300U CPU @ 2.60GHz
-cpu0 is currently @ 589 MHz
-cpu1 is currently @ 629 MHz
-cpu2 is currently @ 594 MHz
-cpu3 is currently @ 649 MHz
-```
-
-Raw
-```sh
-~ λ acs get cpus --raw
-cpu0 628003
-cpu1 601547
-cpu2 590444
-cpu3 627150
-```
-
-</p>
-</details>
-
-### freq
-<details><summary>more</summary>
-<p>
-
-Normal
-```sh
-~ λ acs get freq
-CPU freq is 597 MHz
-```
-
-Raw
-```sh
-~ λ acs get freq --raw
-597471
-```
-
-</p>
-</details>
-
-### govs
-<details><summary>more</summary>
-<p>
-
-Normal
-```sh
-~ λ acs get govs
-powersave powersave powersave powersave
-```
-
-Raw
-```sh
-~ λ acs get govs --raw
-powersave
-powersave
-powersave
-powersave
-```
-
-</p>
-</details>
-
-### power
-<details><summary>more</summary>
-<p>
-
-Normal
-```sh
-~ λ acs get power
-Lid: open Battery: 0 Plugged: false
-```
-
-Raw
-```sh
-~ λ acs get power --raw
-open 0 false
-```
-
-</p>
-</details>
-
-### speeds
-<details><summary>more</summary>
-<p>
-
-Normal
-```sh
-~ λ acs get speeds
-578444 578308 572217 579259
-```
-
-Raw
-```sh
-~ λ acs get speeds --raw
-572773
-580328
-566880
-579120
-```
-
-</p>
-</details>
-
-### temp
-<details><summary>more</summary>
-<p>
-
-Normal
-```sh
-~ λ acs get temp
-25000 31050 20000 29050
-```
-
-Raw
-```sh
-~ λ acs get temp --raw
-25000
-32050
-20000
-29050
-```
-
-</p>
-</details>
-
-### turbo
-<details><summary>more</summary>
-<p>
-
-Normal
-```sh
-~ λ acs get turbo
-Turbo is enabled
-```
-
-Raw
-```sh
-~ λ acs get turbo --raw
-true
-```
-
-</p>
-</details>
-
-<br>
-
-## Set
-
-### Perms
-Note that all of the set commands require sudo.
-
-### Subcommand
-
-### available-govs
-<details><summary>more (click to expand)</summary>
-<p>
-
-Normal use
-```sh
-sudo acs set gov performance
-sudo acs set gov powersave
-```
-
-Fancy set script
-```sh
-sudo acs set gov $(acs get available-govs --raw | dmenu)
-```
-
-</p>
-</details>
-
-<br>
+## Detailed usage
+Detailed usage can be found on [our wiki](https://github.com/JakeRoggenbuck/auto-clock-speed/wiki/Detailed-Usage)  
 
 ## Help
-```sh
+```
 Automatic CPU frequency scaler and power saver
 
 USAGE:
@@ -365,3 +154,8 @@ SUBCOMMANDS:
     run        Run the daemon, this checks and edit your cpu's speed
     set
 ```
+
+<!--       _
+       .__(.)< (qwak)
+        \___)   
+ ~~~~~~~~~~~~~~~~~~-->

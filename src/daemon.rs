@@ -240,7 +240,6 @@ impl Checker for Daemon {
 
     fn end_high_temperature_rule(&mut self) -> Result<(), Error> {
         if self.already_high_temp && self.temp_max < 70 {
-
             self.logger.log(
                 "Governor set to powesave because CPU temperature is high",
                 logger::Severity::Log,
@@ -249,7 +248,6 @@ impl Checker for Daemon {
         }
         Ok(())
     }
-
 
     fn lid_close_rule(&mut self) -> Result<(), Error> {
         if self.lid_state == LidState::Closed && !self.already_closed {

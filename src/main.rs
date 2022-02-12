@@ -181,7 +181,7 @@ fn parse_args(config: config::Config) {
         ACSCommand::Get { get } => match get {
             GetType::Freq { raw } => match check_cpu_freq() {
                 Ok(f) => print_freq(f, raw),
-                Err(_) => eprintln!("Faild to get cpu frequency"),
+                Err(_) => eprintln!("Failed to get cpu frequency"),
             },
 
             GetType::Power { raw } => match read_lid_state() {
@@ -190,11 +190,11 @@ fn parse_args(config: config::Config) {
                         Ok(plugged) => {
                             print_power(lid, bat, plugged, raw);
                         }
-                        Err(_) => eprintln!("Faild to get read power source"),
+                        Err(_) => eprintln!("Failed to get read power source"),
                     },
-                    Err(_) => eprintln!("Faild to get read battery charger"),
+                    Err(_) => eprintln!("Failed to get read battery charger"),
                 },
-                Err(_) => eprintln!("Faild to get read lid state"),
+                Err(_) => eprintln!("Failed to get read lid state"),
             },
 
             GetType::Turbo { raw } => match check_turbo_enabled() {

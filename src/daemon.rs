@@ -81,7 +81,7 @@ pub struct Daemon {
     pub graph: String,
     pub grapher: Graph,
     pub commit: bool,
-    pub temp_max: i32,
+    pub temp_max: i8,
     pub commit_hash: String,
     pub timeout: time::Duration,
     pub settings: Settings,
@@ -227,7 +227,7 @@ impl Checker for Daemon {
     }
 
     fn start_high_temperature_rule(&mut self) -> Result<(), Error> {
-        if !self.already_high_temp && self.temp_max > 80 {
+        if !self.already_high_temp && self.temp_max > self.config.overheat_threshold {
             self.logger.log(
                 "Governor set to powersave because CPU temperature is high",
                 logger::Severity::Log,
@@ -239,7 +239,7 @@ impl Checker for Daemon {
     }
 
     fn end_high_temperature_rule(&mut self) -> Result<(), Error> {
-        if self.already_high_temp && self.temp_max < 70 {
+        if self.already_high_temp && self.temp_max < self.config.overheat_threshold {
             self.logger.log(
                 "Governor set to powesave because CPU temperature is high",
                 logger::Severity::Log,
@@ -393,7 +393,7 @@ impl Checker for Daemon {
             cpu.update()?;
         }
 
-        self.temp_max = get_highest_temp(&self.cpus) / 1000;
+        self.temp_max = (get_highest_temp(&self.cpus) / 1000) as i8;
 
         // Update the data in the graph and render it
         if self.settings.should_graph {

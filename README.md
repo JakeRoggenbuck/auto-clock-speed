@@ -45,7 +45,7 @@ Do steps 1 and 2 from other install if you don't have rust installed, then do th
 [![image](https://user-images.githubusercontent.com/35516367/151716685-a3ed3c53-07f4-459f-a3ae-e1de1ba16429.png)](https://www.youtube.com/watch?v=T9nN_rQOYsg)
 
 ## Systemd
-In order to have auto-clock-speed start when you restart your computer you must follow these instruction
+In order to have auto-clock-speed start when you restart your computer you must follow these instructions
 ```sh
 # IMPORTANT: Modify the service file (acs.service) in the
 # project directory to include the path to the binary file 
@@ -93,7 +93,7 @@ cp ./acs.toml /etc/acs/acs.toml
 ```
 
 ### This is an example config
-also the default settings if not config is provided
+also the default settings if no config is provided
 
 ```yaml
 # acs.toml
@@ -105,7 +105,7 @@ powersave_under = 20
 # Temporarily stop (only lasts until reboot)
 sudo systemctl stop acs
 
-# Perminatly stop until turned on
+# Permanently stop until turned on
 sudo systemctl disable acs
 ```
 
@@ -149,9 +149,9 @@ FLAGS:
 
 SUBCOMMANDS:
     get        Get a specific value or status
-    help       Prints this message or the help of the given subcommand(s)
-    monitor    Monitor each cpu, it's min, max, and current speed, along with the governor
-    run        Run the daemon, this checks and edit your cpu's speed
+    help       Print this message or the help of the given subcommand(s)
+    monitor    Monitor each cpu, its min, max, and current speed, along with the governor
+    run        Run the daemon, this checks and edits your cpu's speed
     set
 ```
 

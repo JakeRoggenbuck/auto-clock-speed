@@ -25,6 +25,7 @@ pub fn config_dir_exists() -> bool {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
     pub powersave_under: i8,
+    pub overheat_threshold: i8,
     // Future variables
     // pub charging_powersave_under: i32,
 }
@@ -38,6 +39,7 @@ impl fmt::Display for Config {
 pub fn default_config() -> Config {
     Config {
         powersave_under: 20,
+        overheat_threshold: 80,
     }
 }
 

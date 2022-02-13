@@ -26,6 +26,7 @@ pub mod power;
 pub mod settings;
 pub mod system;
 pub mod terminal;
+pub mod state;
 
 #[derive(StructOpt)]
 enum GetType {

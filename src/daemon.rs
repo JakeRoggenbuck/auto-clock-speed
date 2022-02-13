@@ -16,6 +16,7 @@ use super::system::{check_cpu_freq, check_turbo_enabled, list_cpus};
 use super::terminal::terminal_width;
 use super::Error;
 use super::Settings;
+use super::state::State;
 
 pub trait Checker {
     fn apply_to_cpus(
@@ -77,6 +78,7 @@ pub struct Daemon {
     pub commit_hash: String,
     pub timeout: time::Duration,
     pub settings: Settings,
+    pub state: State,
 }
 
 fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
@@ -516,6 +518,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         commit_hash: String::new(),
         timeout: time::Duration::from_millis(1),
         settings,
+        state: State::Normal,
     };
 
     // Make a cpu struct for each cpu listed

@@ -12,7 +12,7 @@ use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
 use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
-use super::system::{check_cpu_freq, check_turbo_enabled, list_cpus, get_highest_temp};
+use super::system::{check_cpu_freq, check_turbo_enabled, get_highest_temp, list_cpus};
 use super::terminal::terminal_width;
 use super::Error;
 use super::Settings;
@@ -94,7 +94,6 @@ fn make_gov_performance(cpu: &mut CPU) -> Result<(), Error> {
     cpu.set_gov("performance".to_string())?;
     Ok(())
 }
-
 
 fn green_or_red(boolean: bool) -> String {
     if boolean {

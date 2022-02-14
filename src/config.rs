@@ -47,7 +47,7 @@ trait SafeFillConfig {
 
 impl SafeFillConfig for SafeConfig {
     fn safe_fill_config(&mut self) -> Config {
-        // This function makes sure the config contains ever value from Config,
+        // This function makes sure the config contains every value from Config,
         // even when this type is SafeConfig
         //
         // This could be done one of two ways.

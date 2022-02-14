@@ -19,7 +19,7 @@ If you would like to help complete a task, comment in the issue and we may assig
 - Tests must both test how acs preforms with root and normal permissions
 
 - How to run tests
-	```
+	```sh
 	cargo build && ./target/debug/acs monit -c 
 	cargo build && ./target/debug/acs run -c 
 
@@ -27,7 +27,7 @@ If you would like to help complete a task, comment in the issue and we may assig
 	cargo build && sudo ./target/debug/acs run -c 
 	```
 
-	```
+	```sh
 	cargo test
 
 	cargo test unit	# unit testing, none platform specific

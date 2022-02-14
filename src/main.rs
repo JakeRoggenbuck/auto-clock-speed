@@ -167,7 +167,7 @@ fn parse_args(config: config::Config) {
     let mut daemon: daemon::Daemon;
 
     // default settings used by set command
-    let mut set_settings = Settings {
+    let set_settings = Settings {
         verbose: true,
         delay: 0,
         edit: false,
@@ -234,7 +234,7 @@ fn parse_args(config: config::Config) {
 
         // Everything starting with "set"
         ACSCommand::Set { set } => match set {
-            SetType::Gov { value } => match daemon_init(&mut set_settings, config) {
+            SetType::Gov { value } => match daemon_init(set_settings, config) {
                 Ok(mut d) => match d.set_govs(value.clone()) {
                     Ok(_) => {}
                     Err(e) => eprint!("Could not set gov, {:?}", e),
@@ -253,7 +253,7 @@ fn parse_args(config: config::Config) {
             should_graph,
             commit,
         } => {
-            let mut settings = Settings {
+            let settings = Settings {
                 verbose: !quiet,
                 delay,
                 edit: true,
@@ -263,7 +263,7 @@ fn parse_args(config: config::Config) {
                 testing: false,
             };
 
-            match daemon_init(&mut settings, config) {
+            match daemon_init(settings, config) {
                 Ok(d) => {
                     daemon = d;
                     daemon.run().unwrap_err();
@@ -279,7 +279,7 @@ fn parse_args(config: config::Config) {
             should_graph,
             commit,
         } => {
-            let mut settings = Settings {
+            let settings = Settings {
                 verbose: true,
                 delay,
                 edit: false,
@@ -289,7 +289,7 @@ fn parse_args(config: config::Config) {
                 testing: false,
             };
 
-            match daemon_init(&mut settings, config) {
+            match daemon_init(settings, config) {
                 Ok(d) => {
                     daemon = d;
                     daemon.run().unwrap_err();

@@ -53,8 +53,8 @@ pub trait Checker {
     fn start_loop(&mut self) -> Result<(), Error>;
     fn end_loop(&mut self);
 
-    fn loop_edit(&mut self) -> Result<(), Error>;
-    fn loop_monit(&mut self) -> Result<(), Error>;
+    fn single_edit(&mut self) -> Result<(), Error>;
+    fn single_monit(&mut self) -> Result<(), Error>;
 
     fn update_all(&mut self) -> Result<(), Error>;
 
@@ -346,40 +346,57 @@ impl Checker for Daemon {
         thread::sleep(self.timeout);
     }
 
-    fn loop_edit(&mut self) -> Result<(), Error> {
-        // Loop in run mode
-        loop {
-            self.start_loop()?;
+    fn single_edit(&mut self) -> Result<(), Error> {
+        self.start_loop()?;
 
-            // Call all rules
-            self.start_high_temperature_rule()?;
-            self.end_high_temperature_rule()?;
-            self.start_charging_rule()?;
-            self.end_charging_rule()?;
-            self.lid_close_rule()?;
-            self.lid_open_rule()?;
-            self.under_powersave_under_rule()?;
+        // Call all rules
+        self.start_high_temperature_rule()?;
+        self.end_high_temperature_rule()?;
+        self.start_charging_rule()?;
+        self.end_charging_rule()?;
+        self.lid_close_rule()?;
+        self.lid_open_rule()?;
+        self.under_powersave_under_rule()?;
 
-            self.end_loop();
-        }
+        self.end_loop();
+        Ok(())
     }
 
-    fn loop_monit(&mut self) -> Result<(), Error> {
-        // Loop in monitor mode
-        loop {
-            self.start_loop()?;
-            self.end_loop();
-        }
+    fn single_monit(&mut self) -> Result<(), Error> {
+        self.start_loop()?;
+        self.end_loop();
+        Ok(())
     }
 
     fn run(&mut self) -> Result<(), Error> {
         self.init();
 
-        // Choose which mode acs runs in
-        if self.settings.edit {
-            self.loop_edit()?;
+        if self.settings.testing {
+            // Choose which mode acs runs in
+            if self.settings.edit {
+                let mut reps = 4;
+                while reps > 0 {
+                    self.single_edit()?;
+                    reps -= 1;
+                }
+            } else {
+                let mut reps = 4;
+                while reps > 0 {
+                    self.single_monit()?;
+                    reps -= 1;
+                }
+            }
         } else {
-            self.loop_monit()?;
+            // Choose which mode acs runs in
+            if self.settings.edit {
+                loop {
+                    self.single_edit()?;
+                }
+            } else {
+                loop {
+                    self.single_monit()?;
+                }
+            }
         }
 
         Ok(())
@@ -506,19 +523,18 @@ fn format_message(edit: bool, started_as_edit: bool, forced_reason: String, dela
     )
 }
 
-pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> {
+pub fn daemon_init(settings: &mut Settings, config: Config) -> Result<Daemon, Error> {
     let started_as_edit: bool = settings.edit;
-    let mut edit = settings.edit;
     let mut forced_reason: String = String::new();
 
     // Check if the device has a battery, otherwise force it to monitor mode
     if !has_battery() {
-        edit = false;
+        settings.edit = false;
         forced_reason = "the device has no battery".to_string();
     }
 
     // Check if effective permissions are enough for edit
-    if edit {
+    if settings.edit {
         // If not running as root, tell the user and force to monitor
         if !Uid::effective().is_root() {
             println!(
@@ -532,12 +548,13 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
             let timeout = time::Duration::from_millis(5000);
             thread::sleep(timeout);
 
-            edit = false;
+            settings.edit = false;
             forced_reason = "acs was not run as root".to_string();
         }
     }
 
-    let message = format_message(edit, started_as_edit, forced_reason, settings.delay);
+    let message = format_message(settings.edit, started_as_edit, forced_reason, settings.delay);
+
     // Create a new Daemon
     let mut daemon: Daemon = Daemon {
         cpus: Vec::<CPU>::new(),
@@ -545,7 +562,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         lid_state: LidState::Unknown,
         // If edit is still true, then there is definitely a bool result to read_power_source
         // otherwise, there is a real problem, because there should be a power source possible
-        charging: if edit { read_power_source()? } else { false },
+        charging: if settings.edit { read_power_source()? } else { false },
         charge: 100,
         logger: logger::Logger {
             logs: Vec::<logger::Log>::new(),
@@ -560,7 +577,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         temp_max: 0,
         commit_hash: String::new(),
         timeout: time::Duration::from_millis(1),
-        settings,
+        settings: *settings,
     };
 
     // Make a cpu struct for each cpu listed
@@ -571,4 +588,28 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
     }
 
     Ok(daemon)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::default_config;
+
+    #[test]
+    fn daemon_init_unit_test() {
+        let settings = Settings {
+            verbose: true,
+            delay: 1,
+            edit: true,
+            no_animation: false,
+            should_graph: false,
+            commit: false,
+            testing: true,
+        };
+
+        let config = default_config();
+
+        let daemon = daemon_init(&mut settings, config).unwrap();
+        assert_eq!(daemon.settings.edit, false);
+    }
 }

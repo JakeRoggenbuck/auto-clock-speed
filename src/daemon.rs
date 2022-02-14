@@ -616,7 +616,7 @@ mod tests {
     use crate::config::default_config;
 
     #[test]
-    fn daemon_init_force_to_monit_unit_test() {
+    fn daemon_init_force_to_monit_acs_test() {
         let settings = Settings {
             verbose: true,
             delay: 1,

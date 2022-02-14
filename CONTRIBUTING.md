@@ -17,13 +17,21 @@ If you would like to help complete a task, comment in the issue and we may assig
 ## Testing
 - Tests must be done by contributors of the project
 - Tests must both test how acs preforms with root and normal permissions
-- How to test
+
+- How to run tests
 	```
 	cargo build && ./target/debug/acs monit -c 
 	cargo build && ./target/debug/acs run -c 
 
 	cargo build && sudo ./target/debug/acs monit -c 
 	cargo build && sudo ./target/debug/acs run -c 
+	```
+
+	```
+	cargo test
+
+	cargo test unit	# unit testing, none platform specific
+	cargo test acs	# laptop specific testing
 	```
 
 ## Issues marked with `help wanted` or `good first issue`

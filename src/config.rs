@@ -47,6 +47,19 @@ trait SafeFillConfig {
 
 impl SafeFillConfig for SafeConfig {
     fn safe_fill_config(&mut self) -> Config {
+        // This function makes sure the config contains ever value from Config,
+        // even when this type is SafeConfig
+        //
+        // This could be done one of two ways.
+        // The current implementation pulls the default_config to base
+        // then checks each value in self (Config) and if it exists, or is_some,
+        // then copy the value from self and overwrite the value in base
+        //
+        // if self.val.is_some => base.val = self.val
+        //
+        // This approach coincidentally happens to be more efficient when more than half
+        // of the values are not defined. This means that if no config is present, then no work
+        // will be done to modify base.
         let mut base = default_config();
 
         if self.powersave_under.is_some() {
@@ -63,6 +76,8 @@ impl SafeFillConfig for SafeConfig {
 
 impl fmt::Display for Config {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
+        // TODO: We need to make a better way to loop through everything. It might be to make
+        // config iterable. This would also make safe_fill_config a lot easier as well.
         write!(
             f,
             "powersave_under = {}\noverheat_threshold = {}",
@@ -80,6 +95,8 @@ fn read_as_string(config_file: &mut File) -> String {
 
 fn parse_as_toml(config: String) -> Config {
     let mut safe_config: SafeConfig =
+        // Read the config from config string and if it fails, give the base config with undefined
+        // variables so that the defined variables can be swapped in
         toml::from_str(config.as_str()).unwrap_or_else(|_| SafeConfig {
             powersave_under: None,
             overheat_threshold: None,

@@ -183,3 +183,39 @@ impl Speed for CPU {
         render_cpu(self)
     }
 }
+
+#[cfg(test)]
+use mockall::{automock, mock, predicate::*};
+#[cfg_attr(test, automock)]
+trait MySpeed {
+    fn read_int(&mut self, sub_path: &str) -> Result<i32, Error>;
+    fn read_str(&mut self, sub_path: &str) -> Result<String, Error>;
+    fn read_temp(&mut self, sub_path: &str) -> Result<i32, Error>;
+    fn write_value(&mut self, value: WritableValue) -> Result<(), Error>;
+    fn update(&mut self) -> Result<(), Error>;
+    fn init_cpu(&mut self) -> Result<(), Error>;
+    fn set_max(&mut self, max: i32) -> Result<(), Error>;
+    fn set_min(&mut self, min: i32) -> Result<(), Error>;
+    fn get_max(&mut self) -> Result<(), Error>;
+    fn get_min(&mut self) -> Result<(), Error>;
+    fn get_cur(&mut self) -> Result<(), Error>;
+    fn get_temp(&mut self) -> Result<(), Error>;
+    fn get_gov(&mut self) -> Result<(), Error>;
+    fn set_gov(&mut self, gov: String) -> Result<(), Error>;
+    fn print(&self);
+    fn render(&self) -> String;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn render_unit_test() {
+        let mut mock = MockMySpeed::new();
+        mock.expect_get_the_gov().return_const("FAKE_GOV");
+        mock.expect_get_the_gov().return_const("FAKE_GOV");
+
+        assert_eq!(mock.render(), "");
+    }
+}

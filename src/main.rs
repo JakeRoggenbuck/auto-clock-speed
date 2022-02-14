@@ -12,7 +12,7 @@ use power::{read_battery_charge, read_lid_state, read_power_source};
 use settings::Settings;
 use system::{
     check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
-    list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus,
+    list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus
 };
 
 pub mod config;

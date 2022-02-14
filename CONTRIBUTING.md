@@ -12,6 +12,8 @@ If you would like to help complete a task, comment in the issue and we may assig
 - Pull requests that change core functionality must have a review
 - Please make WIP PRs drafts
 
+![mark as draft](https://user-images.githubusercontent.com/35516367/152289665-76631734-fbe4-41e6-9b6e-6a7019fa6ff4.png)
+
 ## Testing
 - Tests must be done by contributors of the project
 - Tests must both test how acs preforms with root and normal permissions
@@ -23,8 +25,6 @@ If you would like to help complete a task, comment in the issue and we may assig
 	cargo build && sudo ./target/debug/acs monit -c 
 	cargo build && sudo ./target/debug/acs run -c 
 	```
-
-![mark as draft](https://user-images.githubusercontent.com/35516367/152289665-76631734-fbe4-41e6-9b6e-6a7019fa6ff4.png)
 
 ## Issues marked with `help wanted` or `good first issue`
 - Issues marked with either `help wanted` or `good first issue` are a great place to start!

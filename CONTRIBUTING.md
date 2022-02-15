@@ -14,6 +14,26 @@ If you would like to help complete a task, comment in the issue and we may assig
 
 ![mark as draft](https://user-images.githubusercontent.com/35516367/152289665-76631734-fbe4-41e6-9b6e-6a7019fa6ff4.png)
 
+## Testing
+- Tests must be done by contributors of the project
+- Tests must both test how acs preforms with root and normal permissions
+
+- How to run tests
+	```sh
+	cargo build && ./target/debug/acs monit -c 
+	cargo build && ./target/debug/acs run -c 
+
+	cargo build && sudo ./target/debug/acs monit -c 
+	cargo build && sudo ./target/debug/acs run -c 
+	```
+
+	```sh
+	cargo test
+
+	cargo test unit	# unit testing, none platform specific
+	cargo test acs	# laptop specific testing
+	```
+
 ## Issues marked with `help wanted` or `good first issue`
 - Issues marked with either `help wanted` or `good first issue` are a great place to start!
 - Issues marked with these are a great place for discussion and user suggestions

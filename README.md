@@ -1,9 +1,7 @@
 # Auto Clock Speed (acs) ![Rust](https://img.shields.io/github/workflow/status/jakeroggenbuck/auto-clock-speed/Rust?style=for-the-badge)
 
 A utility to check stats about your CPU, and auto regulate clock speeds to help with either performance or battery life.
-
 This proram is designed for Linux and Intel laptops, although it should theoretically work on AMD systems and sometimes desktops as well.
-
 If you encounter any issues or bugs, please refer to the [wiki](https://github.com/JakeRoggenbuck/auto-clock-speed/wiki) to see if there is a solution
  
 ![image](https://user-images.githubusercontent.com/35516367/151893537-1ed4241d-9e3c-4e02-a620-568820ce13d0.png)
@@ -11,7 +9,7 @@ If you encounter any issues or bugs, please refer to the [wiki](https://github.c
 ## Goals
 - First and foremost, this is a project to learn about Rust and Linux
 - Secondly, try to improve upon AdnanHodzic's already amazing [auto-cpufreq](https://github.com/AdnanHodzic/auto-cpufreq)
-    - Add options to display raw output of governors, clockspeed, turbo, battery, etc. for use in scripts or display panels like polybar.
+- Add options to display raw output of governors, clockspeed, turbo, battery, etc. for use in scripts or display panels like polybar.
 
 ## Install Latest Release
 If you have cargo on your machine, skip to step 3
@@ -33,13 +31,14 @@ If you have cargo on your machine, skip to step 3
 Do steps 1 and 2 from other install if you don't have rust installed, then do this next step.
 
 3. Clone the project and install
+  ```sh
+  git clone https://github.com/JakeRoggenbuck/auto-clock-speed
 
-   ```
-   git clone https://github.com/JakeRoggenbuck/auto-clock-speed
-   ```
-   ```
-   cargo install --path auto-clock-speed
-   ```
+  cargo install --path auto-clock-speed
+
+  # This is needed to have the root version of acs match the local installed version
+  sudo cp ~/.cargo/bin/acs /usr/bin/acs
+  ```
 
 ## In Action
 [![image](https://user-images.githubusercontent.com/35516367/151716685-a3ed3c53-07f4-459f-a3ae-e1de1ba16429.png)](https://www.youtube.com/watch?v=T9nN_rQOYsg)
@@ -80,7 +79,6 @@ WantedBy=multi-user.target
 ```
 
 # Config
-
 ### Using default config
 ```sh
 WARN: Using default config. Create file /etc/acs/acs.toml for custom config.
@@ -98,9 +96,12 @@ also the default settings if no config is provided
 ```yaml
 # acs.toml
 powersave_under = 20
+overheat_threshold = 80
 ```
 
 ## Turn Off
+If you would like to turn off auto-clock-speed, here are the steps.<br>
+Note: This should be done during testing of acs run mode.
 ```sh
 # Temporarily stop (only lasts until reboot)
 sudo systemctl stop acs
@@ -110,15 +111,20 @@ sudo systemctl disable acs
 ```
 
 ## Uninstall
+Here is how to uninstall the binary and the systemctl service.
 ```sh
-# Remove binary
-cargo uninstall autoclockspeed
+# Remove local binary
+cargo uninstall acs
+
+# Remove system shared binary
+rm /usr/bin/acs
 
 # Remove systemctl entry
 rm /etc/systemd/system/acs.service
 ```
 
 ## Example Usage
+Here are some examles of how acs can be used.
 ```sh
 # Monitor mode
 acs monitor

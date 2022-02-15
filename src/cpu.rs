@@ -6,7 +6,7 @@ use super::display::{print_cpu, render_cpu};
 use super::Error;
 
 #[cfg(test)]
-use mockall::{automock, mock, predicate::*};
+use mockall::{automock, predicate::*};
 #[cfg_attr(test, automock)]
 pub trait Speed {
     fn read_int(&mut self, sub_path: &str) -> i32;

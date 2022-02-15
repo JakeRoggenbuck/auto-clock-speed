@@ -169,3 +169,26 @@ pub fn print_cpu_temp(cpu_temp: Vec<i32>, raw: bool) {
 pub fn print_cpu_governors(cpu_governors: Vec<String>, raw: bool) {
     print_vec(cpu_governors, raw);
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn render_cpu_unit_test() {
+        let new = CPU {
+            name: "cpu1".to_string(),
+            number: 1,
+            // Temporary initial values
+            max_freq: 0,
+            min_freq: 0,
+            cur_freq: 0,
+            cur_temp: 0,
+            gov: "Unknown".to_string(),
+        };
+
+        let out = render_cpu(&new);
+        assert!(out.contains("Unknown"));
+        assert!(out.contains("cpu1"));
+    }
+}

@@ -14,31 +14,29 @@ If you encounter any issues or bugs, please refer to the [wiki](https://github.c
 ## Install Latest Release
 If you have cargo on your machine, skip to step 3
 
-1. Install [`rustup.rs`](https://rustup.rs/).
+1. Go to [`rustup.rs`](https://rustup.rs/) to install rust.
 
 2. Setup rust
    ```sh
    rustup override set stable
    rustup update stable
    ```
-
-3. Install from crates
-   ```
-   cargo install autoclockspeed
-   ```
-
-## Install from github
-Do steps 1 and 2 from other install if you don't have rust installed, then do this next step.
-
+   
 3. Clone the project and install
-  ```sh
-  git clone https://github.com/JakeRoggenbuck/auto-clock-speed
+   ```sh
+   git clone https://github.com/JakeRoggenbuck/auto-clock-speed
 
-  cargo install --path auto-clock-speed
+   cargo install --path auto-clock-speed
 
-  # This is needed to have the root version of acs match the local installed version
-  sudo cp ~/.cargo/bin/acs /usr/bin/acs
-  ```
+   # This is needed to have the root version of acs match the local installed version
+   sudo cp ~/.cargo/bin/acs /usr/bin/acs
+   ```
+<hr>
+
+Note: The latest release of acs can also be installed locally with the following
+```sh
+cargo install autoclockspeed
+```
 
 ## In Action
 [![image](https://user-images.githubusercontent.com/35516367/151716685-a3ed3c53-07f4-459f-a3ae-e1de1ba16429.png)](https://www.youtube.com/watch?v=T9nN_rQOYsg)

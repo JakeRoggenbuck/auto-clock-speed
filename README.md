@@ -154,11 +154,12 @@ FLAGS:
     -V, --version    Prints version information
 
 SUBCOMMANDS:
-    get        Get a specific value or status
-    help       Print this message or the help of the given subcommand(s)
-    monitor    Monitor each cpu, its min, max, and current speed, along with the governor
-    run        Run the daemon, this checks and edits your cpu's speed
-    set
+    get           Get a specific value or status
+    help          Prints this message or the help of the given subcommand(s)
+    monitor       Monitor each cpu, it's min, max, and current speed, along with the governor
+    run           Run the daemon, this checks and edit your cpu's speed
+    set           Set a specific value
+    showconfig    Show the current config in use
 ```
 
 <!--       _

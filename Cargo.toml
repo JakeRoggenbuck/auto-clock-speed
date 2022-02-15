@@ -13,7 +13,6 @@ authors = ["jakeroggenbuck <jakeroggenbuck2@gmail.com", "cameron <cameron.bannas
 
 [dependencies]
 structopt = { version = "0.3", default-features = false }
-regex = "1.5.4"
 termion = "1.5.3"
 nix = "0.15.0"
 chrono = "0.4"

@@ -109,12 +109,14 @@ enum ACSCommand {
         get: GetType,
     },
 
+    /// Set a specific value
     #[structopt(name = "set")]
     Set {
         #[structopt(subcommand)]
         set: SetType,
     },
 
+    /// Show the current config in use
     #[structopt(name = "showconfig", alias = "conf")]
     ShowConfig {},
 

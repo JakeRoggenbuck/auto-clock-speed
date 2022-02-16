@@ -37,7 +37,6 @@ dependencies = [
  "log",
  "nix",
  "rasciigraph",
- "regex",
  "serde",
  "structopt",
  "termion",

@@ -2,8 +2,6 @@ use std::fs::{read_dir, File};
 use std::io::Read;
 use std::string::String;
 
-use regex::Regex;
-
 use crate::cpu::Speed;
 
 use super::cpu::CPU;
@@ -101,8 +99,6 @@ pub fn check_available_governors() -> Result<Vec<String>, Error> {
 /// Get all the cpus (cores), returns cpus from 0 to the (amount of cores -1) the machine has
 pub fn list_cpus() -> Result<Vec<CPU>, Error> {
     let mut cpus: Vec<String> = Vec::<String>::new();
-    // The string "cpu" followed by a digit
-    let cpu = Regex::new(r"cpu\d").unwrap();
 
     // Get each item in the cpu directory
     for a in read_dir("/sys/devices/system/cpu")? {
@@ -120,8 +116,9 @@ pub fn list_cpus() -> Result<Vec<CPU>, Error> {
 
     cpus = cpus
         .iter()
-        // Check if the file is actually a cpu, meaning it matches that regex
-        .filter(|x| cpu.is_match(x))
+        // Check if the file is actually a cpu, meaning it matches both having 'cpu' and a
+        // character of index 3 is a number
+        .filter(|x| x.find(r"cpu").is_some() && x.chars().nth(3).unwrap().is_numeric())
         .map(|x| x.to_owned())
         .collect();
 

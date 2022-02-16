@@ -1,6 +1,5 @@
-use std::{mem, thread, time};
+use std::{thread, time};
 
-use nix::libc::{c_short, c_ushort, ioctl, STDOUT_FILENO, TIOCGWINSZ};
 use nix::unistd::Uid;
 use termion::{color, style};
 
@@ -14,7 +13,9 @@ use super::logger;
 use super::logger::Interface;
 use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
 use super::system::{check_cpu_freq, check_turbo_enabled, list_cpus};
+use super::terminal::terminal_width;
 use super::Error;
+use super::Settings;
 
 pub trait Checker {
     fn apply_to_cpus(
@@ -41,6 +42,10 @@ pub trait Checker {
     // Under Powersave Under Rule
     fn under_powersave_under_rule(&mut self) -> Result<(), Error>;
 
+    // High Temperature Rule
+    fn start_high_temperature_rule(&mut self) -> Result<(), Error>;
+    fn end_high_temperature_rule(&mut self) -> Result<(), Error>;
+
     // Other methods
     fn run(&mut self) -> Result<(), Error>;
     fn init(&mut self);
@@ -63,24 +68,21 @@ pub trait Checker {
 pub struct Daemon {
     pub cpus: Vec<CPU>,
     pub message: String,
-    pub verbose: bool,
-    pub delay: u64,
-    pub edit: bool,
     pub lid_state: LidState,
     pub charging: bool,
     pub charge: i8,
     pub logger: logger::Logger,
     pub config: Config,
-    pub no_animation: bool,
     pub already_charging: bool,
     pub already_closed: bool,
     pub already_under_powersave_under_percent: bool,
-    pub should_graph: bool,
+    pub already_high_temp: bool,
     pub graph: String,
     pub grapher: Graph,
-    pub commit: bool,
+    pub temp_max: i8,
     pub commit_hash: String,
     pub timeout: time::Duration,
+    pub settings: Settings,
 }
 
 fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
@@ -93,19 +95,40 @@ fn make_gov_performance(cpu: &mut CPU) -> Result<(), Error> {
     Ok(())
 }
 
-fn get_battery_status() -> String {
-    match has_battery() {
-        Ok(has) => {
-            if has {
-                match read_battery_charge() {
-                    Ok(bat) => format!("Battery: {}{}%{}", style::Bold, bat, style::Reset),
-                    Err(e) => format!("Battery charge could not be read\n{:?}", e),
-                }
-            } else {
-                format!("Battery: {}{}{}", style::Bold, "N/A", style::Reset)
-            }
+fn get_highest_temp(cpus: &Vec<CPU>) -> i32 {
+    let mut temp_max: i32 = 0;
+    for cpu in cpus {
+        if cpu.cur_temp > temp_max {
+            temp_max = cpu.cur_temp;
         }
-        Err(e) => format!("Could not find battery\n{:?}", e),
+    }
+    temp_max
+}
+
+fn green_or_red(boolean: bool) -> String {
+    if boolean {
+        color::Fg(color::Green).to_string()
+    } else {
+        color::Fg(color::Red).to_string()
+    }
+}
+
+fn get_battery_status(charging: bool) -> String {
+    if has_battery() {
+        match read_battery_charge() {
+            Ok(bat) => {
+                format!(
+                    "Battery: {}{}{}%{}",
+                    style::Bold,
+                    green_or_red(charging),
+                    bat,
+                    style::Reset
+                )
+            }
+            Err(e) => format!("Battery charge could not be read\n{:?}", e),
+        }
+    } else {
+        format!("Battery: {}{}{}", style::Bold, "N/A", style::Reset)
     }
 }
 
@@ -129,23 +152,10 @@ fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize) {
             );
 
             if !no_animation {
-                print_turbo_animation(turbo, cores, turbo_y_pos);
+                print_turbo_animation(cores, turbo_y_pos);
             }
         }
         Err(e) => eprintln!("Could not check turbo\n{:?}", e),
-    }
-}
-
-struct TermSize {
-    row: c_short,
-    col: c_ushort,
-}
-
-fn terminal_width() -> usize {
-    unsafe {
-        let mut size: TermSize = mem::zeroed();
-        ioctl(STDOUT_FILENO, TIOCGWINSZ.into(), &mut size as *mut _);
-        return size.col as usize;
     }
 }
 
@@ -214,6 +224,29 @@ impl Checker for Daemon {
         Ok(())
     }
 
+    fn start_high_temperature_rule(&mut self) -> Result<(), Error> {
+        if !self.already_high_temp && self.temp_max > self.config.overheat_threshold {
+            self.logger.log(
+                "Governor set to powersave because CPU temperature is high",
+                logger::Severity::Log,
+            );
+            self.apply_to_cpus(&make_gov_powersave)?;
+            self.already_high_temp = true;
+        }
+        Ok(())
+    }
+
+    fn end_high_temperature_rule(&mut self) -> Result<(), Error> {
+        if self.already_high_temp && self.temp_max < self.config.overheat_threshold {
+            self.logger.log(
+                "Governor set to powesave because CPU temperature is high",
+                logger::Severity::Log,
+            );
+            self.already_high_temp = false;
+        }
+        Ok(())
+    }
+
     fn lid_close_rule(&mut self) -> Result<(), Error> {
         if self.lid_state == LidState::Closed && !self.already_closed {
             self.logger.log(
@@ -278,11 +311,11 @@ impl Checker for Daemon {
 
     fn init(&mut self) {
         // Get the commit hash from the compile time env variable
-        if self.commit {
+        if self.settings.commit {
             self.commit_hash = env!("GIT_HASH").to_string();
         }
 
-        self.timeout = time::Duration::from_millis(self.delay);
+        self.timeout = time::Duration::from_millis(self.settings.delay);
 
         // If we just daemonized then make sure the states are the opposite of what they should
         // The logic after this block will make sure that they are set to the correct state
@@ -295,12 +328,18 @@ impl Checker for Daemon {
     fn start_loop(&mut self) -> Result<(), Error> {
         // Update all the values for each cpu before they get used
         self.update_all()?;
+
+        // Update current states
+        self.charging = read_power_source()?;
+        self.charge = read_battery_charge()?;
+        self.lid_state = read_lid_state()?;
+
         Ok(())
     }
 
     fn end_loop(&mut self) {
         // Print the each cpu, each iteration
-        if self.verbose {
+        if self.settings.verbose {
             self.print();
         }
 
@@ -312,12 +351,9 @@ impl Checker for Daemon {
         loop {
             self.start_loop()?;
 
-            // Update current states
-            self.charging = read_power_source()?;
-            self.charge = read_battery_charge()?;
-            self.lid_state = read_lid_state()?;
-
             // Call all rules
+            self.start_high_temperature_rule()?;
+            self.end_high_temperature_rule()?;
             self.start_charging_rule()?;
             self.end_charging_rule()?;
             self.lid_close_rule()?;
@@ -340,7 +376,7 @@ impl Checker for Daemon {
         self.init();
 
         // Choose which mode acs runs in
-        if self.edit {
+        if self.settings.edit {
             self.loop_edit()?;
         } else {
             self.loop_monit()?;
@@ -355,8 +391,10 @@ impl Checker for Daemon {
             cpu.update()?;
         }
 
+        self.temp_max = (get_highest_temp(&self.cpus) / 1000) as i8;
+
         // Update the data in the graph and render it
-        if self.should_graph {
+        if self.settings.should_graph {
             self.grapher.freqs.push(check_cpu_freq()? as f64);
         }
 
@@ -370,14 +408,14 @@ impl Checker for Daemon {
         let cpus = &self.cpus.iter().map(|c| c.render()).collect::<String>();
 
         // Prints batter percent or N/A if not
-        let battery_status = get_battery_status();
+        let battery_status = get_battery_status(self.charging);
 
         format!("{}{}{}\n{}\n", message, title, cpus, battery_status)
     }
 
     fn postprint_render(&mut self) -> String {
         // Render the graph if should_graph
-        let graph = if self.should_graph {
+        let graph = if self.settings.should_graph {
             self.graph.clone()
         } else {
             String::from("")
@@ -387,7 +425,7 @@ impl Checker for Daemon {
 
         // render all of the logs, e.g.
         // notice: 2022-01-13 00:02:17 -> Governor set to performance because battery is charging
-        let logs = if self.verbose {
+        let logs = if self.settings.verbose {
             self.logger
                 .logs
                 .iter()
@@ -398,7 +436,7 @@ impl Checker for Daemon {
         };
 
         // Render the commit hash and label
-        let commit = if self.commit {
+        let commit = if self.settings.commit {
             format!("Commit hash: {}", self.commit_hash.clone())
         } else {
             String::from("")
@@ -409,10 +447,10 @@ impl Checker for Daemon {
 
     /// Output the values from each cpu
     fn print(&mut self) {
-        let cores = num_cpus::get();
+        let cores = self.cpus.len();
 
         // Compute graph before screen is cleared
-        if self.should_graph {
+        if self.settings.should_graph {
             self.graph = self.grapher.update_one(&mut self.grapher.freqs.clone());
         }
 
@@ -434,7 +472,7 @@ impl Checker for Daemon {
         print!("{}", preprint);
 
         // Shows if turbo is enabled with an amazing turbo animation
-        print_turbo_status(cores, self.no_animation, term_width);
+        print_turbo_status(cores, self.settings.no_animation, term_width);
 
         // Print more pre-rendered items
         print!("{}", postprint);
@@ -468,27 +506,15 @@ fn format_message(edit: bool, started_as_edit: bool, forced_reason: String, dela
     )
 }
 
-pub fn daemon_init(
-    verbose: bool,
-    delay: u64,
-    mut edit: bool,
-    config: Config,
-    no_animation: bool,
-    should_graph: bool,
-    commit: bool,
-) -> Result<Daemon, Error> {
-    let started_as_edit: bool = edit;
+pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> {
+    let started_as_edit: bool = settings.edit;
+    let mut edit = settings.edit;
     let mut forced_reason: String = String::new();
 
     // Check if the device has a battery, otherwise force it to monitor mode
-    match has_battery() {
-        Ok(has) => {
-            if !has {
-                edit = false;
-                forced_reason = "the device has no battery".to_string();
-            }
-        }
-        Err(e) => eprintln!("Could not find battery\n{:?}", e),
+    if !has_battery() {
+        edit = false;
+        forced_reason = "the device has no battery".to_string();
     }
 
     // Check if effective permissions are enough for edit
@@ -511,14 +537,10 @@ pub fn daemon_init(
         }
     }
 
-    let message = format_message(edit, started_as_edit, forced_reason, delay);
+    let message = format_message(edit, started_as_edit, forced_reason, settings.delay);
     // Create a new Daemon
     let mut daemon: Daemon = Daemon {
         cpus: Vec::<CPU>::new(),
-        verbose,
-        delay,
-        // If the program is supposed to change any values (needs root)
-        edit,
         message,
         lid_state: LidState::Unknown,
         // If edit is still true, then there is definitely a bool result to read_power_source
@@ -529,16 +551,16 @@ pub fn daemon_init(
             logs: Vec::<logger::Log>::new(),
         },
         config,
-        no_animation,
         already_charging: false,
         already_closed: false,
         already_under_powersave_under_percent: false,
-        should_graph,
+        already_high_temp: false,
         graph: String::new(),
         grapher: Graph { freqs: vec![0.0] },
-        commit,
+        temp_max: 0,
         commit_hash: String::new(),
         timeout: time::Duration::from_millis(1),
+        settings,
     };
 
     // Make a cpu struct for each cpu listed

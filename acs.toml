@@ -1,2 +1,3 @@
 # acs.toml
 powersave_under = 20
+overheat_threshold = 80

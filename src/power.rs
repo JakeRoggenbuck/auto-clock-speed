@@ -51,27 +51,23 @@ impl fmt::Display for LidState {
 pub fn has_battery() -> bool {
     let power_dir = Path::new("/sys/class/power_supply/");
     let dir_count = read_dir(power_dir).into_iter().len();
-    dir_count > 0
+    dir_count > 1
 }
 
-pub fn get_best_path(paths: [&'static str; 4]) -> Result<&str, Error> {
+pub fn get_best_path(paths: [&'static str; 4]) -> Option<&str> {
     for path in paths.iter() {
         if Path::new(path).exists() {
-            return Ok(path);
+            return Some(path);
         }
     }
 
-    return Err(Error::Unknown);
+    return None;
 }
 
 pub fn read_lid_state() -> Result<LidState, Error> {
     let path: &str = match get_best_path(LID_STATUS_PATH) {
-        Ok(path) => path,
-        Err(error) => {
-            if error.type_id() == Error::IO.type_id() {
-                // Make sure to return IO error if one occurs
-                return Err(error);
-            }
+        Some(path) => path,
+        None => {
             eprintln!("Could not detect your lid state.");
             create_issue!("If you are on a laptop");
             return Ok(LidState::Unapplicable);
@@ -79,7 +75,10 @@ pub fn read_lid_state() -> Result<LidState, Error> {
     };
 
     let mut lid_str: String = String::new();
-    File::open(path)?.read_to_string(&mut lid_str)?;
+    File::open(path)
+        .expect(format!("Could not read {}", path).as_str())
+        .read_to_string(&mut lid_str)
+        .unwrap();
 
     let state = if lid_str.contains("open") {
         LidState::Open
@@ -94,12 +93,8 @@ pub fn read_lid_state() -> Result<LidState, Error> {
 
 pub fn read_battery_charge() -> Result<i8, Error> {
     let path: &str = match get_best_path(BATTERY_CHARGE_PATH) {
-        Ok(path) => path,
-        Err(error) => {
-            if error.type_id() == Error::IO.type_id() {
-                // Make sure to return IO error if one occurs
-                return Err(error);
-            }
+        Some(path) => path,
+        None => {
             // If it doesn't exist then it is plugged in so make it 100% percent capacity
             eprintln!("We could not detect your battery.");
             create_issue!("If you are on a laptop");
@@ -118,12 +113,8 @@ pub fn read_battery_charge() -> Result<i8, Error> {
 
 pub fn read_power_source() -> Result<bool, Error> {
     let path: &str = match get_best_path(POWER_SOURCE_PATH) {
-        Ok(path) => path,
-        Err(error) => {
-            if error.type_id() == Error::IO.type_id() {
-                // Make sure to return IO error if one occurs
-                return Err(error);
-            }
+        Some(path) => path,
+        None => {
             eprintln!("We could not detect your AC power source.");
             create_issue!("If you have a power source");
             return Ok(true);

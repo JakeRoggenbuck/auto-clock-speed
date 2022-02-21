@@ -220,17 +220,17 @@ fn parse_args(config: config::Config) {
             GetType::Speeds { raw } => {
                 let speeds = list_cpu_speeds();
                 print_cpu_speeds(speeds, raw);
-            },
+            }
 
             GetType::Temp { raw } => {
                 let cpu_temp = list_cpu_temp();
                 print_cpu_temp(cpu_temp, raw);
-            },
+            }
 
             GetType::Govs { raw } => {
                 let govs = list_cpu_governors();
                 print_cpu_governors(govs, raw);
-            },
+            }
         },
 
         // Everything starting with "set"

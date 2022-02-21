@@ -176,6 +176,7 @@ fn parse_args(config: config::Config) {
         no_animation: false,
         should_graph: false,
         commit: false,
+        testing: false,
     };
 
     match ACSCommand::from_args() {
@@ -261,6 +262,7 @@ fn parse_args(config: config::Config) {
                 no_animation,
                 should_graph,
                 commit,
+                testing: false,
             };
 
             match daemon_init(settings, config) {
@@ -286,6 +288,7 @@ fn parse_args(config: config::Config) {
                 no_animation,
                 should_graph,
                 commit,
+                testing: false,
             };
 
             match daemon_init(settings, config) {

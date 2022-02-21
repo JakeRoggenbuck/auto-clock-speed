@@ -3,8 +3,6 @@ use std::{thread, time};
 use nix::unistd::Uid;
 use termion::{color, style};
 
-use crate::display::print_turbo_animation;
-
 use super::config::Config;
 use super::cpu::{Speed, CPU};
 use super::debug;
@@ -16,6 +14,7 @@ use super::system::{check_cpu_freq, check_turbo_enabled, list_cpus};
 use super::terminal::terminal_width;
 use super::Error;
 use super::Settings;
+use crate::display::print_turbo_animation;
 
 pub trait Checker {
     fn apply_to_cpus(
@@ -53,8 +52,8 @@ pub trait Checker {
     fn start_loop(&mut self) -> Result<(), Error>;
     fn end_loop(&mut self);
 
-    fn loop_edit(&mut self) -> Result<(), Error>;
-    fn loop_monit(&mut self) -> Result<(), Error>;
+    fn single_edit(&mut self) -> Result<(), Error>;
+    fn single_monit(&mut self) -> Result<(), Error>;
 
     fn update_all(&mut self) -> Result<(), Error>;
 
@@ -346,40 +345,57 @@ impl Checker for Daemon {
         thread::sleep(self.timeout);
     }
 
-    fn loop_edit(&mut self) -> Result<(), Error> {
-        // Loop in run mode
-        loop {
-            self.start_loop()?;
+    fn single_edit(&mut self) -> Result<(), Error> {
+        self.start_loop()?;
 
-            // Call all rules
-            self.start_high_temperature_rule()?;
-            self.end_high_temperature_rule()?;
-            self.start_charging_rule()?;
-            self.end_charging_rule()?;
-            self.lid_close_rule()?;
-            self.lid_open_rule()?;
-            self.under_powersave_under_rule()?;
+        // Call all rules
+        self.start_high_temperature_rule()?;
+        self.end_high_temperature_rule()?;
+        self.start_charging_rule()?;
+        self.end_charging_rule()?;
+        self.lid_close_rule()?;
+        self.lid_open_rule()?;
+        self.under_powersave_under_rule()?;
 
-            self.end_loop();
-        }
+        self.end_loop();
+        Ok(())
     }
 
-    fn loop_monit(&mut self) -> Result<(), Error> {
-        // Loop in monitor mode
-        loop {
-            self.start_loop()?;
-            self.end_loop();
-        }
+    fn single_monit(&mut self) -> Result<(), Error> {
+        self.start_loop()?;
+        self.end_loop();
+        Ok(())
     }
 
     fn run(&mut self) -> Result<(), Error> {
         self.init();
 
-        // Choose which mode acs runs in
-        if self.settings.edit {
-            self.loop_edit()?;
+        if self.settings.testing {
+            // Choose which mode acs runs in
+            if self.settings.edit {
+                let mut reps = 4;
+                while reps > 0 {
+                    self.single_edit()?;
+                    reps -= 1;
+                }
+            } else {
+                let mut reps = 4;
+                while reps > 0 {
+                    self.single_monit()?;
+                    reps -= 1;
+                }
+            }
         } else {
-            self.loop_monit()?;
+            // Choose which mode acs runs in
+            if self.settings.edit {
+                loop {
+                    self.single_edit()?;
+                }
+            } else {
+                loop {
+                    self.single_monit()?;
+                }
+            }
         }
 
         Ok(())
@@ -529,15 +545,33 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
                 style::Reset
             );
 
-            let timeout = time::Duration::from_millis(5000);
-            thread::sleep(timeout);
+            if !settings.testing {
+                let timeout = time::Duration::from_millis(5000);
+                thread::sleep(timeout);
+            }
 
             edit = false;
             forced_reason = "acs was not run as root".to_string();
         }
     }
 
-    let message = format_message(edit, started_as_edit, forced_reason, settings.delay);
+    let message = format_message(
+        settings.edit,
+        started_as_edit,
+        forced_reason,
+        settings.delay,
+    );
+
+    let new_settings = Settings {
+        verbose: settings.verbose,
+        delay: settings.delay,
+        edit,
+        no_animation: settings.no_animation,
+        should_graph: settings.should_graph,
+        commit: settings.commit,
+        testing: settings.testing,
+    };
+
     // Create a new Daemon
     let mut daemon: Daemon = Daemon {
         cpus: Vec::<CPU>::new(),
@@ -545,7 +579,11 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         lid_state: LidState::Unknown,
         // If edit is still true, then there is definitely a bool result to read_power_source
         // otherwise, there is a real problem, because there should be a power source possible
-        charging: if edit { read_power_source()? } else { false },
+        charging: if settings.edit {
+            read_power_source()?
+        } else {
+            false
+        },
         charge: 100,
         logger: logger::Logger {
             logs: Vec::<logger::Log>::new(),
@@ -560,7 +598,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         temp_max: 0,
         commit_hash: String::new(),
         timeout: time::Duration::from_millis(1),
-        settings,
+        settings: new_settings,
     };
 
     // Make a cpu struct for each cpu listed
@@ -571,4 +609,76 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
     }
 
     Ok(daemon)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::default_config;
+
+    #[test]
+    fn daemon_init_force_to_monit_integration_test() {
+        let settings = Settings {
+            verbose: true,
+            delay: 1,
+            edit: true,
+            no_animation: false,
+            should_graph: false,
+            commit: false,
+            testing: true,
+        };
+
+        let config = default_config();
+
+        let daemon = daemon_init(settings, config).unwrap();
+        assert_eq!(daemon.settings.edit, false);
+    }
+
+    #[test]
+    fn preprint_render_test_edit_integration_test() {
+        let settings = Settings {
+            verbose: true,
+            delay: 1,
+            edit: true,
+            no_animation: false,
+            should_graph: false,
+            commit: false,
+            testing: true,
+        };
+
+        let config = default_config();
+
+        let mut daemon = daemon_init(settings, config).unwrap();
+        let preprint = Checker::preprint_render(&mut daemon);
+        assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[38;5;1medit\u{1b}[m mode with a delay of 1 milliseconds\n"));
+        assert!(preprint.contains("Name  Max\tMin\tFreq\tTemp\tGovernor\n"));
+        assert!(preprint.contains("Hz"));
+        assert!(preprint.contains("cpu"));
+        assert!(preprint.contains("C"));
+        assert!(preprint.contains("Battery: "));
+    }
+
+    #[test]
+    fn preprint_render_test_monit_integration_test() {
+        let settings = Settings {
+            verbose: true,
+            delay: 1,
+            edit: false,
+            no_animation: false,
+            should_graph: false,
+            commit: false,
+            testing: true,
+        };
+
+        let config = default_config();
+
+        let mut daemon = daemon_init(settings, config).unwrap();
+        let preprint = Checker::preprint_render(&mut daemon);
+        assert!(preprint.contains("Auto Clock Speed daemon has been initialized in monitor mode with a delay of 1 milliseconds\n"));
+        assert!(preprint.contains("Name  Max\tMin\tFreq\tTemp\tGovernor\n"));
+        assert!(preprint.contains("Hz"));
+        assert!(preprint.contains("cpu"));
+        assert!(preprint.contains("C"));
+        assert!(preprint.contains("Battery: "));
+    }
 }

@@ -1,37 +1,16 @@
 use std::fmt::Display;
 use std::thread;
 
-use termion::{color, style};
-
 use super::config::get_config;
 use super::cpu::CPU;
 use super::power::LidState;
-
-#[macro_export]
-macro_rules! bold_color_text {
-    ($a:expr, $b:expr) => {{
-        format!(
-            "{}{}{}{}{}",
-            termion::style::Bold,
-            termion::color::Fg($b),
-            $a,
-            termion::color::Fg(termion::color::Reset),
-            termion::style::Reset,
-        )
-    }};
-}
+use colored::*;
 
 #[macro_export]
 macro_rules! warn_user {
     ($a:expr) => {{
-        println!(
-            "{}{}WARN:{}{} {}",
-            termion::style::Bold,
-            termion::color::Fg(termion::color::Yellow),
-            termion::color::Fg(termion::color::Reset),
-            termion::style::Reset,
-            $a,
-        );
+        use colored::Colorize;
+        println!("{}{}", "WARN".bold().yellow(), $a,);
     }};
 }
 
@@ -134,26 +113,23 @@ pub fn print_cpu(cpu: &CPU) {
 }
 
 pub fn render_cpu(cpu: &CPU) -> String {
-    let mut temp_color: String = color::Fg(color::Green).to_string();
+    let temp: colored::ColoredString;
 
     if cpu.cur_temp / 1000 > 60 {
-        temp_color = color::Fg(color::Red).to_string();
+        temp = format!("{}C", cpu.cur_temp / 1000).red();
     } else if cpu.cur_temp / 1000 > 40 {
-        temp_color = color::Fg(color::Yellow).to_string();
+        temp = format!("{}C", cpu.cur_temp / 1000).yellow();
+    } else {
+        temp = format!("{}C", cpu.cur_temp / 1000).green();
     }
 
     format!(
-        "{}{}:{} {}Hz\t{}Hz\t{}{}Hz{}\t{}C{}\t{}\n",
-        style::Bold,
-        cpu.name,
-        style::Reset,
+        "{}: {}Hz\t{}Hz\t{}\t{}\t{}\n",
+        cpu.name.bold(),
         cpu.max_freq / 1000,
         cpu.min_freq / 1000,
-        color::Fg(color::Green),
-        cpu.cur_freq / 1000,
-        temp_color,
-        cpu.cur_temp / 1000,
-        style::Reset,
+        format!("{}Hz", cpu.cur_freq / 1000).green(),
+        temp,
         cpu.gov
     )
 }

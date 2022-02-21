@@ -1,7 +1,7 @@
 use std::{thread, time};
 
+use colored::*;
 use nix::unistd::Uid;
-use termion::{color, style};
 
 use crate::display::print_turbo_animation;
 
@@ -105,30 +105,23 @@ fn get_highest_temp(cpus: &Vec<CPU>) -> i32 {
     temp_max
 }
 
-fn green_or_red(boolean: bool) -> String {
-    if boolean {
-        color::Fg(color::Green).to_string()
-    } else {
-        color::Fg(color::Red).to_string()
-    }
-}
-
 fn get_battery_status(charging: bool) -> String {
     if has_battery() {
         match read_battery_charge() {
             Ok(bat) => {
                 format!(
-                    "Battery: {}{}{}%{}",
-                    style::Bold,
-                    green_or_red(charging),
-                    bat,
-                    style::Reset
+                    "Battery: {}",
+                    if charging {
+                        format!("{}%", bat).green()
+                    } else {
+                        format!("{}%", bat).red()
+                    },
                 )
             }
             Err(e) => format!("Battery charge could not be read\n{:?}", e),
         }
     } else {
-        format!("Battery: {}{}{}", style::Bold, "N/A", style::Reset)
+        format!("Battery: {}", "N/A".bold())
     }
 }
 
@@ -144,12 +137,7 @@ fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize) {
         Ok(turbo) => {
             let enabled_message = if turbo { "yes" } else { "no" };
 
-            println!(
-                "  Turbo: {}{}{}",
-                style::Bold,
-                enabled_message,
-                style::Reset
-            );
+            println!("{} {}", "  Turbo:", enabled_message.bold(),);
 
             if !no_animation {
                 print_turbo_animation(cores, turbo_y_pos);
@@ -403,7 +391,7 @@ impl Checker for Daemon {
 
     fn preprint_render(&mut self) -> String {
         let message = format!("{}\n", self.message);
-        let title = format!("{}Name  Max\tMin\tFreq\tTemp\tGovernor\n", style::Bold);
+        let title = "Name  Max\tMin\tFreq\tTemp\tGovernor\n".bold();
         // Render each line of cpu core
         let cpus = &self.cpus.iter().map(|c| c.render()).collect::<String>();
 
@@ -480,29 +468,17 @@ impl Checker for Daemon {
 }
 
 fn format_message(edit: bool, started_as_edit: bool, forced_reason: String, delay: u64) -> String {
-    // Create the message for why it force switched to monitor mode
-    let force: String = if started_as_edit != edit {
-        format!(
-            "\n{}Forced to monitor mode because {}!{}",
-            color::Fg(color::Red),
-            forced_reason,
-            style::Reset
-        )
-    } else {
-        "".to_string()
-    };
-
     // Format the original message with mode and delay, along with the forced message if it
     // was forced to switched modes
     format!(
         "Auto Clock Speed daemon has been initialized in {} mode with a delay of {} milliseconds{}\n",
         if edit {
-            format!("{}edit{}", color::Fg(color::Red), style::Reset)
+            "edit".red()
         } else {
-            "monitor".to_string()
+            "monitor".normal()
         },
         delay,
-        force
+        if started_as_edit != edit { format!("\nForced to monitor mode because {}!", forced_reason).red() } else { "".normal() }
     )
 }
 
@@ -522,11 +498,9 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         // If not running as root, tell the user and force to monitor
         if !Uid::effective().is_root() {
             println!(
-                "{}{}{}{}",
-                color::Fg(color::Red),
+                "{}{}",
                 "In order to properly run the daemon in edit mode you must give the executable root privileges.\n",
-                "Continuing anyway in 5 seconds...",
-                style::Reset
+                "Continuing anyway in 5 seconds...".red()
             );
 
             let timeout = time::Duration::from_millis(5000);

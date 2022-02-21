@@ -70,7 +70,7 @@ The line after `[Service]` in `acs.service` is the command that will be run. You
 Description=Manages Clock Speed
 
 [Service]
-ExecStart=/home/your-user-here/.cargo/bin/acs run --no-animation
+ExecStart=/home/your-user-here/.cargo/bin/acs run --no-animation --quiet
 
 [Install]
 WantedBy=multi-user.target

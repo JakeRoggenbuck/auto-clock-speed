@@ -24,7 +24,7 @@ pub trait Speed {
     fn render(&self) -> String;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CPU {
     pub name: String,
     pub number: i8,

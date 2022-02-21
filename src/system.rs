@@ -1,7 +1,7 @@
+use cached::proc_macro::once;
 use std::fs::{read_dir, File};
 use std::io::Read;
 use std::string::String;
-use cached::proc_macro::once;
 
 use crate::cpu::Speed;
 
@@ -103,8 +103,10 @@ pub fn list_cpus() -> Vec<CPU> {
     let mut cpus: Vec<String> = Vec::<String>::new();
 
     // Get each item in the cpu directory
-    for a in read_dir("/sys/devices/system/cpu")? {
-        let path_string: String = format!("{:?}", a?.path());
+    for a in read_dir("/sys/devices/system/cpu").unwrap_or_else(|_| {
+        panic!("Could not read directory");
+    }) {
+        let path_string: String = format!("{:?}", a.unwrap().path());
         let path: String = path_string
             .chars()
             // Skip the characters that are before the cpu name
@@ -317,10 +319,7 @@ microcode	: 0xea
     #[test]
     fn list_cpu_governors_acs_test() {
         // Type check
-        assert_eq!(
-            type_of(list_cpu_governors()),
-            type_of(Vec::<String>::new())
-        );
+        assert_eq!(type_of(list_cpu_governors()), type_of(Vec::<String>::new()));
 
         for x in list_cpu_governors() {
             assert!(x == "powersave" || x == "performance");

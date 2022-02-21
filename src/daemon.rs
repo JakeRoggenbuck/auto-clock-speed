@@ -399,7 +399,7 @@ impl Checker for Daemon {
 
         // Update the data in the graph and render it
         if self.settings.should_graph {
-            self.grapher.freqs.push(check_cpu_freq()? as f64);
+            self.grapher.freqs.push(check_cpu_freq() as f64);
         }
 
         Ok(())
@@ -576,7 +576,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
     };
 
     // Make a cpu struct for each cpu listed
-    for mut cpu in list_cpus()? {
+    for mut cpu in list_cpus() {
         // Fill that value that were zero with real values
         cpu.init_cpu()?;
         daemon.cpus.push(cpu);

@@ -5,7 +5,7 @@ use std::time::SystemTime;
 
 use chrono::prelude::DateTime;
 use chrono::Utc;
-use termion::{color, style};
+use colored::*;
 
 pub enum Severity {
     Error,
@@ -26,24 +26,9 @@ pub struct Log {
 impl fmt::Display for Log {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let severity = match &self.severity {
-            Severity::Error => format!(
-                "{}{}error:{}",
-                color::Fg(color::Red),
-                style::Bold,
-                style::Reset
-            ),
-            Severity::Warning => format!(
-                "{}{}warn:{}",
-                color::Fg(color::Yellow),
-                style::Bold,
-                style::Reset
-            ),
-            Severity::Log => format!(
-                "{}{}notice:{}",
-                color::Fg(color::Blue),
-                style::Bold,
-                style::Reset
-            ),
+            Severity::Error => "error:".bold().red(),
+            Severity::Warning => "warn:".bold().yellow(),
+            Severity::Log => "notice:".bold().blue(),
         };
 
         let time = DateTime::<Utc>::from(self.timestamp).format("%Y-%m-%d %H:%M:%S");

@@ -3,8 +3,6 @@ use std::{thread, time};
 use nix::unistd::Uid;
 use termion::{color, style};
 
-use crate::display::print_turbo_animation;
-
 use super::config::Config;
 use super::cpu::{Speed, CPU};
 use super::debug;
@@ -16,6 +14,7 @@ use super::system::{check_cpu_freq, check_turbo_enabled, list_cpus};
 use super::terminal::terminal_width;
 use super::Error;
 use super::Settings;
+use crate::display::print_turbo_animation;
 
 pub trait Checker {
     fn apply_to_cpus(
@@ -546,8 +545,10 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
                 style::Reset
             );
 
-            let timeout = time::Duration::from_millis(5000);
-            thread::sleep(timeout);
+            if !settings.testing {
+                let timeout = time::Duration::from_millis(5000);
+                thread::sleep(timeout);
+            }
 
             edit = false;
             forced_reason = "acs was not run as root".to_string();
@@ -631,5 +632,53 @@ mod tests {
 
         let daemon = daemon_init(settings, config).unwrap();
         assert_eq!(daemon.settings.edit, false);
+    }
+
+    #[test]
+    fn preprint_render_test_edit_integration_test() {
+        let settings = Settings {
+            verbose: true,
+            delay: 1,
+            edit: true,
+            no_animation: false,
+            should_graph: false,
+            commit: false,
+            testing: true,
+        };
+
+        let config = default_config();
+
+        let mut daemon = daemon_init(settings, config).unwrap();
+        let preprint = Checker::preprint_render(&mut daemon);
+        assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[38;5;1medit\u{1b}[m mode with a delay of 1 milliseconds\n"));
+        assert!(preprint.contains("Name  Max\tMin\tFreq\tTemp\tGovernor\n"));
+        assert!(preprint.contains("Hz"));
+        assert!(preprint.contains("cpu"));
+        assert!(preprint.contains("C"));
+        assert!(preprint.contains("Battery: "));
+    }
+
+    #[test]
+    fn preprint_render_test_monit_integration_test() {
+        let settings = Settings {
+            verbose: true,
+            delay: 1,
+            edit: false,
+            no_animation: false,
+            should_graph: false,
+            commit: false,
+            testing: true,
+        };
+
+        let config = default_config();
+
+        let mut daemon = daemon_init(settings, config).unwrap();
+        let preprint = Checker::preprint_render(&mut daemon);
+        assert!(preprint.contains("Auto Clock Speed daemon has been initialized in monitor mode with a delay of 1 milliseconds\n"));
+        assert!(preprint.contains("Name  Max\tMin\tFreq\tTemp\tGovernor\n"));
+        assert!(preprint.contains("Hz"));
+        assert!(preprint.contains("cpu"));
+        assert!(preprint.contains("C"));
+        assert!(preprint.contains("Battery: "));
     }
 }

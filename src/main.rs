@@ -109,12 +109,14 @@ enum ACSCommand {
         get: GetType,
     },
 
+    /// Set a specific value
     #[structopt(name = "set")]
     Set {
         #[structopt(subcommand)]
         set: SetType,
     },
 
+    /// Show the current config in use
     #[structopt(name = "showconfig", alias = "conf")]
     ShowConfig {},
 
@@ -174,15 +176,16 @@ fn parse_args(config: config::Config) {
         no_animation: false,
         should_graph: false,
         commit: false,
+        testing: false,
     };
 
     match ACSCommand::from_args() {
         // Everything starting with "get"
         ACSCommand::Get { get } => match get {
-            GetType::Freq { raw } => match check_cpu_freq() {
-                Ok(f) => print_freq(f, raw),
-                Err(_) => eprintln!("Failed to get cpu frequency"),
-            },
+            GetType::Freq { raw } => {
+                let f = check_cpu_freq();
+                print_freq(f, raw);
+            }
 
             GetType::Power { raw } => match read_lid_state() {
                 Ok(lid) => match read_battery_charge() {
@@ -207,28 +210,28 @@ fn parse_args(config: config::Config) {
                 Err(_) => println!("Failed to get available governors"),
             },
 
-            GetType::CPUS { raw } => match list_cpus() {
-                Ok(cpus) => match check_cpu_name() {
+            GetType::CPUS { raw } => {
+                let cpus = list_cpus();
+                match check_cpu_name() {
                     Ok(name) => print_cpus(cpus, name, raw),
                     Err(_) => println!("Failed get list of cpus"),
-                },
-                Err(_) => println!("Failed get list of cpus"),
-            },
+                };
+            }
 
-            GetType::Speeds { raw } => match list_cpu_speeds() {
-                Ok(cpu_speeds) => print_cpu_speeds(cpu_speeds, raw),
-                Err(_) => println!("Failed to get list of cpu speeds"),
-            },
+            GetType::Speeds { raw } => {
+                let speeds = list_cpu_speeds();
+                print_cpu_speeds(speeds, raw);
+            }
 
-            GetType::Temp { raw } => match list_cpu_temp() {
-                Ok(cpu_temp) => print_cpu_temp(cpu_temp, raw),
-                Err(_) => println!("Failed to get list of cpu temperature"),
-            },
+            GetType::Temp { raw } => {
+                let cpu_temp = list_cpu_temp();
+                print_cpu_temp(cpu_temp, raw);
+            }
 
-            GetType::Govs { raw } => match list_cpu_governors() {
-                Ok(cpu_governors) => print_cpu_governors(cpu_governors, raw),
-                Err(_) => println!("Failed to get list of cpu governors"),
-            },
+            GetType::Govs { raw } => {
+                let govs = list_cpu_governors();
+                print_cpu_governors(govs, raw);
+            }
         },
 
         // Everything starting with "set"
@@ -259,6 +262,7 @@ fn parse_args(config: config::Config) {
                 no_animation,
                 should_graph,
                 commit,
+                testing: false,
             };
 
             match daemon_init(settings, config) {
@@ -284,6 +288,7 @@ fn parse_args(config: config::Config) {
                 no_animation,
                 should_graph,
                 commit,
+                testing: false,
             };
 
             match daemon_init(settings, config) {

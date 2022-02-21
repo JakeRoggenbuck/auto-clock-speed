@@ -201,9 +201,6 @@ mod tests {
 
         // This passes, as expected
         assert_eq!(mock.read_str("zflat"), "yflat");
-
-        // However, this fails
-        // thread 'cpu::tests::render_unit_test' panicked at 'MockSpeed::render(): No matching expectation found', src/cpu.rs:10:18
-        // assert_eq!(mock.render(), "plancklang");
+        assert_eq!(mock.read_int("abc"), 42);
     }
 }

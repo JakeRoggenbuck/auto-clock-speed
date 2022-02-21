@@ -1,9 +1,9 @@
-use std::any::Any;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::fs::{read_dir, File};
 use std::io::Read;
 use std::path::Path;
+use cached::proc_macro::once;
 
 use super::create_issue;
 use super::Error;
@@ -54,6 +54,7 @@ pub fn has_battery() -> bool {
     dir_count > 1
 }
 
+#[once]
 pub fn get_best_path(paths: [&'static str; 4]) -> Option<&str> {
     for path in paths.iter() {
         if Path::new(path).exists() {

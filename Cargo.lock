@@ -66,6 +66,7 @@ dependencies = [
  "chrono",
  "colored",
  "env_logger",
+ "libc",
  "log",
  "mockall",
  "nix",

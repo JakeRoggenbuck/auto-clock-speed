@@ -5,4 +5,5 @@ pub struct Settings {
     pub no_animation: bool,
     pub should_graph: bool,
     pub commit: bool,
+    pub testing: bool,
 }

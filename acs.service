@@ -2,7 +2,7 @@
 Description=Manages Clock Speed
 
 [Service]
-ExecStart=/home/your-user-here/.cargo/bin/acs run --no-animation
+ExecStart=/home/your-user-here/.cargo/bin/acs run --no-animation --quiet
 
 [Install]
 WantedBy=multi-user.target

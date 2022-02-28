@@ -10,6 +10,7 @@ use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
 use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
+use super::state::State;
 use super::system::{check_cpu_freq, check_turbo_enabled, list_cpus};
 use super::terminal::terminal_width;
 use super::Error;
@@ -82,6 +83,7 @@ pub struct Daemon {
     pub commit_hash: String,
     pub timeout: time::Duration,
     pub settings: Settings,
+    pub state: State,
 }
 
 fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
@@ -572,6 +574,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         temp_max: 0,
         commit_hash: String::new(),
         timeout: time::Duration::from_millis(1),
+        state: State::Normal,
         settings: new_settings,
     };
 

@@ -95,6 +95,7 @@ also the default settings if no config is provided
 # acs.toml
 powersave_under = 20
 overheat_threshold = 80
+ignore_power = false
 ```
 
 ## Turn Off

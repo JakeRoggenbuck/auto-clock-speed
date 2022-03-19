@@ -15,6 +15,16 @@ pub fn check_cpu_freq() -> i32 {
     (sum as f32 / freqs.len() as f32) as i32
 }
 
+pub fn get_highest_temp(cpus: &Vec<CPU>) -> i32 {
+    let mut temp_max: i32 = 0;
+    for cpu in cpus {
+        if cpu.cur_temp > temp_max {
+            temp_max = cpu.cur_temp;
+        }
+    }
+    temp_max
+}
+
 fn open_cpu_info() -> String {
     let mut cpu_info: String = String::new();
     File::open("/proc/cpuinfo")

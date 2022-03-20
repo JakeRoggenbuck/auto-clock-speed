@@ -1,3 +1,8 @@
+#[link(name = "msrtools", kind = "static")]
+extern "C" {
+    fn rdmsr_on_cpu(reg: u32, cpu: i8) -> u32;
+}
+
 // MSR Dictionary
 /// Platform Information, CPU Multiplier
 pub const MSR_PLATFORM_INFO: u32 = 0xCE;
@@ -94,6 +99,6 @@ Atom Silvermont / Valleyview 	6 	55 	        ? 	? 	? 	? 	N 	3.13 (ed93b71492d) 	
 /// CPL 0 Required
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 #[allow(unused_mut)]
-pub unsafe fn msr_read(reg: u32) -> u64 {
-    return reg as u64;
+pub unsafe fn msr_read(reg: u32, cpuid: i8) -> u32 {     // TODO make cpuid optional
+    return unsafe { rdmsr_on_cpu(reg, cpuid)};
 }

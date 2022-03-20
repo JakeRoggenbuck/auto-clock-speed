@@ -14,8 +14,6 @@
 #include <dirent.h>
 #include <ctype.h>
 
-#include "version.h"
-
 /* Number of decimal digits for a certain number of bits */
 /* (int) ceil(log(2^n)/log(10)) */
 int decdigits[] = {
@@ -32,7 +30,7 @@ int decdigits[] = {
 
 const char *program;
 
-int rdmsr_on_cpu(uint32_t reg, int cpu);
+uint64_t rdmsr_on_cpu(uint32_t reg, int cpu);
 
 /* filter out ".", "..", "microcode" in /dev/cpu */
 int dir_filter(const struct dirent *dirp) {

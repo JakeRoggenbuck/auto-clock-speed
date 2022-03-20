@@ -1,4 +1,4 @@
-#[link(name = "msrtools", kind = "static")]
+#[link(name = "libmsrtools", kind = "static")]
 extern "C" {
     fn rdmsr_on_cpu(reg: u32, cpu: i8) -> u32;
 }

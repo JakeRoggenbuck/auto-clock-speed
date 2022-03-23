@@ -256,6 +256,10 @@ fn parse_args(config: config::Config) {
             should_graph,
             commit,
         } => {
+            if !config_dir_exists() {
+                warn_user!("Config directory '/etc/acs' does not exist!");
+            }
+
             let settings = Settings {
                 verbose: !quiet,
                 delay,
@@ -282,6 +286,10 @@ fn parse_args(config: config::Config) {
             should_graph,
             commit,
         } => {
+            if !config_dir_exists() {
+                warn_user!("Config directory '/etc/acs' does not exist!");
+            }
+
             let settings = Settings {
                 verbose: true,
                 delay,
@@ -305,10 +313,6 @@ fn parse_args(config: config::Config) {
 
 fn main() {
     env_logger::init();
-
-    if !config_dir_exists() {
-        warn_user!("Config directory '/etc/acs' does not exist!");
-    }
 
     let config: config::Config = get_config();
 

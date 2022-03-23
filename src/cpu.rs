@@ -5,18 +5,21 @@ use std::path::Path;
 use super::display::{print_cpu, render_cpu};
 use super::Error;
 
+#[cfg(test)]
+use mockall::{automock, predicate::*};
+#[cfg_attr(test, automock)]
 pub trait Speed {
-    fn read_int(&mut self, sub_path: &str) -> Result<i32, Error>;
-    fn read_str(&mut self, sub_path: &str) -> Result<String, Error>;
+    fn read_int(&mut self, sub_path: &str) -> i32;
+    fn read_str(&mut self, sub_path: &str) -> String;
     fn read_temp(&mut self, sub_path: &str) -> Result<i32, Error>;
     fn write_value(&mut self, value: WritableValue) -> Result<(), Error>;
     fn update(&mut self) -> Result<(), Error>;
     fn init_cpu(&mut self) -> Result<(), Error>;
     fn set_max(&mut self, max: i32) -> Result<(), Error>;
     fn set_min(&mut self, min: i32) -> Result<(), Error>;
-    fn get_max(&mut self) -> Result<(), Error>;
-    fn get_min(&mut self) -> Result<(), Error>;
-    fn get_cur(&mut self) -> Result<(), Error>;
+    fn get_max(&mut self);
+    fn get_min(&mut self);
+    fn get_cur(&mut self);
     fn get_temp(&mut self) -> Result<(), Error>;
     fn get_gov(&mut self) -> Result<(), Error>;
     fn set_gov(&mut self, gov: String) -> Result<(), Error>;
@@ -24,7 +27,7 @@ pub trait Speed {
     fn render(&self) -> String;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CPU {
     pub name: String,
     pub number: i8,
@@ -44,28 +47,33 @@ pub enum WritableValue {
 
 impl Speed for CPU {
     /// A generic function to take a path and a single cpu (single core) and get an i32
-    fn read_int(&mut self, sub_path: &str) -> Result<i32, Error> {
+    fn read_int(&mut self, sub_path: &str) -> i32 {
         let mut info: String = String::new();
         let cpu_info_path: String = format!("/sys/devices/system/cpu/{}/{}", self.name, sub_path);
 
-        File::open(cpu_info_path)?.read_to_string(&mut info)?;
+        File::open(cpu_info_path)
+            .unwrap()
+            .read_to_string(&mut info)
+            .unwrap();
 
         // Remove newline
         info.pop();
-        Ok(info
-            .parse::<i32>()
-            .unwrap_or_else(|e| panic!("Could not parse {}\n{}", sub_path, e)))
+        info.parse::<i32>()
+            .unwrap_or_else(|e| panic!("Could not parse {}\n{}", sub_path, e))
     }
 
-    fn read_str(&mut self, sub_path: &str) -> Result<String, Error> {
+    fn read_str(&mut self, sub_path: &str) -> String {
         let mut info: String = String::new();
         let cpu_info_path: String = format!("/sys/devices/system/cpu/{}/{}", self.name, sub_path);
 
-        File::open(cpu_info_path)?.read_to_string(&mut info)?;
+        File::open(cpu_info_path)
+            .unwrap()
+            .read_to_string(&mut info)
+            .unwrap();
 
         // Remove newline
         info.pop();
-        Ok(info)
+        info
     }
 
     fn read_temp(&mut self, sub_path: &str) -> Result<i32, Error> {
@@ -119,9 +127,9 @@ impl Speed for CPU {
     /// Get all the attributes of a cpu
     /// These get methods write the value returned
     fn update(&mut self) -> Result<(), Error> {
-        self.get_max()?;
-        self.get_min()?;
-        self.get_cur()?;
+        self.get_max();
+        self.get_min();
+        self.get_cur();
         self.get_temp()?;
         self.get_gov()?;
         Ok(())
@@ -144,19 +152,16 @@ impl Speed for CPU {
         Ok(())
     }
 
-    fn get_max(&mut self) -> Result<(), Error> {
-        self.max_freq = self.read_int("cpufreq/scaling_max_freq")?;
-        Ok(())
+    fn get_max(&mut self) {
+        self.max_freq = self.read_int("cpufreq/scaling_max_freq");
     }
 
-    fn get_min(&mut self) -> Result<(), Error> {
-        self.min_freq = self.read_int("cpufreq/scaling_min_freq")?;
-        Ok(())
+    fn get_min(&mut self) {
+        self.min_freq = self.read_int("cpufreq/scaling_min_freq");
     }
 
-    fn get_cur(&mut self) -> Result<(), Error> {
-        self.cur_freq = self.read_int("cpufreq/scaling_cur_freq")?;
-        Ok(())
+    fn get_cur(&mut self) {
+        self.cur_freq = self.read_int("cpufreq/scaling_cur_freq");
     }
 
     fn get_temp(&mut self) -> Result<(), Error> {
@@ -165,7 +170,7 @@ impl Speed for CPU {
     }
 
     fn get_gov(&mut self) -> Result<(), Error> {
-        self.gov = self.read_str("cpufreq/scaling_governor")?;
+        self.gov = self.read_str("cpufreq/scaling_governor");
         Ok(())
     }
 
@@ -181,5 +186,21 @@ impl Speed for CPU {
 
     fn render(&self) -> String {
         render_cpu(self)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn render_unit_test() {
+        let mut mock = MockSpeed::new();
+        mock.expect_read_int().return_const(42);
+        mock.expect_read_str().return_const("yflat".to_string());
+
+        // This passes, as expected
+        assert_eq!(mock.read_str("zflat"), "yflat");
+        assert_eq!(mock.read_int("abc"), 42);
     }
 }

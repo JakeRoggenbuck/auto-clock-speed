@@ -10,7 +10,7 @@ use colored::*;
 macro_rules! warn_user {
     ($a:expr) => {{
         use colored::Colorize;
-        println!("{}{}", "WARN".bold().yellow(), $a,);
+        println!("{}: {}", "WARN".bold().yellow(), $a,);
     }};
 }
 

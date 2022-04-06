@@ -20,7 +20,7 @@ macro_rules! create_issue {
         eprintln!(
             "{}, {}",
             $a,
-            "please create an issue at https://github.com/JakeRoggenbuck/auto-clock-speed/issues/new",
+            "please create an issue at https://github.com/JakeRoggenbuck/auto-clock-speed/issues/new/choose",
         );
     }};
 }

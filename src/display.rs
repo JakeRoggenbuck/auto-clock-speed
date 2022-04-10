@@ -20,7 +20,7 @@ macro_rules! create_issue {
         eprintln!(
             "{}, {}",
             $a,
-            "please create an issue at https://github.com/JakeRoggenbuck/auto-clock-speed/issues/new",
+            "please create an issue at https://github.com/JakeRoggenbuck/auto-clock-speed/issues/new/choose",
         );
     }};
 }
@@ -119,16 +119,18 @@ pub fn render_cpu(cpu: &CPU) -> String {
         temp = format!("{}C", cpu.cur_temp / 1000).red();
     } else if cpu.cur_temp / 1000 > 40 {
         temp = format!("{}C", cpu.cur_temp / 1000).yellow();
+    } else if cpu.cur_temp / 1000 == 1 || cpu.cur_temp / 1000 == 0 {
+        temp = format!("{}C*", cpu.cur_temp / 1000).white();
     } else {
         temp = format!("{}C", cpu.cur_temp / 1000).green();
     }
 
     format!(
-        "{}: {}Hz\t{}Hz\t{}\t{}\t{}\n",
+        "{}: {}MHz\t{}MHz\t{}\t{}\t{}\n",
         cpu.name.bold(),
         cpu.max_freq / 1000,
         cpu.min_freq / 1000,
-        format!("{}Hz", cpu.cur_freq / 1000).green(),
+        format!("{}MHz", cpu.cur_freq / 1000).green(),
         temp,
         cpu.gov
     )

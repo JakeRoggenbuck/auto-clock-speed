@@ -114,7 +114,6 @@ pub fn print_cpu(cpu: &CPU) {
 
 pub fn render_cpu(cpu: &CPU) -> String {
     let temp: colored::ColoredString;
-    // let mut hmm;
 
     if cpu.cur_temp / 1000 > 60 {
         temp = format!("{}C", cpu.cur_temp / 1000).red();
@@ -122,7 +121,6 @@ pub fn render_cpu(cpu: &CPU) -> String {
         temp = format!("{}C", cpu.cur_temp / 1000).yellow();
     } else if cpu.cur_temp / 1000 == 1 || cpu.cur_temp / 1000 == 0 {
         temp = format!("{}C*", cpu.cur_temp / 1000).white();
-        // hmm = true;
     } else {
         temp = format!("{}C", cpu.cur_temp / 1000).green();
     }

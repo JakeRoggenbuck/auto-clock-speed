@@ -82,6 +82,7 @@ pub struct Daemon {
     pub temp_max: i8,
     pub commit_hash: String,
     pub timeout: time::Duration,
+    pub timeout_battery: time::Duration,
     pub settings: Settings,
     pub state: State,
 }
@@ -294,6 +295,7 @@ impl Checker for Daemon {
             self.commit_hash = env!("GIT_HASH").to_string();
         }
 
+        self.timeout_battery = time::Duration::from_millis(self.settings.delay_battery);
         self.timeout = time::Duration::from_millis(self.settings.delay);
 
         // If we just daemonized then make sure the states are the opposite of what they should
@@ -322,7 +324,11 @@ impl Checker for Daemon {
             self.print();
         }
 
-        thread::sleep(self.timeout);
+        if self.charging {
+            thread::sleep(self.timeout);
+        } else {
+            thread::sleep(self.timeout_battery);
+        }
     }
 
     fn single_edit(&mut self) -> Result<(), Error> {
@@ -531,6 +537,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
     let new_settings = Settings {
         verbose: settings.verbose,
         delay: settings.delay,
+        delay_battery: settings.delay_battery,
         edit,
         no_animation: settings.no_animation,
         should_graph: settings.should_graph,
@@ -564,6 +571,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         temp_max: 0,
         commit_hash: String::new(),
         timeout: time::Duration::from_millis(1),
+        timeout_battery: time::Duration::from_millis(2),
         state: State::Normal,
         settings: new_settings,
     };

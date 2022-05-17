@@ -60,13 +60,14 @@ pub fn print_turbo(t: bool, raw: bool) {
     }
 }
 
-pub fn print_turbo_animation(cpu: usize, y_pos: usize) {
+pub fn print_turbo_animation(cpu: usize, y_pos: usize, delay: u64) {
     let frames = ['◷', '◶', '◵', '◴'];
     let y_pos = cpu + y_pos;
     let mut current = 0;
+    let count = delay / 100;
 
     thread::spawn(move || {
-        for _ in 0..20 {
+        for _ in 0..count {
             termion::cursor::Goto(3, 7);
             println!("{}[{};1H{}", 27 as char, y_pos, frames[current]);
             current += 1;

@@ -132,6 +132,10 @@ enum ACSCommand {
         #[structopt(short, long, default_value = "1000")]
         delay: u64,
 
+        /// Milliseconds between update
+        #[structopt(short = "b", long = "delay-battery", default_value = "5000")]
+        delay_battery: u64,
+
         /// No animations, for systemctl updating issue
         #[structopt(short, long)]
         no_animation: bool,
@@ -148,9 +152,13 @@ enum ACSCommand {
     /// Monitor each cpu, it's min, max, and current speed, along with the governor
     #[structopt(name = "monitor", alias = "monit")]
     Monitor {
-        /// Milliseconds between update
+        /// Milliseconds between update when on AC
         #[structopt(short, long, default_value = "1000")]
         delay: u64,
+
+        /// Milliseconds between update
+        #[structopt(short = "b", long = "delay-battery", default_value = "5000")]
+        delay_battery: u64,
 
         /// No animations, for systemctl updating issue
         #[structopt(short, long)]
@@ -172,6 +180,7 @@ fn parse_args(config: config::Config) {
     // default settings used by set command
     let set_settings = Settings {
         verbose: true,
+        delay_battery: 0,
         delay: 0,
         edit: false,
         no_animation: false,
@@ -252,6 +261,7 @@ fn parse_args(config: config::Config) {
         ACSCommand::Run {
             quiet,
             delay,
+            delay_battery,
             no_animation,
             should_graph,
             commit,
@@ -260,8 +270,14 @@ fn parse_args(config: config::Config) {
                 warn_user!("Config directory '/etc/acs' does not exist!");
             }
 
+            let mut effective_delay_battery = delay_battery;
+            if should_graph || delay != 1000 {
+                effective_delay_battery = delay;
+            }
+
             let settings = Settings {
                 verbose: !quiet,
+                delay_battery: effective_delay_battery,
                 delay,
                 edit: true,
                 no_animation,
@@ -282,6 +298,7 @@ fn parse_args(config: config::Config) {
         // Monitor command
         ACSCommand::Monitor {
             delay,
+            delay_battery,
             no_animation,
             should_graph,
             commit,
@@ -290,9 +307,15 @@ fn parse_args(config: config::Config) {
                 warn_user!("Config directory '/etc/acs' does not exist!");
             }
 
+            let mut effective_delay_battery = delay_battery;
+            if should_graph || delay != 1000 {
+                effective_delay_battery = delay;
+            }
+
             let settings = Settings {
                 verbose: true,
                 delay,
+                delay_battery: effective_delay_battery,
                 edit: false,
                 no_animation,
                 should_graph,

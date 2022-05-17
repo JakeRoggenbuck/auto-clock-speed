@@ -1,3 +1,4 @@
+use std::convert::TryInto;
 use std::{thread, time};
 
 use colored::*;
@@ -82,6 +83,7 @@ pub struct Daemon {
     pub temp_max: i8,
     pub commit_hash: String,
     pub timeout: time::Duration,
+    pub timeout_battery: time::Duration,
     pub settings: Settings,
     pub state: State,
 }
@@ -116,7 +118,7 @@ fn get_battery_status(charging: bool) -> String {
     }
 }
 
-fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize) {
+fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize, delay: u64) {
     let mut turbo_y_pos: usize = 7;
     let title_width = 94;
 
@@ -131,7 +133,7 @@ fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize) {
             println!("{} {}", "  Turbo:", enabled_message.bold(),);
 
             if !no_animation {
-                print_turbo_animation(cores, turbo_y_pos);
+                print_turbo_animation(cores, turbo_y_pos, delay);
             }
         }
         Err(e) => eprintln!("Could not check turbo\n{:?}", e),
@@ -294,6 +296,7 @@ impl Checker for Daemon {
             self.commit_hash = env!("GIT_HASH").to_string();
         }
 
+        self.timeout_battery = time::Duration::from_millis(self.settings.delay_battery);
         self.timeout = time::Duration::from_millis(self.settings.delay);
 
         // If we just daemonized then make sure the states are the opposite of what they should
@@ -322,7 +325,11 @@ impl Checker for Daemon {
             self.print();
         }
 
-        thread::sleep(self.timeout);
+        if self.charging {
+            thread::sleep(self.timeout);
+        } else {
+            thread::sleep(self.timeout_battery);
+        }
     }
 
     fn single_edit(&mut self) -> Result<(), Error> {
@@ -468,24 +475,40 @@ impl Checker for Daemon {
         print!("{}", preprint);
 
         // Shows if turbo is enabled with an amazing turbo animation
-        print_turbo_status(cores, self.settings.no_animation, term_width);
+        let mut effective_delay = self.timeout_battery;
+        if self.charging {
+            effective_delay = self.timeout;
+        }
+        print_turbo_status(
+            cores,
+            self.settings.no_animation,
+            term_width,
+            effective_delay.as_millis().try_into().unwrap(),
+        );
 
         // Print more pre-rendered items
         print!("{}", postprint);
     }
 }
 
-fn format_message(edit: bool, started_as_edit: bool, forced_reason: String, delay: u64) -> String {
+fn format_message(
+    edit: bool,
+    started_as_edit: bool,
+    forced_reason: String,
+    delay: u64,
+    delay_battery: u64,
+) -> String {
     // Format the original message with mode and delay, along with the forced message if it
     // was forced to switched modes
     format!(
-        "Auto Clock Speed daemon has been initialized in {} mode with a delay of {} milliseconds{}\n",
+        "Auto Clock Speed daemon has been initialized in {} mode with a delay of {}ms normally and {}ms when on battery{}\n",
         if edit {
             "edit".red()
         } else {
-            "monitor".normal()
+            "monitor".yellow()
         },
         delay,
+        delay_battery,
         if started_as_edit != edit { format!("\nForced to monitor mode because {}!", forced_reason).red() } else { "".normal() }
     )
 }
@@ -526,11 +549,13 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         started_as_edit,
         forced_reason,
         settings.delay,
+        settings.delay_battery,
     );
 
     let new_settings = Settings {
         verbose: settings.verbose,
         delay: settings.delay,
+        delay_battery: settings.delay_battery,
         edit,
         no_animation: settings.no_animation,
         should_graph: settings.should_graph,
@@ -564,6 +589,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         temp_max: 0,
         commit_hash: String::new(),
         timeout: time::Duration::from_millis(1),
+        timeout_battery: time::Duration::from_millis(2),
         state: State::Normal,
         settings: new_settings,
     };
@@ -588,6 +614,7 @@ mod tests {
         let settings = Settings {
             verbose: true,
             delay: 1,
+            delay_battery: 2,
             edit: true,
             no_animation: false,
             should_graph: false,
@@ -606,6 +633,7 @@ mod tests {
         let settings = Settings {
             verbose: true,
             delay: 1,
+            delay_battery: 2,
             edit: true,
             no_animation: false,
             should_graph: false,
@@ -617,7 +645,7 @@ mod tests {
 
         let mut daemon = daemon_init(settings, config).unwrap();
         let preprint = Checker::preprint_render(&mut daemon);
-        assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[31medit\u{1b}[0m mode with a delay of 1 milliseconds\n"));
+        assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[31medit\u{1b}[0m mode with a delay of 1ms normally and 2ms when on battery\n"));
         assert!(preprint.contains("Name  Max\tMin\tFreq\tTemp\tGovernor\n"));
         assert!(preprint.contains("Hz"));
         assert!(preprint.contains("cpu"));
@@ -630,6 +658,7 @@ mod tests {
         let settings = Settings {
             verbose: true,
             delay: 1,
+            delay_battery: 2,
             edit: false,
             no_animation: false,
             should_graph: false,
@@ -641,7 +670,7 @@ mod tests {
 
         let mut daemon = daemon_init(settings, config).unwrap();
         let preprint = Checker::preprint_render(&mut daemon);
-        assert!(preprint.contains("Auto Clock Speed daemon has been initialized in monitor mode with a delay of 1 milliseconds\n"));
+        assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[33mmonitor\u{1b}[0m mode with a delay of 1ms normally and 2ms when on battery\n"));
         assert!(preprint.contains("Name  Max\tMin\tFreq\tTemp\tGovernor\n"));
         assert!(preprint.contains("Hz"));
         assert!(preprint.contains("cpu"));

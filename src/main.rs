@@ -270,9 +270,14 @@ fn parse_args(config: config::Config) {
                 warn_user!("Config directory '/etc/acs' does not exist!");
             }
 
+            let mut effective_delay_battery = delay_battery;
+            if should_graph || delay != 1000 {
+                effective_delay_battery = delay;
+            }
+
             let settings = Settings {
                 verbose: !quiet,
-                delay_battery,
+                delay_battery: effective_delay_battery,
                 delay,
                 edit: true,
                 no_animation,
@@ -302,10 +307,15 @@ fn parse_args(config: config::Config) {
                 warn_user!("Config directory '/etc/acs' does not exist!");
             }
 
+            let mut effective_delay_battery = delay_battery;
+            if should_graph || delay != 1000 {
+                effective_delay_battery = delay;
+            }
+
             let settings = Settings {
                 verbose: true,
                 delay,
-                delay_battery,
+                delay_battery: effective_delay_battery,
                 edit: false,
                 no_animation,
                 should_graph,

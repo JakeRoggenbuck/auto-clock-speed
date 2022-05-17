@@ -603,6 +603,7 @@ mod tests {
         let settings = Settings {
             verbose: true,
             delay: 1,
+            delay_battery: 2,
             edit: true,
             no_animation: false,
             should_graph: false,
@@ -621,6 +622,7 @@ mod tests {
         let settings = Settings {
             verbose: true,
             delay: 1,
+            delay_battery: 2,
             edit: true,
             no_animation: false,
             should_graph: false,
@@ -632,7 +634,7 @@ mod tests {
 
         let mut daemon = daemon_init(settings, config).unwrap();
         let preprint = Checker::preprint_render(&mut daemon);
-        assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[31medit\u{1b}[0m mode with a delay of 1 milliseconds\n"));
+        assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[31medit\u{1b}[0m mode with a delay of 1ms normally and 2ms when on battery\n"));
         assert!(preprint.contains("Name  Max\tMin\tFreq\tTemp\tGovernor\n"));
         assert!(preprint.contains("Hz"));
         assert!(preprint.contains("cpu"));
@@ -645,6 +647,7 @@ mod tests {
         let settings = Settings {
             verbose: true,
             delay: 1,
+            delay_battery: 2,
             edit: false,
             no_animation: false,
             should_graph: false,
@@ -656,7 +659,7 @@ mod tests {
 
         let mut daemon = daemon_init(settings, config).unwrap();
         let preprint = Checker::preprint_render(&mut daemon);
-        assert!(preprint.contains("Auto Clock Speed daemon has been initialized in monitor mode with a delay of 1 milliseconds\n"));
+        assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[33mmonitor\u{1b}[0m mode with a delay of 1ms normally and 2ms when on battery\n"));
         assert!(preprint.contains("Name  Max\tMin\tFreq\tTemp\tGovernor\n"));
         assert!(preprint.contains("Hz"));
         assert!(preprint.contains("cpu"));

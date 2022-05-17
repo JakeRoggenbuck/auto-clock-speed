@@ -131,11 +131,11 @@ enum ACSCommand {
         /// Milliseconds between update
         #[structopt(short, long, default_value = "1000")]
         delay: u64,
-        
+
         /// Milliseconds between update
         #[structopt(short = "b", long = "delay-battery", default_value = "5000")]
         delay_battery: u64,
-        
+
         /// No animations, for systemctl updating issue
         #[structopt(short, long)]
         no_animation: bool,

@@ -1,5 +1,5 @@
-use std::{thread, time};
 use std::convert::TryInto;
+use std::{thread, time};
 
 use colored::*;
 use nix::unistd::Uid;
@@ -479,14 +479,25 @@ impl Checker for Daemon {
         if self.charging {
             effective_delay = self.timeout;
         }
-        print_turbo_status(cores, self.settings.no_animation, term_width, effective_delay.as_millis().try_into().unwrap());
+        print_turbo_status(
+            cores,
+            self.settings.no_animation,
+            term_width,
+            effective_delay.as_millis().try_into().unwrap(),
+        );
 
         // Print more pre-rendered items
         print!("{}", postprint);
     }
 }
 
-fn format_message(edit: bool, started_as_edit: bool, forced_reason: String, delay: u64, delay_battery: u64) -> String {
+fn format_message(
+    edit: bool,
+    started_as_edit: bool,
+    forced_reason: String,
+    delay: u64,
+    delay_battery: u64,
+) -> String {
     // Format the original message with mode and delay, along with the forced message if it
     // was forced to switched modes
     format!(

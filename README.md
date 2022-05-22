@@ -1,4 +1,5 @@
-# Auto Clock Speed (acs) ![Rust](https://img.shields.io/github/workflow/status/jakeroggenbuck/auto-clock-speed/Rust?style=for-the-badge)
+![Auto Clock Speed Banner Logo](https://user-images.githubusercontent.com/35516367/169680198-99d02746-22f7-433d-a9a1-d8858edef512.png)
+![Rust](https://img.shields.io/github/workflow/status/jakeroggenbuck/auto-clock-speed/Rust?style=for-the-badge)
 
 A utility to check stats about your CPU, and auto regulate clock speeds to help with either performance or battery life.
 This proram is designed for Linux and Intel laptops, although it should theoretically work on AMD systems and sometimes desktops as well.

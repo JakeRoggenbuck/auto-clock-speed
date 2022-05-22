@@ -8,7 +8,7 @@ use display::{
     print_freq, print_power, print_turbo, show_config,
 };
 use error::Error;
-use power::{read_battery_charge, read_lid_state, read_power_source};
+use power::{DevicePower, Power};
 use settings::Settings;
 use system::{
     check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
@@ -189,6 +189,14 @@ fn parse_args(config: config::Config) {
         testing: false,
     };
 
+    let mut device_power = DevicePower {
+        did_init: false,
+        _has_battery: false,
+        _best_lid_path: String::new(),
+        _best_power_source_path: String::new(),
+        _best_battery_charge_path: String::new(),
+    };
+
     match ACSCommand::from_args() {
         // Everything starting with "get"
         ACSCommand::Get { get } => match get {
@@ -197,9 +205,9 @@ fn parse_args(config: config::Config) {
                 print_freq(f, raw);
             }
 
-            GetType::Power { raw } => match read_lid_state() {
-                Ok(lid) => match read_battery_charge() {
-                    Ok(bat) => match read_power_source() {
+            GetType::Power { raw } => match device_power.read_lid_state() {
+                Ok(lid) => match device_power.read_battery_charge() {
+                    Ok(bat) => match device_power.read_power_source() {
                         Ok(plugged) => {
                             print_power(lid, bat, plugged, raw);
                         }

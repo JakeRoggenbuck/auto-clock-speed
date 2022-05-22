@@ -60,10 +60,17 @@ pub fn get_best_path(paths: [&'static str; 4]) -> Result<&str, Error> {
 
 pub trait Power {
     fn has_battery(&mut self) -> bool;
+    fn read_lid_state(&mut self) -> Result<LidState, Error>;
+    fn read_battery_charge(&mut self) -> Result<i8, Error>;
+    fn read_power_source(&mut self) -> Result<bool, Error>;
 }
 
 pub struct DevicePower {
     pub _has_battery: bool,
+    pub _best_lid_path: String,
+    pub _best_battery_charge_path: String,
+    pub _best_power_source_path: String,
+
     pub did_init: bool,
 }
 
@@ -79,79 +86,89 @@ impl Power for DevicePower {
 
         self._has_battery
     }
-}
 
-pub fn read_lid_state() -> Result<LidState, Error> {
-    let path: &str = match get_best_path(LID_STATUS_PATH) {
-        Ok(path) => path,
-        Err(error) => {
-            if error.type_id() == Error::IO.type_id() {
-                // Make sure to return IO error if one occurs
-                return Err(error);
-            }
-            eprintln!("Could not detect your lid state.");
-            create_issue!("If you are on a laptop");
-            return Ok(LidState::Unapplicable);
+    fn read_lid_state(&mut self) -> Result<LidState, Error> {
+        // Get and cache best_path for lid
+        if !self.did_init {
+            let path: &str = match get_best_path(LID_STATUS_PATH) {
+                Ok(path) => path,
+                Err(error) => {
+                    if error.type_id() == Error::IO.type_id() {
+                        // Make sure to return IO error if one occurs
+                        return Err(error);
+                    }
+                    eprintln!("Could not detect your lid state.");
+                    create_issue!("If you are on a laptop");
+                    return Ok(LidState::Unapplicable);
+                }
+            };
+            self._best_lid_path = path.to_string();
         }
-    };
 
-    let mut lid_str: String = String::new();
-    File::open(path)?.read_to_string(&mut lid_str)?;
+        let mut lid_str: String = String::new();
+        File::open(&self._best_lid_path)?.read_to_string(&mut lid_str)?;
 
-    let state = if lid_str.contains("open") {
-        LidState::Open
-    } else if lid_str.contains("closed") {
-        LidState::Closed
-    } else {
-        LidState::Unknown
-    };
+        let state = if lid_str.contains("open") {
+            LidState::Open
+        } else if lid_str.contains("closed") {
+            LidState::Closed
+        } else {
+            LidState::Unknown
+        };
 
-    Ok(state)
-}
+        Ok(state)
+    }
 
-pub fn read_battery_charge() -> Result<i8, Error> {
-    let path: &str = match get_best_path(BATTERY_CHARGE_PATH) {
-        Ok(path) => path,
-        Err(error) => {
-            if error.type_id() == Error::IO.type_id() {
-                // Make sure to return IO error if one occurs
-                return Err(error);
-            }
-            // If it doesn't exist then it is plugged in so make it 100% percent capacity
-            eprintln!("We could not detect your battery.");
-            create_issue!("If you are on a laptop");
-            return Ok(100);
+    fn read_battery_charge(&mut self) -> Result<i8, Error> {
+        if !self.did_init {
+            let path: &str = match get_best_path(BATTERY_CHARGE_PATH) {
+                Ok(path) => path,
+                Err(error) => {
+                    if error.type_id() == Error::IO.type_id() {
+                        // Make sure to return IO error if one occurs
+                        return Err(error);
+                    }
+                    // If it doesn't exist then it is plugged in so make it 100% percent capacity
+                    eprintln!("We could not detect your battery.");
+                    create_issue!("If you are on a laptop");
+                    return Ok(100);
+                }
+            };
+            self._best_battery_charge_path = path.to_string();
         }
-    };
 
-    let mut cap_str: String = String::new();
-    File::open(path)?.read_to_string(&mut cap_str)?;
+        let mut cap_str: String = String::new();
+        File::open(&self._best_battery_charge_path)?.read_to_string(&mut cap_str)?;
 
-    // Remove the \n char
-    cap_str.pop();
+        // Remove the \n char
+        cap_str.pop();
 
-    Ok(cap_str.parse::<i8>().unwrap())
-}
+        Ok(cap_str.parse::<i8>().unwrap())
+    }
 
-pub fn read_power_source() -> Result<bool, Error> {
-    let path: &str = match get_best_path(POWER_SOURCE_PATH) {
-        Ok(path) => path,
-        Err(error) => {
-            if error.type_id() == Error::IO.type_id() {
-                // Make sure to return IO error if one occurs
-                return Err(error);
-            }
-            eprintln!("We could not detect your AC power source.");
-            create_issue!("If you have a power source");
-            return Ok(true);
+    fn read_power_source(&mut self) -> Result<bool, Error> {
+        if !self.did_init {
+            let path: &str = match get_best_path(POWER_SOURCE_PATH) {
+                Ok(path) => path,
+                Err(error) => {
+                    if error.type_id() == Error::IO.type_id() {
+                        // Make sure to return IO error if one occurs
+                        return Err(error);
+                    }
+                    eprintln!("We could not detect your AC power source.");
+                    create_issue!("If you have a power source");
+                    return Ok(true);
+                }
+            };
+            self._best_power_source_path = path.to_string();
         }
-    };
 
-    let mut pwr_str: String = String::new();
-    File::open(path)?.read_to_string(&mut pwr_str)?;
+        let mut pwr_str: String = String::new();
+        File::open(&self._best_battery_charge_path)?.read_to_string(&mut pwr_str)?;
 
-    // Remove the \n char
-    pwr_str.pop();
+        // Remove the \n char
+        pwr_str.pop();
 
-    return Ok(pwr_str == "1");
+        return Ok(pwr_str == "1");
+    }
 }

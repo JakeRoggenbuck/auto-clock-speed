@@ -10,9 +10,7 @@ use super::debug;
 use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
-use super::power::{
-    read_battery_charge, read_lid_state, read_power_source, DevicePower, LidState, Power,
-};
+use super::power::{DevicePower, LidState, Power};
 use super::state::State;
 use super::system::{check_cpu_freq, check_turbo_enabled, get_highest_temp, list_cpus};
 use super::terminal::terminal_width;
@@ -150,7 +148,7 @@ impl Checker for Daemon {
 
     fn get_battery_status(&mut self) -> String {
         if self.device_power.has_battery() {
-            match read_battery_charge() {
+            match self.device_power.read_battery_charge() {
                 Ok(bat) => {
                     format!(
                         "Battery: {}",
@@ -317,9 +315,9 @@ impl Checker for Daemon {
         self.update_all()?;
 
         // Update current states
-        self.charging = read_power_source()?;
-        self.charge = read_battery_charge()?;
-        self.lid_state = read_lid_state()?;
+        self.charging = self.device_power.read_power_source()?;
+        self.charge = self.device_power.read_battery_charge()?;
+        self.lid_state = self.device_power.read_lid_state()?;
 
         Ok(())
     }
@@ -527,6 +525,9 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
     let mut device_power = DevicePower {
         did_init: false,
         _has_battery: false,
+        _best_lid_path: String::new(),
+        _best_power_source_path: String::new(),
+        _best_battery_charge_path: String::new(),
     };
 
     // Check if the device has a battery, otherwise force it to monitor mode
@@ -582,7 +583,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         // If edit is still true, then there is definitely a bool result to read_power_source
         // otherwise, there is a real problem, because there should be a power source possible
         charging: if settings.edit {
-            read_power_source()?
+            device_power.read_power_source()?
         } else {
             false
         },

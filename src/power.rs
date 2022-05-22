@@ -48,12 +48,6 @@ impl fmt::Display for LidState {
     }
 }
 
-pub fn has_battery() -> bool {
-    let power_dir = Path::new("/sys/class/power_supply/");
-    let dir_count = read_dir(power_dir).into_iter().len();
-    dir_count > 0
-}
-
 pub fn get_best_path(paths: [&'static str; 4]) -> Result<&str, Error> {
     for path in paths.iter() {
         if Path::new(path).exists() {
@@ -62,6 +56,29 @@ pub fn get_best_path(paths: [&'static str; 4]) -> Result<&str, Error> {
     }
 
     return Err(Error::Unknown);
+}
+
+pub trait Power {
+    fn has_battery(&mut self) -> bool;
+}
+
+pub struct DevicePower {
+    pub _has_battery: bool,
+    pub did_init: bool,
+}
+
+impl Power for DevicePower {
+    fn has_battery(&mut self) -> bool {
+        // Cache has_battery
+        if !self.did_init {
+            let power_dir = Path::new("/sys/class/power_supply/");
+            let dir_count = read_dir(power_dir).into_iter().len();
+            self._has_battery = dir_count > 0;
+            self.did_init = true;
+        }
+
+        self._has_battery
+    }
 }
 
 pub fn read_lid_state() -> Result<LidState, Error> {

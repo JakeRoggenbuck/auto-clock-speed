@@ -217,11 +217,20 @@ fn parse_args(config: config::Config) {
                 Err(_) => eprintln!("Failed to get read lid state"),
             },
 
-            GetType::Usage { raw } => match get_cpu_percent() {
-                Ok(content) => {
-                    println!("{}", content)
+            GetType::Usage { raw } => {
+                if !raw {
+                    println!("Calculating cpu percentage over 1 second.");
                 }
-                Err(_) => println!("Unable to usage status"),
+                match get_cpu_percent() {
+                    Ok(content) => {
+                        if raw {
+                            println!("{}", content)
+                        } else {
+                            println!("CPU is at {}%", content)
+                        }
+                    }
+                    Err(_) => println!("Unable to usage status"),
+                }
             },
 
             GetType::Turbo { raw } => match check_turbo_enabled() {

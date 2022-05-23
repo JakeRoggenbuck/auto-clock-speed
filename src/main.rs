@@ -231,7 +231,7 @@ fn parse_args(config: config::Config) {
                     }
                     Err(_) => println!("Unable to usage status"),
                 }
-            },
+            }
 
             GetType::Turbo { raw } => match check_turbo_enabled() {
                 Ok(turbo_enabled) => print_turbo(turbo_enabled, raw),

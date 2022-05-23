@@ -12,7 +12,7 @@ use power::{read_battery_charge, read_lid_state, read_power_source};
 use settings::Settings;
 use system::{
     check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
-    list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus, get_cpu_percent,
+    get_cpu_percent, list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus,
 };
 
 pub mod config;
@@ -36,7 +36,7 @@ enum GetType {
         #[structopt(short, long)]
         raw: bool,
     },
-    
+
     /// Get the power
     #[structopt(name = "usage")]
     Usage {
@@ -220,9 +220,9 @@ fn parse_args(config: config::Config) {
             GetType::Usage { raw } => match get_cpu_percent() {
                 Ok(content) => {
                     println!("{}", content)
-                },
-                Err(_) => println!("Unable to usage status")
-            }
+                }
+                Err(_) => println!("Unable to usage status"),
+            },
 
             GetType::Turbo { raw } => match check_turbo_enabled() {
                 Ok(turbo_enabled) => print_turbo(turbo_enabled, raw),

@@ -1,8 +1,8 @@
 use cached::proc_macro::once;
 use std::fs::{read_dir, File};
-use std::{thread, time};
 use std::io::Read;
 use std::string::String;
+use std::{thread, time};
 
 use crate::cpu::Speed;
 
@@ -73,7 +73,11 @@ struct ProcStat {
 
 impl Default for ProcStat {
     fn default() -> ProcStat {
-        ProcStat{cpu_name: "cpu".to_string(), cpu_sum: 0.0, cpu_idle: 0.0}
+        ProcStat {
+            cpu_name: "cpu".to_string(),
+            cpu_sum: 0.0,
+            cpu_idle: 0.0,
+        }
     }
 }
 
@@ -86,12 +90,11 @@ fn parse_proc_file(proc: String) -> Result<Vec<ProcStat>, Error> {
             let mut proc_struct: ProcStat = ProcStat::default();
             proc_struct.cpu_name = columns[0].to_string();
             for col in &columns {
-
                 let parse = col.parse::<f32>();
                 match parse {
                     Ok(num) => {
                         proc_struct.cpu_sum += num;
-                    },
+                    }
                     Err(_) => {}
                 }
             }
@@ -99,7 +102,7 @@ fn parse_proc_file(proc: String) -> Result<Vec<ProcStat>, Error> {
             match columns[5].parse::<f32>() {
                 Ok(num) => {
                     proc_struct.cpu_idle = num;
-                },
+                }
                 Err(_) => {}
             }
             procs.push(proc_struct);

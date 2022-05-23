@@ -96,7 +96,7 @@ fn parse_proc_file(proc: String) -> Result<Vec<ProcStat>, Error> {
                 }
             }
 
-            match columns[6].parse::<f32>() {
+            match columns[5].parse::<f32>() {
                 Ok(num) => {
                     proc_struct.cpu_idle = num;
                 },
@@ -110,9 +110,6 @@ fn parse_proc_file(proc: String) -> Result<Vec<ProcStat>, Error> {
 
 pub fn get_cpu_percent() -> Result<String, Error> {
     let mut proc = read_proc_stat_file().unwrap();
-    
-    // Since were getting the average just get the first one which is equal to the average of all
-    // others
     let mut avg_timing: &ProcStat = &parse_proc_file(proc).unwrap()[0];
 
     thread::sleep(time::Duration::from_millis(1000));
@@ -120,9 +117,12 @@ pub fn get_cpu_percent() -> Result<String, Error> {
 
     let mut avg_timing_2: &ProcStat = &parse_proc_file(proc).unwrap()[0];
 
-    println!("{:?} and {:?}", avg_timing, avg_timing_2);
+    let cpu_delta: f32 = avg_timing_2.cpu_sum - avg_timing.cpu_sum;
+    let cpu_delta_idle: f32 = avg_timing_2.cpu_idle - avg_timing.cpu_idle;
+    let cpu_used: f32 = cpu_delta - cpu_delta_idle;
+    let usage: f32 = cpu_used / cpu_delta * 100.0;
 
-    Ok("...".to_string())
+    Ok(format!("{}", usage))
 }
 
 fn read_turbo_file() -> Result<String, Error> {

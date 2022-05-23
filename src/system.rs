@@ -113,12 +113,12 @@ fn parse_proc_file(proc: String) -> Result<Vec<ProcStat>, Error> {
 
 pub fn get_cpu_percent() -> Result<String, Error> {
     let mut proc = read_proc_stat_file().unwrap();
-    let mut avg_timing: &ProcStat = &parse_proc_file(proc).unwrap()[0];
+    let avg_timing: &ProcStat = &parse_proc_file(proc).unwrap()[0];
 
     thread::sleep(time::Duration::from_millis(1000));
     proc = read_proc_stat_file().unwrap();
 
-    let mut avg_timing_2: &ProcStat = &parse_proc_file(proc).unwrap()[0];
+    let avg_timing_2: &ProcStat = &parse_proc_file(proc).unwrap()[0];
 
     let cpu_delta: f32 = avg_timing_2.cpu_sum - avg_timing.cpu_sum;
     let cpu_delta_idle: f32 = avg_timing_2.cpu_idle - avg_timing.cpu_idle;

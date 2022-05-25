@@ -11,18 +11,18 @@ pub fn interactive() {
 
     let mut input;
 
-    let set_settings = Settings {
-        verbose: true,
-        delay_battery: 0,
-        delay: 0,
-        edit: false,
-        no_animation: false,
-        should_graph: false,
-        commit: false,
-        testing: false,
-    };
+    // let set_settings = Settings {
+    //     verbose: true,
+    //     delay_battery: 0,
+    //     delay: 0,
+    //     edit: false,
+    //     no_animation: false,
+    //     should_graph: false,
+    //     commit: false,
+    //     testing: false,
+    // };
 
-    let config: Config = get_config();
+    // let config: Config = get_config();
 
     println!("Auto Clock Speed Interactive Mode:");
 
@@ -46,12 +46,13 @@ pub fn interactive() {
                     "get speeds" => int.get.speeds(false),
                     "get temp" => int.get.temp(false),
                     "get govs" => int.get.govs(false),
-                    "set gov performance" => {
-                        int.set.gov("performance".to_string(), config, set_settings)
-                    }
-                    "set gov powersave" => {
-                        int.set.gov("powersave".to_string(), config, set_settings)
-                    }
+
+                    // "set gov performance" => {
+                    //     int.set.gov("performance".to_string(), config, set_settings)
+                    // }
+                    // "set gov powersave" => {
+                    //     int.set.gov("powersave".to_string(), config, set_settings)
+                    // }
                     "exit" => {
                         println!("Bye!");
                         return;

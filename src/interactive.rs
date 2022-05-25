@@ -1,17 +1,34 @@
-use std::io;
+use super::interface::{Get, Getter, Interface, Set};
+use std::io::{stdin, stdout, Write};
 
 pub fn interactive() {
+    let int = Interface {
+        set: Set {},
+        get: Get {},
+    };
+
+    let mut input;
+
+    println!("Auto Clock Speed Interactive Mode:");
+
     loop {
-        let mut input = String::new();
+        print!("\n> ");
+        stdout().flush().unwrap();
 
-        match io::stdin().read_line(&mut input) {
-            Ok(n) => {
-                if input == "exit\n" || input == "e\n" {
-                    break;
-                }
+        input = String::new();
 
-                println!("{n} bytes read");
-                println!("{input}");
+        match stdin().read_line(&mut input) {
+            Ok(_) => {
+                input.pop();
+                let new = input.as_str();
+                match new {
+                    "get usage" => int.get.usage(false),
+                    "exit" => {
+                        println!("Bye!");
+                        return;
+                    }
+                    _ => println!("Command '{new}' not found. Use help."),
+                };
             }
             Err(error) => println!("error: {error}"),
         }

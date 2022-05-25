@@ -16,7 +16,7 @@ pub struct Get {}
 pub trait Getter {
     fn freq(self, raw: bool);
     fn power(self, raw: bool);
-    fn usage(self, raw: bool);
+    fn usage(&self, raw: bool);
     fn turbo(self, raw: bool);
     fn available_govs(self, raw: bool);
     fn cpus(self, raw: bool);
@@ -46,7 +46,7 @@ impl Getter for Get {
         };
     }
 
-    fn usage(self, raw: bool) {
+    fn usage(&self, raw: bool) {
         if !raw {
             println!("Calculating cpu percentage over 1 second.");
         }

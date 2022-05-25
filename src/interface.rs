@@ -14,24 +14,24 @@ use super::system::{
 pub struct Get {}
 
 pub trait Getter {
-    fn freq(self, raw: bool);
-    fn power(self, raw: bool);
+    fn freq(&self, raw: bool);
+    fn power(&self, raw: bool);
     fn usage(&self, raw: bool);
-    fn turbo(self, raw: bool);
-    fn available_govs(self, raw: bool);
-    fn cpus(self, raw: bool);
-    fn speeds(self, raw: bool);
-    fn temp(self, raw: bool);
-    fn govs(self, raw: bool);
+    fn turbo(&self, raw: bool);
+    fn available_govs(&self, raw: bool);
+    fn cpus(&self, raw: bool);
+    fn speeds(&self, raw: bool);
+    fn temp(&self, raw: bool);
+    fn govs(&self, raw: bool);
 }
 
 impl Getter for Get {
-    fn freq(self, raw: bool) {
+    fn freq(&self, raw: bool) {
         let f = check_cpu_freq();
         print_freq(f, raw);
     }
 
-    fn power(self, raw: bool) {
+    fn power(&self, raw: bool) {
         match read_lid_state() {
             Ok(lid) => match read_battery_charge() {
                 Ok(bat) => match read_power_source() {
@@ -62,21 +62,21 @@ impl Getter for Get {
         }
     }
 
-    fn turbo(self, raw: bool) {
+    fn turbo(&self, raw: bool) {
         match check_turbo_enabled() {
             Ok(turbo_enabled) => print_turbo(turbo_enabled, raw),
             Err(_) => println!("Failed to get turbo status"),
         };
     }
 
-    fn available_govs(self, raw: bool) {
+    fn available_govs(&self, raw: bool) {
         match check_available_governors() {
             Ok(available_governors) => print_available_governors(available_governors, raw),
             Err(_) => println!("Failed to get available governors"),
         };
     }
 
-    fn cpus(self, raw: bool) {
+    fn cpus(&self, raw: bool) {
         let cpus = list_cpus();
         match check_cpu_name() {
             Ok(name) => print_cpus(cpus, name, raw),
@@ -84,17 +84,17 @@ impl Getter for Get {
         };
     }
 
-    fn speeds(self, raw: bool) {
+    fn speeds(&self, raw: bool) {
         let speeds = list_cpu_speeds();
         print_cpu_speeds(speeds, raw);
     }
 
-    fn temp(self, raw: bool) {
+    fn temp(&self, raw: bool) {
         let cpu_temp = list_cpu_temp();
         print_cpu_temp(cpu_temp, raw);
     }
 
-    fn govs(self, raw: bool) {
+    fn govs(&self, raw: bool) {
         let govs = list_cpu_governors();
         print_cpu_governors(govs, raw);
     }
@@ -103,11 +103,11 @@ impl Getter for Get {
 pub struct Set {}
 
 pub trait Setter {
-    fn gov(self, value: String, config: Config, settings: Settings);
+    fn gov(&self, value: String, config: Config, settings: Settings);
 }
 
 impl Setter for Set {
-    fn gov(self, value: String, config: Config, settings: Settings) {
+    fn gov(&self, value: String, config: Config, settings: Settings) {
         match daemon_init(settings, config) {
             Ok(mut d) => match d.set_govs(value.clone()) {
                 Ok(_) => {}

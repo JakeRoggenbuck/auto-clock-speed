@@ -191,7 +191,6 @@ enum ACSCommand {
 fn parse_args(config: config::Config) {
     let mut daemon: daemon::Daemon;
 
-    // default settings used by set command
     let set_settings = Settings {
         verbose: true,
         delay_battery: 0,
@@ -209,7 +208,6 @@ fn parse_args(config: config::Config) {
     };
 
     match ACSCommand::from_args() {
-        // Everything starting with "get"
         ACSCommand::Get { get } => match get {
             GetType::Freq { raw } => {
                 int.get.freq(raw);
@@ -245,15 +243,10 @@ fn parse_args(config: config::Config) {
             }
         },
 
-        // Everything starting with "set"
         ACSCommand::Set { set } => match set {
-            SetType::Gov { value } => match daemon_init(set_settings, config) {
-                Ok(mut d) => match d.set_govs(value.clone()) {
-                    Ok(_) => {}
-                    Err(e) => eprint!("Could not set gov, {:?}", e),
-                },
-                Err(_) => eprint!("Could not run daemon in edit mode"),
-            },
+            SetType::Gov { value } => {
+                int.set.gov(value);
+            }
         },
 
         ACSCommand::ShowConfig {} => show_config(),

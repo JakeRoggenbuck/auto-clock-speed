@@ -7,7 +7,6 @@ use super::display::{
 use super::error::Error;
 use super::interactive::interactive;
 use super::power::{read_battery_charge, read_lid_state, read_power_source};
-use super::settings::Settings;
 use super::system::{
     check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
     get_cpu_percent, list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus,
@@ -104,7 +103,21 @@ impl Getter for Get {
 
 pub struct Set {}
 
-pub trait Setter {}
+pub trait Setter {
+    fn gov(self, value);
+}
+
+impl Setter for Set {
+    fn gov(self, value) {
+        match daemon_init(set_settings, config) {
+            Ok(mut d) => match d.set_govs(value.clone()) {
+                Ok(_) => {}
+                Err(e) => eprint!("Could not set gov, {:?}", e),
+            },
+            Err(_) => eprint!("Could not run daemon in edit mode"),
+        }
+    }
+}
 
 pub struct Interface {
     pub get: Get,

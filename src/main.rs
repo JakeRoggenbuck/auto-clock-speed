@@ -110,7 +110,7 @@ enum SetType {
 )]
 enum ACSCommand {
     /// Get a specific value or status
-    #[structopt(name = "get")]
+    #[structopt(name = "get", alias = "g")]
     Get {
         /// The type of value to request
         #[structopt(subcommand)]
@@ -118,7 +118,7 @@ enum ACSCommand {
     },
 
     /// Set a specific value
-    #[structopt(name = "set")]
+    #[structopt(name = "set", alias = "s")]
     Set {
         #[structopt(subcommand)]
         set: SetType,

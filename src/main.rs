@@ -8,6 +8,8 @@ use display::{
     print_freq, print_power, print_turbo, show_config,
 };
 use error::Error;
+use interactive::interactive;
+use interface::{Get, Getter, Interface, Set, Setter};
 use power::{read_battery_charge, read_lid_state, read_power_source};
 use settings::Settings;
 use system::{
@@ -21,6 +23,8 @@ pub mod daemon;
 pub mod display;
 pub mod error;
 pub mod graph;
+pub mod interactive;
+pub mod interface;
 pub mod logger;
 pub mod power;
 pub mod settings;
@@ -124,6 +128,9 @@ enum ACSCommand {
         set: SetType,
     },
 
+    #[structopt(name = "interactive", alias = "i")]
+    Interactive {},
+
     /// Show the current config in use
     #[structopt(name = "showconfig", alias = "conf")]
     ShowConfig {},
@@ -196,74 +203,45 @@ fn parse_args(config: config::Config) {
         testing: false,
     };
 
+    let int = Interface {
+        set: Set {},
+        get: Get {},
+    };
+
     match ACSCommand::from_args() {
         // Everything starting with "get"
         ACSCommand::Get { get } => match get {
             GetType::Freq { raw } => {
-                let f = check_cpu_freq();
-                print_freq(f, raw);
+                int.get.freq(raw);
             }
 
-            GetType::Power { raw } => match read_lid_state() {
-                Ok(lid) => match read_battery_charge() {
-                    Ok(bat) => match read_power_source() {
-                        Ok(plugged) => {
-                            print_power(lid, bat, plugged, raw);
-                        }
-                        Err(_) => eprintln!("Failed to get read power source"),
-                    },
-                    Err(_) => eprintln!("Failed to get read battery charger"),
-                },
-                Err(_) => eprintln!("Failed to get read lid state"),
-            },
-
+            GetType::Power { raw } => {
+                int.get.power(raw);
+            }
             GetType::Usage { raw } => {
-                if !raw {
-                    println!("Calculating cpu percentage over 1 second.");
-                }
-                match get_cpu_percent() {
-                    Ok(content) => {
-                        if raw {
-                            println!("{}", content)
-                        } else {
-                            println!("CPU is at {}%", content)
-                        }
-                    }
-                    Err(_) => println!("Unable to usage status"),
-                }
+                int.get.usage(raw);
             }
 
-            GetType::Turbo { raw } => match check_turbo_enabled() {
-                Ok(turbo_enabled) => print_turbo(turbo_enabled, raw),
-                Err(_) => println!("Failed to get turbo status"),
-            },
-
-            GetType::AvailableGovs { raw } => match check_available_governors() {
-                Ok(available_governors) => print_available_governors(available_governors, raw),
-                Err(_) => println!("Failed to get available governors"),
-            },
-
+            GetType::Turbo { raw } => {
+                int.get.turbo(raw);
+            }
+            GetType::AvailableGovs { raw } => {
+                int.get.available_govs(raw);
+            }
             GetType::CPUS { raw } => {
-                let cpus = list_cpus();
-                match check_cpu_name() {
-                    Ok(name) => print_cpus(cpus, name, raw),
-                    Err(_) => println!("Failed get list of cpus"),
-                };
+                int.get.cpus(raw);
             }
 
             GetType::Speeds { raw } => {
-                let speeds = list_cpu_speeds();
-                print_cpu_speeds(speeds, raw);
+                int.get.speeds(raw);
             }
 
             GetType::Temp { raw } => {
-                let cpu_temp = list_cpu_temp();
-                print_cpu_temp(cpu_temp, raw);
+                int.get.temp(raw);
             }
 
             GetType::Govs { raw } => {
-                let govs = list_cpu_governors();
-                print_cpu_governors(govs, raw);
+                int.get.govs(raw);
             }
         },
 
@@ -279,6 +257,7 @@ fn parse_args(config: config::Config) {
         },
 
         ACSCommand::ShowConfig {} => show_config(),
+        ACSCommand::Interactive {} => interactive(),
 
         // Run command
         ACSCommand::Run {

@@ -1,12 +1,11 @@
-use super::config::{config_dir_exists, get_config};
+use super::config::Config;
 use super::daemon::{daemon_init, Checker};
 use super::display::{
     print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpu_temp, print_cpus,
-    print_freq, print_power, print_turbo, show_config,
+    print_freq, print_power, print_turbo,
 };
-use super::error::Error;
-use super::interactive::interactive;
 use super::power::{read_battery_charge, read_lid_state, read_power_source};
+use super::settings::Settings;
 use super::system::{
     check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
     get_cpu_percent, list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus,
@@ -104,12 +103,12 @@ impl Getter for Get {
 pub struct Set {}
 
 pub trait Setter {
-    fn gov(self, value);
+    fn gov(self, value: String, config: Config, settings: Settings);
 }
 
 impl Setter for Set {
-    fn gov(self, value) {
-        match daemon_init(set_settings, config) {
+    fn gov(self, value: String, config: Config, settings: Settings) {
+        match daemon_init(settings, config) {
             Ok(mut d) => match d.set_govs(value.clone()) {
                 Ok(_) => {}
                 Err(e) => eprint!("Could not set gov, {:?}", e),

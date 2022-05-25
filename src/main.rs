@@ -3,19 +3,11 @@ use structopt::StructOpt;
 
 use config::{config_dir_exists, get_config};
 use daemon::{daemon_init, Checker};
-use display::{
-    print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpu_temp, print_cpus,
-    print_freq, print_power, print_turbo, show_config,
-};
+use display::show_config;
 use error::Error;
 use interactive::interactive;
 use interface::{Get, Getter, Interface, Set, Setter};
-use power::{read_battery_charge, read_lid_state, read_power_source};
 use settings::Settings;
-use system::{
-    check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
-    get_cpu_percent, list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus,
-};
 
 pub mod config;
 pub mod cpu;
@@ -245,7 +237,7 @@ fn parse_args(config: config::Config) {
 
         ACSCommand::Set { set } => match set {
             SetType::Gov { value } => {
-                int.set.gov(value);
+                int.set.gov(value, config, set_settings);
             }
         },
 

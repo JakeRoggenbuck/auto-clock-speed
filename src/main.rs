@@ -12,7 +12,7 @@ use power::{read_battery_charge, read_lid_state, read_power_source};
 use settings::Settings;
 use system::{
     check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
-    list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus,
+    get_cpu_percent, list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus,
 };
 
 pub mod config;
@@ -33,6 +33,13 @@ enum GetType {
     /// Get the power
     #[structopt(name = "power")]
     Power {
+        #[structopt(short, long)]
+        raw: bool,
+    },
+
+    /// Get the power
+    #[structopt(name = "usage")]
+    Usage {
         #[structopt(short, long)]
         raw: bool,
     },
@@ -209,6 +216,22 @@ fn parse_args(config: config::Config) {
                 },
                 Err(_) => eprintln!("Failed to get read lid state"),
             },
+
+            GetType::Usage { raw } => {
+                if !raw {
+                    println!("Calculating cpu percentage over 1 second.");
+                }
+                match get_cpu_percent() {
+                    Ok(content) => {
+                        if raw {
+                            println!("{}", content)
+                        } else {
+                            println!("CPU is at {}%", content)
+                        }
+                    }
+                    Err(_) => println!("Unable to usage status"),
+                }
+            }
 
             GetType::Turbo { raw } => match check_turbo_enabled() {
                 Ok(turbo_enabled) => print_turbo(turbo_enabled, raw),

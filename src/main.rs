@@ -120,6 +120,7 @@ enum ACSCommand {
         set: SetType,
     },
 
+    /// Interactive mode for auto clock speed commands
     #[structopt(name = "interactive", alias = "i")]
     Interactive {},
 

@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct Settings {
     pub verbose: bool,
     pub delay: u64,

@@ -1,4 +1,6 @@
-use super::interface::{Get, Getter, Interface, Set};
+use super::config::{get_config, Config};
+use super::interface::{Get, Getter, Interface, Set, Setter};
+use super::settings::Settings;
 use std::io::{stdin, stdout, Write};
 
 pub fn help() {
@@ -11,7 +13,11 @@ pub fn help() {
     println!("  - usage");
     println!("  - turbo");
     println!("  - available_governors");
-    println!("\nE.g. 'get cpus'");
+    println!("  ");
+    println!("- set");
+    println!("  - gov");
+    println!("  ");
+    println!("E.g. 'get cpus'");
 }
 
 pub fn interactive() {
@@ -23,6 +29,17 @@ pub fn interactive() {
     let mut input;
 
     println!("Auto Clock Speed Interactive Mode:");
+
+    let set_settings = Settings {
+        verbose: true,
+        delay_battery: 0,
+        delay: 0,
+        edit: false,
+        no_animation: false,
+        should_graph: false,
+        commit: false,
+        testing: false,
+    };
 
     loop {
         print!("\n> ");
@@ -45,6 +62,20 @@ pub fn interactive() {
                     "get speeds" => int.get.speeds(false),
                     "get temp" => int.get.temp(false),
                     "get govs" => int.get.govs(false),
+
+                    "set gov performance" => {
+                        let config: Config = get_config();
+
+                        int.set
+                            .gov("performance".to_string(), config, set_settings.clone());
+                    }
+
+                    "set gov powersave" => {
+                        let config: Config = get_config();
+
+                        int.set
+                            .gov("powersave".to_string(), config, set_settings.clone());
+                    }
 
                     "exit" => {
                         println!("Bye!");

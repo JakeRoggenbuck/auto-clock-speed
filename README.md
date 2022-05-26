@@ -5,7 +5,7 @@ A utility to check stats about your CPU, and auto regulate clock speeds to help 
 This proram is designed for Linux and Intel laptops, although it should theoretically work on AMD systems and sometimes desktops as well.
 If you encounter any issues or bugs, please refer to the [wiki](https://github.com/JakeRoggenbuck/auto-clock-speed/wiki) to see if there is a solution
 
-![image](https://user-images.githubusercontent.com/35516367/170414026-2466ee6b-fd6c-48f0-bec8-127237116baf.png)
+![image](https://user-images.githubusercontent.com/35516367/170412105-08d9fdfd-b3fe-4a8b-b92b-b6af5580c319.png)
 
 ## Goals
 - First and foremost, this is a project to learn about Rust and Linux
@@ -43,7 +43,7 @@ cargo install autoclockspeed
 [![image](https://user-images.githubusercontent.com/35516367/151716685-a3ed3c53-07f4-459f-a3ae-e1de1ba16429.png)](https://www.youtube.com/watch?v=T9nN_rQOYsg)
 
 ## New Interactive Mode
-![image](https://user-images.githubusercontent.com/35516367/170412105-08d9fdfd-b3fe-4a8b-b92b-b6af5580c319.png)
+![image](https://user-images.githubusercontent.com/35516367/170414026-2466ee6b-fd6c-48f0-bec8-127237116baf.png)
 
 ## Systemd
 In order to have auto-clock-speed start when you restart your computer you must follow these instructions

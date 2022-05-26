@@ -1,8 +1,8 @@
 use super::config::{get_config, Config};
 use super::interface::{Get, Getter, Interface, Set, Setter};
 use super::settings::Settings;
-use std::io::{stdin, stdout, Write};
 use colored::Colorize;
+use std::io::{stdin, stdout, Write};
 
 pub fn help() {
     println!("{}\n", "Help:".bold().green());
@@ -84,7 +84,10 @@ pub fn interactive() {
                         println!("Bye!");
                         return;
                     }
-                    _ => println!("{}", format!("Command '{}' not found. Use 'help'.", new).red()),
+                    _ => println!(
+                        "{}",
+                        format!("Command '{}' not found. Use 'help'.", new).red()
+                    ),
                 };
             }
             Err(error) => println!("error: {error}"),

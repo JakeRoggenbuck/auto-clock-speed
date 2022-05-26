@@ -65,7 +65,7 @@ fn read_proc_stat_file() -> Result<String, Error> {
 }
 
 #[derive(Debug)]
-struct ProcStat {
+pub struct ProcStat {
     pub cpu_name: String,
     pub cpu_sum: f32,
     pub cpu_idle: f32,
@@ -118,14 +118,18 @@ pub fn get_cpu_percent() -> Result<String, Error> {
     thread::sleep(time::Duration::from_millis(1000));
     proc = read_proc_stat_file().unwrap();
 
-    let avg_timing_2: &ProcStat = &parse_proc_file(proc).unwrap()[0];
+    let mut avg_timing_2: &ProcStat = &parse_proc_file(proc).unwrap()[0];
 
-    let cpu_delta: f32 = avg_timing_2.cpu_sum - avg_timing.cpu_sum;
-    let cpu_delta_idle: f32 = avg_timing_2.cpu_idle - avg_timing.cpu_idle;
+    Ok(format!("{}", calculate_cpu_percent(&avg_timing, &avg_timing_2) * 100.0))
+}
+
+pub fn calculate_cpu_percent(timing_1: &ProcStat, timing_2: &ProcStat) -> f32 {
+    assert_eq!(timing_1.cpu_name, timing_2.cpu_name, "ProcStat object {:?} and {:?} do not belong to the same cpu", timing_1, timing_2);
+    let cpu_delta: f32 = timing_2.cpu_sum - timing_1.cpu_sum;
+    let cpu_delta_idle: f32 = timing_2.cpu_idle - timing_1.cpu_idle;
     let cpu_used: f32 = cpu_delta - cpu_delta_idle;
-    let usage: f32 = cpu_used / cpu_delta * 100.0;
-
-    Ok(format!("{}", usage))
+    cpu_used / cpu_delta
+    
 }
 
 fn read_turbo_file() -> Result<String, Error> {

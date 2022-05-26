@@ -57,7 +57,7 @@ pub fn check_cpu_name() -> Result<String, Error> {
     Ok(name)
 }
 
-fn read_proc_stat_file() -> Result<String, Error> {
+pub fn read_proc_stat_file() -> Result<String, Error> {
     let mut is_turbo: String = String::new();
     let turbo_path: &str = "/proc/stat";
     File::open(turbo_path)?.read_to_string(&mut is_turbo)?;
@@ -65,7 +65,7 @@ fn read_proc_stat_file() -> Result<String, Error> {
 }
 
 #[derive(Debug)]
-struct ProcStat {
+pub struct ProcStat {
     pub cpu_name: String,
     pub cpu_sum: f32,
     pub cpu_idle: f32,
@@ -81,12 +81,18 @@ impl Default for ProcStat {
     }
 }
 
-fn parse_proc_file(proc: String) -> Result<Vec<ProcStat>, Error> {
+pub fn parse_proc_file(proc: String) -> Result<Vec<ProcStat>, Error> {
     let lines: Vec<_> = proc.lines().collect();
     let mut procs: Vec<ProcStat> = Vec::<ProcStat>::new();
     for l in lines {
         if l.starts_with("cpu") {
-            let columns: Vec<_> = l.split(" ").collect();
+            let mut columns: Vec<_> = l.split(" ").collect();
+
+            // Remove first index if cpu starts with "cpu  " because the two spaces count as a
+            // column
+            if l.starts_with("cpu  ") {
+                columns.remove(0);
+            }
             let mut proc_struct: ProcStat = ProcStat::default();
             proc_struct.cpu_name = columns[0].to_string();
             for col in &columns {
@@ -99,7 +105,7 @@ fn parse_proc_file(proc: String) -> Result<Vec<ProcStat>, Error> {
                 }
             }
 
-            match columns[5].parse::<f32>() {
+            match columns[4].parse::<f32>() {
                 Ok(num) => {
                     proc_struct.cpu_idle = num;
                 }
@@ -119,13 +125,24 @@ pub fn get_cpu_percent() -> Result<String, Error> {
     proc = read_proc_stat_file().unwrap();
 
     let avg_timing_2: &ProcStat = &parse_proc_file(proc).unwrap()[0];
+    println!("{:?} -- {:?}", avg_timing, avg_timing_2);
 
-    let cpu_delta: f32 = avg_timing_2.cpu_sum - avg_timing.cpu_sum;
-    let cpu_delta_idle: f32 = avg_timing_2.cpu_idle - avg_timing.cpu_idle;
+    Ok(format!(
+        "{}",
+        calculate_cpu_percent(&avg_timing, &avg_timing_2) * 100.0
+    ))
+}
+
+pub fn calculate_cpu_percent(timing_1: &ProcStat, timing_2: &ProcStat) -> f32 {
+    assert_eq!(
+        timing_1.cpu_name, timing_2.cpu_name,
+        "ProcStat object {:?} and {:?} do not belong to the same cpu",
+        timing_1, timing_2
+    );
+    let cpu_delta: f32 = timing_2.cpu_sum - timing_1.cpu_sum;
+    let cpu_delta_idle: f32 = timing_2.cpu_idle - timing_1.cpu_idle;
     let cpu_used: f32 = cpu_delta - cpu_delta_idle;
-    let usage: f32 = cpu_used / cpu_delta * 100.0;
-
-    Ok(format!("{}", usage))
+    cpu_used / cpu_delta
 }
 
 fn read_turbo_file() -> Result<String, Error> {
@@ -225,6 +242,7 @@ pub fn list_cpus() -> Vec<CPU> {
             min_freq: 0,
             cur_freq: 0,
             cur_temp: 0,
+            cur_usage: 0.0,
             gov: "Unknown".to_string(),
         };
 

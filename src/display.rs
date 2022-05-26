@@ -126,13 +126,28 @@ pub fn render_cpu(cpu: &CPU) -> String {
         temp = format!("{}C", cpu.cur_temp / 1000).green();
     }
 
+    let usage: colored::ColoredString;
+
+    if cpu.cur_usage > 0.9 {
+        usage = format!("{:.2}%", cpu.cur_usage * 100.0).red();
+    } else if cpu.cur_usage > 0.5 {
+        usage = format!("{:.2}%", cpu.cur_usage * 100.0).yellow();
+    } else if cpu.cur_usage > 0.2 {
+        usage = format!("{:.2}%", cpu.cur_usage * 100.0).white();
+    } else if cpu.cur_usage > 0.0000 {
+        usage = format!("{:.2}%", cpu.cur_usage * 100.0).green();
+    } else {
+        usage = format!("{:.2}%", cpu.cur_usage * 100.0).purple();
+    }
+
     format!(
-        "{}: {}MHz\t{}MHz\t{}\t{}\t{}\n",
+        "{}: {}MHz\t{}MHz\t{}\t{}\t{}\t{}\n",
         cpu.name.bold(),
         cpu.max_freq / 1000,
         cpu.min_freq / 1000,
         format!("{}MHz", cpu.cur_freq / 1000).green(),
         temp,
+        usage,
         cpu.gov
     )
 }
@@ -157,6 +172,7 @@ mod tests {
     fn render_cpu_unit_test() {
         let new = CPU {
             name: "cpu1".to_string(),
+            cur_usage: 0.0,
             number: 1,
             // Temporary initial values
             max_freq: 0,

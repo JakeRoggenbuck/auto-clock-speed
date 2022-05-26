@@ -3,6 +3,7 @@ use std::io::{Read, Write};
 use std::path::Path;
 
 use super::display::{print_cpu, render_cpu};
+use super::system::{calculate_cpu_percent, ProcStat};
 use super::Error;
 
 #[cfg(test)]
@@ -14,6 +15,7 @@ pub trait Speed {
     fn read_temp(&mut self, sub_path: &str) -> Result<i32, Error>;
     fn write_value(&mut self, value: WritableValue) -> Result<(), Error>;
     fn update(&mut self) -> Result<(), Error>;
+    fn update_usage(&mut self, last_proc: &ProcStat, current_proc: &ProcStat) -> Result<(), Error>;
     fn init_cpu(&mut self) -> Result<(), Error>;
     fn set_max(&mut self, max: i32) -> Result<(), Error>;
     fn set_min(&mut self, min: i32) -> Result<(), Error>;
@@ -35,6 +37,7 @@ pub struct CPU {
     pub min_freq: i32,
     pub cur_freq: i32,
     pub cur_temp: i32,
+    pub cur_usage: f32,
     pub gov: String,
 }
 
@@ -132,6 +135,12 @@ impl Speed for CPU {
         self.get_cur();
         self.get_temp()?;
         self.get_gov()?;
+        Ok(())
+    }
+
+    /// Updating usage takes more timing data it doesn't just work instantly
+    fn update_usage(&mut self, last_proc: &ProcStat, current_proc: &ProcStat) -> Result<(), Error> {
+        self.cur_usage = calculate_cpu_percent(last_proc, current_proc);
         Ok(())
     }
 

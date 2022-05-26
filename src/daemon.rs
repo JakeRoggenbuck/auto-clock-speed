@@ -397,7 +397,6 @@ impl Checker for Daemon {
             cpu.update()?;
             for (i, proc) in self.last_proc.iter().enumerate() {
                 if cpu.name == proc.cpu_name {
-                    println!("{:?} -- {:?}", proc, cur_proc[i]);
                     cpu.update_usage(proc, &cur_proc[i])?;
                 }
             }

@@ -133,7 +133,7 @@ pub fn render_cpu(cpu: &CPU) -> String {
         cpu.min_freq / 1000,
         format!("{}MHz", cpu.cur_freq / 1000).green(),
         temp,
-        cpu.cur_usage,
+        format!("{:.2}%", cpu.cur_usage * 100.0),
         cpu.gov
     )
 }

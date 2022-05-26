@@ -3,7 +3,7 @@ use std::io::{Read, Write};
 use std::path::Path;
 
 use super::display::{print_cpu, render_cpu};
-use super::system::{ProcStat, calculate_cpu_percent };
+use super::system::{calculate_cpu_percent, ProcStat};
 use super::Error;
 
 #[cfg(test)]

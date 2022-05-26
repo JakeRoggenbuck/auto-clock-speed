@@ -125,7 +125,7 @@ pub fn render_cpu(cpu: &CPU) -> String {
     } else {
         temp = format!("{}C", cpu.cur_temp / 1000).green();
     }
-    
+
     let usage: colored::ColoredString;
 
     if cpu.cur_usage > 0.9 {

@@ -127,16 +127,22 @@ pub fn get_cpu_percent() -> Result<String, Error> {
     let avg_timing_2: &ProcStat = &parse_proc_file(proc).unwrap()[0];
     println!("{:?} -- {:?}", avg_timing, avg_timing_2);
 
-    Ok(format!("{}", calculate_cpu_percent(&avg_timing, &avg_timing_2) * 100.0))
+    Ok(format!(
+        "{}",
+        calculate_cpu_percent(&avg_timing, &avg_timing_2) * 100.0
+    ))
 }
 
 pub fn calculate_cpu_percent(timing_1: &ProcStat, timing_2: &ProcStat) -> f32 {
-    assert_eq!(timing_1.cpu_name, timing_2.cpu_name, "ProcStat object {:?} and {:?} do not belong to the same cpu", timing_1, timing_2);
+    assert_eq!(
+        timing_1.cpu_name, timing_2.cpu_name,
+        "ProcStat object {:?} and {:?} do not belong to the same cpu",
+        timing_1, timing_2
+    );
     let cpu_delta: f32 = timing_2.cpu_sum - timing_1.cpu_sum;
     let cpu_delta_idle: f32 = timing_2.cpu_idle - timing_1.cpu_idle;
     let cpu_used: f32 = cpu_delta - cpu_delta_idle;
     cpu_used / cpu_delta
-    
 }
 
 fn read_turbo_file() -> Result<String, Error> {

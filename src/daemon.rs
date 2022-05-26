@@ -12,7 +12,10 @@ use super::logger;
 use super::logger::Interface;
 use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
 use super::state::State;
-use super::system::{check_cpu_freq, check_turbo_enabled, get_highest_temp, list_cpus, ProcStat, read_proc_stat_file, parse_proc_file };
+use super::system::{
+    check_cpu_freq, check_turbo_enabled, get_highest_temp, list_cpus, parse_proc_file,
+    read_proc_stat_file, ProcStat,
+};
 use super::terminal::terminal_width;
 use super::Error;
 use super::Settings;
@@ -391,7 +394,6 @@ impl Checker for Daemon {
 
     /// Calls update on each cpu to update the state of each one
     fn update_all(&mut self) -> Result<(), Error> {
-
         let cur_proc = parse_proc_file(read_proc_stat_file()?)?;
         for cpu in self.cpus.iter_mut() {
             cpu.update()?;

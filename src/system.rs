@@ -5,6 +5,7 @@ use std::string::String;
 use std::{thread, time};
 
 use crate::cpu::Speed;
+use crate::debug;
 
 use super::cpu::CPU;
 use super::Error;
@@ -125,7 +126,6 @@ pub fn get_cpu_percent() -> Result<String, Error> {
     proc = read_proc_stat_file().unwrap();
 
     let avg_timing_2: &ProcStat = &parse_proc_file(proc).unwrap()[0];
-    println!("{:?} -- {:?}", avg_timing, avg_timing_2);
 
     Ok(format!(
         "{}",
@@ -134,6 +134,7 @@ pub fn get_cpu_percent() -> Result<String, Error> {
 }
 
 pub fn calculate_cpu_percent(timing_1: &ProcStat, timing_2: &ProcStat) -> f32 {
+    debug!("{:?} -- {:?}", timing_1, timing_2);
     assert_eq!(
         timing_1.cpu_name, timing_2.cpu_name,
         "ProcStat object {:?} and {:?} do not belong to the same cpu",

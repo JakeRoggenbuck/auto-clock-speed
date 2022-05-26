@@ -32,18 +32,31 @@ impl Getter for Get {
     }
 
     fn power(&self, raw: bool) {
-        match read_lid_state() {
-            Ok(lid) => match read_battery_charge() {
-                Ok(bat) => match read_power_source() {
-                    Ok(plugged) => {
-                        print_power(lid, bat, plugged, raw);
-                    }
-                    Err(_) => eprintln!("Failed to get read power source"),
-                },
-                Err(_) => eprintln!("Failed to get read battery charger"),
-            },
-            Err(_) => eprintln!("Failed to get read lid state"),
+        let plugged = match read_power_source() {
+            Ok(plugged) => plugged,
+            Err(_) => {
+                eprintln!("Failed to get read power source");
+                return;
+            }
         };
+
+        let bat = match read_battery_charge() {
+            Ok(bat) => bat,
+            Err(_) => {
+                eprintln!("Failed to get read battery charger");
+                return;
+            }
+        };
+
+        let lid = match read_lid_state() {
+            Ok(lid) => lid,
+            Err(_) => {
+                eprintln!("Failed to get read lid state");
+                return;
+            }
+        };
+
+        print_power(lid, bat, plugged, raw);
     }
 
     fn usage(&self, raw: bool) {
@@ -108,6 +121,7 @@ pub trait Setter {
 
 impl Setter for Set {
     fn gov(&self, value: String, config: Config, settings: Settings) {
+        // Create the daemon to set the gov
         match daemon_init(settings, config) {
             Ok(mut d) => match d.set_govs(value.clone()) {
                 Ok(_) => {}

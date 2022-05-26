@@ -557,7 +557,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
     }
 
     let message = format_message(
-        settings.edit,
+        edit, // Use current edit because settings.edit has not changed
         started_as_edit,
         forced_reason,
         settings.delay,
@@ -568,7 +568,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         verbose: settings.verbose,
         delay: settings.delay,
         delay_battery: settings.delay_battery,
-        edit,
+        edit, // Use new edit for new settings
         no_animation: settings.no_animation,
         should_graph: settings.should_graph,
         commit: settings.commit,

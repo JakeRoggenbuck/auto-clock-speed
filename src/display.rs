@@ -172,6 +172,7 @@ mod tests {
     fn render_cpu_unit_test() {
         let new = CPU {
             name: "cpu1".to_string(),
+            cur_usage: 0.0,
             number: 1,
             // Temporary initial values
             max_freq: 0,

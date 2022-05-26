@@ -2,8 +2,10 @@ use super::config::{get_config, Config};
 use super::interface::{Get, Getter, Interface, Set, Setter};
 use super::settings::Settings;
 use std::io::{stdin, stdout, Write};
+use colored::Colorize;
 
 pub fn help() {
+    println!("{}\n", "Help:".bold().green());
     println!("- get");
     println!("  - freq");
     println!("  - cpus");
@@ -28,7 +30,8 @@ pub fn interactive() {
 
     let mut input;
 
-    println!("Auto Clock Speed Interactive Mode:");
+    println!("{}", "Auto Clock Speed".bold());
+    println!("{}", "Interactive Mode".bold().blue());
 
     let set_settings = Settings {
         verbose: true,
@@ -42,7 +45,7 @@ pub fn interactive() {
     };
 
     loop {
-        print!("\n> ");
+        print!("{}", "\n> ".bold().green());
         stdout().flush().unwrap();
 
         input = String::new();
@@ -81,7 +84,7 @@ pub fn interactive() {
                         println!("Bye!");
                         return;
                     }
-                    _ => println!("Command '{new}' not found. Use help."),
+                    _ => println!("{}", format!("Command '{}' not found. Use 'help'.", new).red()),
                 };
             }
             Err(error) => println!("error: {error}"),

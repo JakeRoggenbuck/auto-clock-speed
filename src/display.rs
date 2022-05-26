@@ -104,7 +104,7 @@ pub fn print_cpus(cpus: Vec<CPU>, name: String, raw: bool) {
     } else {
         println!("Name: {}", name);
         for x in cpus {
-            println!("{} is currently @ {} MHz", x.name, x.cur_freq / 1000);
+            println!("{}:\t{} MHz", x.name, x.cur_freq / 1000);
         }
     }
 }

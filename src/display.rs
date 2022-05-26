@@ -125,6 +125,20 @@ pub fn render_cpu(cpu: &CPU) -> String {
     } else {
         temp = format!("{}C", cpu.cur_temp / 1000).green();
     }
+    
+    let usage: colored::ColoredString;
+
+    if cpu.cur_usage > 0.9 {
+        usage = format!("{:.2}%", cpu.cur_usage * 100.0).red();
+    } else if cpu.cur_usage > 0.5 {
+        usage = format!("{:.2}%", cpu.cur_usage * 100.0).yellow();
+    } else if cpu.cur_usage > 0.2 {
+        usage = format!("{:.2}%", cpu.cur_usage * 100.0).white();
+    } else if cpu.cur_usage > 0.0000 {
+        usage = format!("{:.2}%", cpu.cur_usage * 100.0).green();
+    } else {
+        usage = format!("{:.2}%", cpu.cur_usage * 100.0).purple();
+    }
 
     format!(
         "{}: {}MHz\t{}MHz\t{}\t{}\t{}\t{}\n",
@@ -133,7 +147,7 @@ pub fn render_cpu(cpu: &CPU) -> String {
         cpu.min_freq / 1000,
         format!("{}MHz", cpu.cur_freq / 1000).green(),
         temp,
-        format!("{:.2}%", cpu.cur_usage * 100.0),
+        usage,
         cpu.gov
     )
 }

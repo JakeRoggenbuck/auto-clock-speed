@@ -3,7 +3,7 @@ use std::io::{Read, Write};
 use std::path::Path;
 
 use super::display::{print_cpu, render_cpu};
-use super::system::{ProcStat};
+use super::system::{ProcStat, calculate_cpu_percent };
 use super::Error;
 
 #[cfg(test)]
@@ -140,7 +140,7 @@ impl Speed for CPU {
 
     /// Updating usage takes more timing data it doesn't just work instantly
     fn update_usage(&mut self, last_proc: &ProcStat, current_proc: &ProcStat) -> Result<(), Error> {
-        println!("u");
+        self.cur_usage = calculate_cpu_percent(last_proc, current_proc);
         Ok(())
     }
 

@@ -86,7 +86,13 @@ pub fn parse_proc_file(proc: String) -> Result<Vec<ProcStat>, Error> {
     let mut procs: Vec<ProcStat> = Vec::<ProcStat>::new();
     for l in lines {
         if l.starts_with("cpu") {
-            let columns: Vec<_> = l.split(" ").collect();
+            let mut columns: Vec<_> = l.split(" ").collect();
+
+            // Remove first index if cpu starts with "cpu  " because the two spaces count as a
+            // column
+            if l.starts_with("cpu  ") {
+                columns.remove(0);
+            }
             let mut proc_struct: ProcStat = ProcStat::default();
             proc_struct.cpu_name = columns[0].to_string();
             for col in &columns {
@@ -99,7 +105,7 @@ pub fn parse_proc_file(proc: String) -> Result<Vec<ProcStat>, Error> {
                 }
             }
 
-            match columns[5].parse::<f32>() {
+            match columns[4].parse::<f32>() {
                 Ok(num) => {
                     proc_struct.cpu_idle = num;
                 }
@@ -119,6 +125,7 @@ pub fn get_cpu_percent() -> Result<String, Error> {
     proc = read_proc_stat_file().unwrap();
 
     let avg_timing_2: &ProcStat = &parse_proc_file(proc).unwrap()[0];
+    println!("{:?} -- {:?}", avg_timing, avg_timing_2);
 
     Ok(format!("{}", calculate_cpu_percent(&avg_timing, &avg_timing_2) * 100.0))
 }

@@ -127,12 +127,13 @@ pub fn render_cpu(cpu: &CPU) -> String {
     }
 
     format!(
-        "{}: {}MHz\t{}MHz\t{}\t{}\t{}\n",
+        "{}: {}MHz\t{}MHz\t{}\t{}\t{}\t{}\n",
         cpu.name.bold(),
         cpu.max_freq / 1000,
         cpu.min_freq / 1000,
         format!("{}MHz", cpu.cur_freq / 1000).green(),
         temp,
+        cpu.cur_usage,
         cpu.gov
     )
 }

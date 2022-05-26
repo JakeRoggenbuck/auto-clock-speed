@@ -57,7 +57,7 @@ pub fn check_cpu_name() -> Result<String, Error> {
     Ok(name)
 }
 
-fn read_proc_stat_file() -> Result<String, Error> {
+pub fn read_proc_stat_file() -> Result<String, Error> {
     let mut is_turbo: String = String::new();
     let turbo_path: &str = "/proc/stat";
     File::open(turbo_path)?.read_to_string(&mut is_turbo)?;
@@ -81,7 +81,7 @@ impl Default for ProcStat {
     }
 }
 
-fn parse_proc_file(proc: String) -> Result<Vec<ProcStat>, Error> {
+pub fn parse_proc_file(proc: String) -> Result<Vec<ProcStat>, Error> {
     let lines: Vec<_> = proc.lines().collect();
     let mut procs: Vec<ProcStat> = Vec::<ProcStat>::new();
     for l in lines {
@@ -118,7 +118,7 @@ pub fn get_cpu_percent() -> Result<String, Error> {
     thread::sleep(time::Duration::from_millis(1000));
     proc = read_proc_stat_file().unwrap();
 
-    let mut avg_timing_2: &ProcStat = &parse_proc_file(proc).unwrap()[0];
+    let avg_timing_2: &ProcStat = &parse_proc_file(proc).unwrap()[0];
 
     Ok(format!("{}", calculate_cpu_percent(&avg_timing, &avg_timing_2) * 100.0))
 }
@@ -229,6 +229,7 @@ pub fn list_cpus() -> Vec<CPU> {
             min_freq: 0,
             cur_freq: 0,
             cur_temp: 0,
+            cur_usage: 0.0,
             gov: "Unknown".to_string(),
         };
 

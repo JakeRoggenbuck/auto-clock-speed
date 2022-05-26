@@ -12,7 +12,7 @@ use super::logger;
 use super::logger::Interface;
 use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
 use super::state::State;
-use super::system::{check_cpu_freq, check_turbo_enabled, get_highest_temp, list_cpus};
+use super::system::{check_cpu_freq, check_turbo_enabled, get_highest_temp, list_cpus, ProcStat, read_proc_stat_file, parse_proc_file };
 use super::terminal::terminal_width;
 use super::Error;
 use super::Settings;
@@ -68,6 +68,7 @@ pub trait Checker {
 
 pub struct Daemon {
     pub cpus: Vec<CPU>,
+    pub last_proc: Vec<ProcStat>,
     pub message: String,
     pub lid_state: LidState,
     pub charging: bool,
@@ -390,9 +391,18 @@ impl Checker for Daemon {
 
     /// Calls update on each cpu to update the state of each one
     fn update_all(&mut self) -> Result<(), Error> {
+
+        let cur_proc = parse_proc_file(read_proc_stat_file()?)?;
         for cpu in self.cpus.iter_mut() {
             cpu.update()?;
+            for (i, proc) in self.last_proc.iter().enumerate() {
+                if cpu.name == proc.cpu_name {
+                    cpu.update_usage(&self.last_proc[i], &cur_proc[0])?;
+                }
+            }
         }
+
+        self.last_proc = cur_proc;
 
         self.temp_max = (get_highest_temp(&self.cpus) / 1000) as i8;
 
@@ -406,7 +416,7 @@ impl Checker for Daemon {
 
     fn preprint_render(&mut self) -> String {
         let message = format!("{}\n", self.message);
-        let title = "Name  Max\tMin\tFreq\tTemp\tGovernor\n".bold();
+        let title = "Name  Max\tMin\tFreq\tTemp\tUsage\tGovernor\n".bold();
         // Render each line of cpu core
         let cpus = &self.cpus.iter().map(|c| c.render()).collect::<String>();
 
@@ -566,6 +576,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
     // Create a new Daemon
     let mut daemon: Daemon = Daemon {
         cpus: Vec::<CPU>::new(),
+        last_proc: Vec::<ProcStat>::new(),
         message,
         lid_state: LidState::Unknown,
         // If edit is still true, then there is definitely a bool result to read_power_source

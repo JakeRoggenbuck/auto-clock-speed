@@ -103,8 +103,8 @@ fn make_gov_performance(cpu: &mut CPU) -> Result<(), Error> {
     Ok(())
 }
 
-fn make_gov_generic(cpu: &mut CPU) -> Result<(), Error> {
-    cpu.set_gov(generic_gov.to_string())?;
+fn make_gov_schedutil(cpu: &mut CPU) -> Result<(), Error> {
+    cpu.set_gov("schedutil".to_string())?;
     Ok(())
 }
 
@@ -167,10 +167,11 @@ impl Checker for Daemon {
             return self.apply_to_cpus(&make_gov_performance);
         } else if gov == "powersave".to_string() {
             return self.apply_to_cpus(&make_gov_powersave);
+        } else if gov == "schedutil".to_string() {
+            return self.apply_to_cpus(&make_gov_schedutil);
         } else if check_available_governors().is_ok() {
             if check_available_governors().unwrap().contains(&gov.into()){
-                self.logger.log("", logger::Severity::Log,);
-                return self.apply_to_cpus(&make_gov_generic);
+                self.logger.log("Other governors not supported yet", logger::Severity::Log,);
             } else {
                 eprintln!("Gov \"{}\" not available", gov);
             }

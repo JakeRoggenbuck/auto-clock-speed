@@ -49,6 +49,10 @@ pub trait Checker {
     // High Temperature Rule
     fn start_high_temperature_rule(&mut self) -> Result<(), Error>;
     fn end_high_temperature_rule(&mut self) -> Result<(), Error>;
+    
+    // High CPU Usage Rule
+    fn start_cpu_usage_rule(&mut self) -> Result<(), Error>;
+    fn end_cpu_usage_rule(&mut self) -> Result<(), Error>;
 
     // Other methods
     fn run(&mut self) -> Result<(), Error>;

@@ -1,9 +1,33 @@
-use super::Error;
+use std::any::Any;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::fs::{read_dir, File};
 use std::io::Read;
 use std::path::Path;
+
+use super::create_issue;
+use super::Error;
+
+const LID_STATUS_PATH: [&'static str; 4] = [
+    "/proc/acpi/button/lid/LID/state",
+    "/proc/acpi/button/lid/LID0/state",
+    "/proc/acpi/button/lid/LID1/state",
+    "/proc/acpi/button/lid/LID2/state",
+];
+
+const BATTERY_CHARGE_PATH: [&'static str; 4] = [
+    "/sys/class/power_supply/BAT/capacity",
+    "/sys/class/power_supply/BAT0/capacity",
+    "/sys/class/power_supply/BAT1/capacity",
+    "/sys/class/power_supply/BAT2/capacity",
+];
+
+const POWER_SOURCE_PATH: [&'static str; 4] = [
+    "/sys/class/power_supply/AC/online",
+    "/sys/class/power_supply/AC0/online",
+    "/sys/class/power_supply/AC1/online",
+    "/sys/class/power_supply/ACAD/online",
+];
 
 #[derive(PartialEq)]
 pub enum LidState {
@@ -24,42 +48,67 @@ impl fmt::Display for LidState {
     }
 }
 
-pub fn has_battery() -> Result<bool, Error> {
+pub fn has_battery() -> bool {
     let power_dir = Path::new("/sys/class/power_supply/");
-    let dir = read_dir(power_dir)?;
-    Ok(dir
-        .into_iter()
-        .map(|x| x.unwrap().path().to_str().unwrap().to_string())
-        .collect::<String>()
-        .len()
-        > 0)
+    let dir_count = read_dir(power_dir).into_iter().len();
+    dir_count > 0
+}
+
+pub fn get_best_path(paths: [&'static str; 4]) -> Result<&str, Error> {
+    for path in paths.iter() {
+        if Path::new(path).exists() {
+            return Ok(path);
+        }
+    }
+
+    return Err(Error::Unknown);
 }
 
 pub fn read_lid_state() -> Result<LidState, Error> {
-    if !Path::new("/proc/acpi/button/lid/LID0/state").exists() {
-        return Ok(LidState::Unapplicable);
-    }
+    let path: &str = match get_best_path(LID_STATUS_PATH) {
+        Ok(path) => path,
+        Err(error) => {
+            if error.type_id() == Error::IO.type_id() {
+                // Make sure to return IO error if one occurs
+                return Err(error);
+            }
+            eprintln!("Could not detect your lid state.");
+            create_issue!("If you are on a laptop");
+            return Ok(LidState::Unapplicable);
+        }
+    };
 
     let mut lid_str: String = String::new();
-    File::open("/proc/acpi/button/lid/LID0/state")?.read_to_string(&mut lid_str)?;
+    File::open(path)?.read_to_string(&mut lid_str)?;
 
-    if lid_str.contains("open") {
-        return Ok(LidState::Open);
+    let state = if lid_str.contains("open") {
+        LidState::Open
     } else if lid_str.contains("closed") {
-        return Ok(LidState::Closed);
-    }
+        LidState::Closed
+    } else {
+        LidState::Unknown
+    };
 
-    Ok(LidState::Unknown)
+    Ok(state)
 }
 
 pub fn read_battery_charge() -> Result<i8, Error> {
-    if !Path::new("/sys/class/power_supply/BAT0/capacity").exists() {
-        // If the power source does not exist, then it's plugged in, so 100%
-        return Ok(100);
-    }
+    let path: &str = match get_best_path(BATTERY_CHARGE_PATH) {
+        Ok(path) => path,
+        Err(error) => {
+            if error.type_id() == Error::IO.type_id() {
+                // Make sure to return IO error if one occurs
+                return Err(error);
+            }
+            // If it doesn't exist then it is plugged in so make it 100% percent capacity
+            eprintln!("We could not detect your battery.");
+            create_issue!("If you are on a laptop");
+            return Ok(100);
+        }
+    };
 
     let mut cap_str: String = String::new();
-    File::open("/sys/class/power_supply/BAT0/capacity")?.read_to_string(&mut cap_str)?;
+    File::open(path)?.read_to_string(&mut cap_str)?;
 
     // Remove the \n char
     cap_str.pop();
@@ -68,13 +117,21 @@ pub fn read_battery_charge() -> Result<i8, Error> {
 }
 
 pub fn read_power_source() -> Result<bool, Error> {
-    if !Path::new("/sys/class/power_supply/AC/online").exists() {
-        println!("Unexpected, the directory /sys/class/power_supply/AC/online doesn't exist? Do you not have a power source?");
-        return Ok(true);
-    }
+    let path: &str = match get_best_path(POWER_SOURCE_PATH) {
+        Ok(path) => path,
+        Err(error) => {
+            if error.type_id() == Error::IO.type_id() {
+                // Make sure to return IO error if one occurs
+                return Err(error);
+            }
+            eprintln!("We could not detect your AC power source.");
+            create_issue!("If you have a power source");
+            return Ok(true);
+        }
+    };
 
     let mut pwr_str: String = String::new();
-    File::open("/sys/class/power_supply/AC/online")?.read_to_string(&mut pwr_str)?;
+    File::open(path)?.read_to_string(&mut pwr_str)?;
 
     // Remove the \n char
     pwr_str.pop();

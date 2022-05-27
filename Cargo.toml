@@ -3,7 +3,7 @@ name = "autoclockspeed"
 version = "0.1.8"
 edition = "2018"
 license = "MIT"
-description = " A utility to check stats about your CPU, and auto regulate clock speeds to help with either performance or battery life."
+description = "A utility to check stats about your CPU, and auto regulate clock speeds to help with either performance or battery life."
 homepage = "https://github.com/JakeRoggenbuck/auto-clock-speed"
 repository = "https://github.com/JakeRoggenbuck/auto-clock-speed"
 readme = "README.md"
@@ -12,7 +12,7 @@ keywords = ["clockspeed", "cpu", "battery"]
 authors = ["jakeroggenbuck <jakeroggenbuck2@gmail.com", "cameron <cameron.bannasch@gmail>", "shuzhengz <treez.zhang@gmail.com>"]
 
 [dependencies]
-structopt = { version = "0.3", default-features = false }
+structopt = { version = "0.3.26", default-features = false }
 termion = "1.5.3"
 nix = "0.15.0"
 chrono = "0.4"

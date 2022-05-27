@@ -12,7 +12,10 @@ use super::logger;
 use super::logger::Interface;
 use super::power::{DevicePower, LidState, Power};
 use super::state::State;
-use super::system::{check_cpu_freq, check_turbo_enabled, get_highest_temp, list_cpus};
+use super::system::{
+    check_cpu_freq, check_turbo_enabled, get_highest_temp, list_cpus, parse_proc_file,
+    read_proc_stat_file, ProcStat,
+};
 use super::terminal::terminal_width;
 use super::Error;
 use super::Settings;
@@ -70,6 +73,7 @@ pub trait Checker {
 
 pub struct Daemon {
     pub cpus: Vec<CPU>,
+    pub last_proc: Vec<ProcStat>,
     pub message: String,
     pub lid_state: LidState,
     pub charging: bool,
@@ -393,9 +397,17 @@ impl Checker for Daemon {
 
     /// Calls update on each cpu to update the state of each one
     fn update_all(&mut self) -> Result<(), Error> {
+        let cur_proc = parse_proc_file(read_proc_stat_file()?)?;
         for cpu in self.cpus.iter_mut() {
             cpu.update()?;
+            for (i, proc) in self.last_proc.iter().enumerate() {
+                if cpu.name == proc.cpu_name {
+                    cpu.update_usage(proc, &cur_proc[i])?;
+                }
+            }
         }
+
+        self.last_proc = cur_proc;
 
         self.temp_max = (get_highest_temp(&self.cpus) / 1000) as i8;
 
@@ -409,7 +421,7 @@ impl Checker for Daemon {
 
     fn preprint_render(&mut self) -> String {
         let message = format!("{}\n", self.message);
-        let title = "Name  Max\tMin\tFreq\tTemp\tGovernor\n".bold();
+        let title = "Name  Max\tMin\tFreq\tTemp\tUsage\tGovernor\n".bold();
         // Render each line of cpu core
         let cpus = &self.cpus.iter().map(|c| c.render()).collect::<String>();
 
@@ -557,7 +569,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
     }
 
     let message = format_message(
-        settings.edit,
+        edit, // Use current edit because settings.edit has not changed
         started_as_edit,
         forced_reason,
         settings.delay,
@@ -568,7 +580,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         verbose: settings.verbose,
         delay: settings.delay,
         delay_battery: settings.delay_battery,
-        edit,
+        edit, // Use new edit for new settings
         no_animation: settings.no_animation,
         should_graph: settings.should_graph,
         commit: settings.commit,
@@ -578,6 +590,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
     // Create a new Daemon
     let mut daemon: Daemon = Daemon {
         cpus: Vec::<CPU>::new(),
+        last_proc: Vec::<ProcStat>::new(),
         message,
         lid_state: LidState::Unknown,
         // If edit is still true, then there is definitely a bool result to read_power_source
@@ -659,7 +672,7 @@ mod tests {
         let mut daemon = daemon_init(settings, config).unwrap();
         let preprint = Checker::preprint_render(&mut daemon);
         assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[31medit\u{1b}[0m mode with a delay of 1ms normally and 2ms when on battery\n"));
-        assert!(preprint.contains("Name  Max\tMin\tFreq\tTemp\tGovernor\n"));
+        assert!(preprint.contains("Name  Max\tMin\tFreq\tTemp\tUsage\tGovernor\n"));
         assert!(preprint.contains("Hz"));
         assert!(preprint.contains("cpu"));
         assert!(preprint.contains("C"));
@@ -684,7 +697,7 @@ mod tests {
         let mut daemon = daemon_init(settings, config).unwrap();
         let preprint = Checker::preprint_render(&mut daemon);
         assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[33mmonitor\u{1b}[0m mode with a delay of 1ms normally and 2ms when on battery\n"));
-        assert!(preprint.contains("Name  Max\tMin\tFreq\tTemp\tGovernor\n"));
+        assert!(preprint.contains("Name  Max\tMin\tFreq\tTemp\tUsage\tGovernor\n"));
         assert!(preprint.contains("Hz"));
         assert!(preprint.contains("cpu"));
         assert!(preprint.contains("C"));

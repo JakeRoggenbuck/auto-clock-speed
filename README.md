@@ -1,4 +1,5 @@
-# Auto Clock Speed (acs) ![Rust](https://img.shields.io/github/workflow/status/jakeroggenbuck/auto-clock-speed/Rust?style=for-the-badge)
+![Auto Clock Speed Banner Logo](https://user-images.githubusercontent.com/35516367/169680198-99d02746-22f7-433d-a9a1-d8858edef512.png)
+![Rust](https://img.shields.io/github/workflow/status/jakeroggenbuck/auto-clock-speed/Rust?style=for-the-badge)
 
 A utility to check stats about your CPU, and auto regulate clock speeds to help with either performance or battery life.
 This proram is designed for Linux and Intel laptops, although it should theoretically work on AMD systems and sometimes desktops as well.
@@ -40,6 +41,9 @@ cargo install autoclockspeed
 
 ## In Action
 [![image](https://user-images.githubusercontent.com/35516367/151716685-a3ed3c53-07f4-459f-a3ae-e1de1ba16429.png)](https://www.youtube.com/watch?v=T9nN_rQOYsg)
+
+## New Interactive Mode
+![image](https://user-images.githubusercontent.com/35516367/170414026-2466ee6b-fd6c-48f0-bec8-127237116baf.png)
 
 ## Systemd
 In order to have auto-clock-speed start when you restart your computer you must follow these instructions

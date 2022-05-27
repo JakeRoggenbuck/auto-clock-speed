@@ -2,8 +2,10 @@ use cached::proc_macro::once;
 use std::fs::{read_dir, File};
 use std::io::Read;
 use std::string::String;
+use std::{thread, time};
 
 use crate::cpu::Speed;
+use crate::debug;
 
 use super::cpu::CPU;
 use super::Error;
@@ -54,6 +56,94 @@ pub fn check_cpu_name() -> Result<String, Error> {
     let cpu_info: String = open_cpu_info();
     let name: String = get_name_from_cpu_info(cpu_info)?;
     Ok(name)
+}
+
+pub fn read_proc_stat_file() -> Result<String, Error> {
+    let mut is_turbo: String = String::new();
+    let turbo_path: &str = "/proc/stat";
+    File::open(turbo_path)?.read_to_string(&mut is_turbo)?;
+    Ok(is_turbo)
+}
+
+#[derive(Debug)]
+pub struct ProcStat {
+    pub cpu_name: String,
+    pub cpu_sum: f32,
+    pub cpu_idle: f32,
+}
+
+impl Default for ProcStat {
+    fn default() -> ProcStat {
+        ProcStat {
+            cpu_name: "cpu".to_string(),
+            cpu_sum: 0.0,
+            cpu_idle: 0.0,
+        }
+    }
+}
+
+pub fn parse_proc_file(proc: String) -> Result<Vec<ProcStat>, Error> {
+    let lines: Vec<_> = proc.lines().collect();
+    let mut procs: Vec<ProcStat> = Vec::<ProcStat>::new();
+    for l in lines {
+        if l.starts_with("cpu") {
+            let mut columns: Vec<_> = l.split(" ").collect();
+
+            // Remove first index if cpu starts with "cpu  " because the two spaces count as a
+            // column
+            if l.starts_with("cpu  ") {
+                columns.remove(0);
+            }
+            let mut proc_struct: ProcStat = ProcStat::default();
+            proc_struct.cpu_name = columns[0].to_string();
+            for col in &columns {
+                let parse = col.parse::<f32>();
+                match parse {
+                    Ok(num) => {
+                        proc_struct.cpu_sum += num;
+                    }
+                    Err(_) => {}
+                }
+            }
+
+            match columns[4].parse::<f32>() {
+                Ok(num) => {
+                    proc_struct.cpu_idle = num;
+                }
+                Err(_) => {}
+            }
+            procs.push(proc_struct);
+        }
+    }
+    Ok(procs)
+}
+
+pub fn get_cpu_percent() -> Result<String, Error> {
+    let mut proc = read_proc_stat_file().unwrap();
+    let avg_timing: &ProcStat = &parse_proc_file(proc).unwrap()[0];
+
+    thread::sleep(time::Duration::from_millis(1000));
+    proc = read_proc_stat_file().unwrap();
+
+    let avg_timing_2: &ProcStat = &parse_proc_file(proc).unwrap()[0];
+
+    Ok(format!(
+        "{}",
+        calculate_cpu_percent(&avg_timing, &avg_timing_2) * 100.0
+    ))
+}
+
+pub fn calculate_cpu_percent(timing_1: &ProcStat, timing_2: &ProcStat) -> f32 {
+    debug!("{:?} -- {:?}", timing_1, timing_2);
+    assert_eq!(
+        timing_1.cpu_name, timing_2.cpu_name,
+        "ProcStat object {:?} and {:?} do not belong to the same cpu",
+        timing_1, timing_2
+    );
+    let cpu_delta: f32 = timing_2.cpu_sum - timing_1.cpu_sum;
+    let cpu_delta_idle: f32 = timing_2.cpu_idle - timing_1.cpu_idle;
+    let cpu_used: f32 = cpu_delta - cpu_delta_idle;
+    cpu_used / cpu_delta
 }
 
 fn read_turbo_file() -> Result<String, Error> {
@@ -153,6 +243,7 @@ pub fn list_cpus() -> Vec<CPU> {
             min_freq: 0,
             cur_freq: 0,
             cur_temp: 0,
+            cur_usage: 0.0,
             gov: "Unknown".to_string(),
         };
 
@@ -194,6 +285,13 @@ mod tests {
     fn check_cpu_freq_acs_test() {
         assert_eq!(type_of(check_cpu_freq()), type_of(1));
         assert!(check_cpu_freq() > 0);
+    }
+
+    #[test]
+    fn test_parse_proc_stat_file() {
+        let cpu_percent = get_cpu_percent().unwrap().parse::<f32>().unwrap();
+        assert_eq!(type_of(cpu_percent), type_of(0.0_f32));
+        assert!(cpu_percent > 0.0 && cpu_percent < 100.0);
     }
 
     #[test]

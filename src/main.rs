@@ -3,17 +3,12 @@ use structopt::StructOpt;
 
 use config::{config_dir_exists, get_config};
 use daemon::{daemon_init, Checker};
-use display::{
-    print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpu_temp, print_cpus,
-    print_freq, print_power, print_turbo, show_config,
-};
+use display::show_config;
 use error::Error;
 use power::{DevicePower, Power};
+use interactive::interactive;
+use interface::{Get, Getter, Interface, Set, Setter};
 use settings::Settings;
-use system::{
-    check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
-    list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus,
-};
 
 pub mod config;
 pub mod cpu;
@@ -21,6 +16,8 @@ pub mod daemon;
 pub mod display;
 pub mod error;
 pub mod graph;
+pub mod interactive;
+pub mod interface;
 pub mod logger;
 pub mod power;
 pub mod settings;
@@ -33,6 +30,13 @@ enum GetType {
     /// Get the power
     #[structopt(name = "power")]
     Power {
+        #[structopt(short, long)]
+        raw: bool,
+    },
+
+    /// Get the power
+    #[structopt(name = "usage")]
+    Usage {
         #[structopt(short, long)]
         raw: bool,
     },
@@ -103,7 +107,7 @@ enum SetType {
 )]
 enum ACSCommand {
     /// Get a specific value or status
-    #[structopt(name = "get")]
+    #[structopt(name = "get", alias = "g")]
     Get {
         /// The type of value to request
         #[structopt(subcommand)]
@@ -111,11 +115,15 @@ enum ACSCommand {
     },
 
     /// Set a specific value
-    #[structopt(name = "set")]
+    #[structopt(name = "set", alias = "s")]
     Set {
         #[structopt(subcommand)]
         set: SetType,
     },
+
+    /// Interactive mode for auto clock speed commands
+    #[structopt(name = "interactive", alias = "i")]
+    Interactive {},
 
     /// Show the current config in use
     #[structopt(name = "showconfig", alias = "conf")]
@@ -177,7 +185,6 @@ enum ACSCommand {
 fn parse_args(config: config::Config) {
     let mut daemon: daemon::Daemon;
 
-    // default settings used by set command
     let set_settings = Settings {
         verbose: true,
         delay_battery: 0,
@@ -197,73 +204,55 @@ fn parse_args(config: config::Config) {
         _best_battery_charge_path: String::new(),
     };
 
+    let int = Interface {
+        set: Set {},
+        get: Get {},
+    };
+
     match ACSCommand::from_args() {
-        // Everything starting with "get"
         ACSCommand::Get { get } => match get {
             GetType::Freq { raw } => {
-                let f = check_cpu_freq();
-                print_freq(f, raw);
+                int.get.freq(raw);
             }
 
-            GetType::Power { raw } => match device_power.read_lid_state() {
-                Ok(lid) => match device_power.read_battery_charge() {
-                    Ok(bat) => match device_power.read_power_source() {
-                        Ok(plugged) => {
-                            print_power(lid, bat, plugged, raw);
-                        }
-                        Err(_) => eprintln!("Failed to get read power source"),
-                    },
-                    Err(_) => eprintln!("Failed to get read battery charger"),
-                },
-                Err(_) => eprintln!("Failed to get read lid state"),
-            },
+            GetType::Power { raw } => {
+                int.get.power(raw);
+            }
+            GetType::Usage { raw } => {
+                int.get.usage(raw);
+            }
 
-            GetType::Turbo { raw } => match check_turbo_enabled() {
-                Ok(turbo_enabled) => print_turbo(turbo_enabled, raw),
-                Err(_) => println!("Failed to get turbo status"),
-            },
-
-            GetType::AvailableGovs { raw } => match check_available_governors() {
-                Ok(available_governors) => print_available_governors(available_governors, raw),
-                Err(_) => println!("Failed to get available governors"),
-            },
-
+            GetType::Turbo { raw } => {
+                int.get.turbo(raw);
+            }
+            GetType::AvailableGovs { raw } => {
+                int.get.available_govs(raw);
+            }
             GetType::CPUS { raw } => {
-                let cpus = list_cpus();
-                match check_cpu_name() {
-                    Ok(name) => print_cpus(cpus, name, raw),
-                    Err(_) => println!("Failed get list of cpus"),
-                };
+                int.get.cpus(raw);
             }
 
             GetType::Speeds { raw } => {
-                let speeds = list_cpu_speeds();
-                print_cpu_speeds(speeds, raw);
+                int.get.speeds(raw);
             }
 
             GetType::Temp { raw } => {
-                let cpu_temp = list_cpu_temp();
-                print_cpu_temp(cpu_temp, raw);
+                int.get.temp(raw);
             }
 
             GetType::Govs { raw } => {
-                let govs = list_cpu_governors();
-                print_cpu_governors(govs, raw);
+                int.get.govs(raw);
             }
         },
 
-        // Everything starting with "set"
         ACSCommand::Set { set } => match set {
-            SetType::Gov { value } => match daemon_init(set_settings, config) {
-                Ok(mut d) => match d.set_govs(value.clone()) {
-                    Ok(_) => {}
-                    Err(e) => eprint!("Could not set gov, {:?}", e),
-                },
-                Err(_) => eprint!("Could not run daemon in edit mode"),
-            },
+            SetType::Gov { value } => {
+                int.set.gov(value, config, set_settings);
+            }
         },
 
         ACSCommand::ShowConfig {} => show_config(),
+        ACSCommand::Interactive {} => interactive(),
 
         // Run command
         ACSCommand::Run {

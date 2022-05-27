@@ -351,9 +351,11 @@ impl Checker for Daemon {
             self.end_charging_rule()?;
         }
 
-        self.lid_close_rule()?;
-        self.lid_open_rule()?;
-        self.under_powersave_under_rule()?;
+        if self.config.ignore_lid {
+            self.lid_close_rule()?;
+            self.lid_open_rule()?;
+            self.under_powersave_under_rule()?;
+        }
 
         self.end_loop();
         Ok(())

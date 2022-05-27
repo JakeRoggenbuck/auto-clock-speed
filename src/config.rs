@@ -27,6 +27,7 @@ pub fn default_config() -> Config {
         powersave_under: 20,
         overheat_threshold: 80,
         ignore_power: false,
+        ignore_lid: false,
     }
 }
 
@@ -35,6 +36,7 @@ pub struct Config {
     pub powersave_under: i8,
     pub overheat_threshold: i8,
     pub ignore_power: bool,
+    pub ignore_lid: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -42,6 +44,7 @@ pub struct SafeConfig {
     pub powersave_under: Option<i8>,
     pub overheat_threshold: Option<i8>,
     pub ignore_power: Option<bool>,
+    pub ignore_lid: Option<bool>,
 }
 
 trait SafeFillConfig {
@@ -77,6 +80,10 @@ impl SafeFillConfig for SafeConfig {
             base.ignore_power = self.ignore_power.unwrap();
         }
 
+        if self.ignore_lid.is_some() {
+            base.ignore_lid = self.ignore_lid.unwrap();
+        }
+
         return base;
     }
 }
@@ -87,8 +94,8 @@ impl fmt::Display for Config {
         // config iterable. This would also make safe_fill_config a lot easier as well.
         write!(
             f,
-            "powersave_under = {}\noverheat_threshold = {}\nignore_power = {}",
-            self.powersave_under, self.overheat_threshold, self.ignore_power,
+            "powersave_under = {}\noverheat_threshold = {}\nignore_power = {}\nignore_lid = {} ",
+            self.powersave_under, self.overheat_threshold, self.ignore_power, self.ignore_lid,
         )
     }
 }
@@ -108,6 +115,7 @@ fn parse_as_toml(config: String) -> Config {
             powersave_under: None,
             overheat_threshold: None,
             ignore_power: None,
+            ignore_lid: None,
         });
 
     safe_config.safe_fill_config()

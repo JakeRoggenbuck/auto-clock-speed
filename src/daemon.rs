@@ -13,8 +13,8 @@ use super::logger::Interface;
 use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
 use super::state::State;
 use super::system::{
-    check_cpu_freq, check_turbo_enabled, get_highest_temp, list_cpus, parse_proc_file,
-    read_proc_stat_file, ProcStat, check_available_governors,
+    check_available_governors, check_cpu_freq, check_turbo_enabled, get_highest_temp, list_cpus,
+    parse_proc_file, read_proc_stat_file, ProcStat,
 };
 use super::terminal::terminal_width;
 use super::Error;
@@ -177,8 +177,9 @@ impl Checker for Daemon {
             warn_user!("schedutil governor not officially supported");
             return self.apply_to_cpus(&make_gov_schedutil);
         } else if check_available_governors().is_ok() {
-            if check_available_governors().unwrap().contains(&gov.into()){
-                self.logger.log("Other governors not supported yet", logger::Severity::Log,);
+            if check_available_governors().unwrap().contains(&gov.into()) {
+                self.logger
+                    .log("Other governors not supported yet", logger::Severity::Log);
             } else {
                 eprintln!("Governor not available",);
             }

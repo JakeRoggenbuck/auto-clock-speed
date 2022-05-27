@@ -264,7 +264,10 @@ impl Checker for Daemon {
     fn lid_open_rule(&mut self) -> Result<(), Error> {
         if self.lid_state == LidState::Open && self.already_closed {
             // A few checks in order to insure the computer should actually be in performance
-            if self.charging && !(self.charge < self.config.powersave_under) {
+            if self.charging
+                && !(self.charge < self.config.powersave_under)
+                && !self.config.ignore_power
+            {
                 self.charging_and_charge_over()?;
             } else {
                 self.not_charging_or_charge_under()?;
@@ -342,8 +345,12 @@ impl Checker for Daemon {
         // Call all rules
         self.start_high_temperature_rule()?;
         self.end_high_temperature_rule()?;
-        self.start_charging_rule()?;
-        self.end_charging_rule()?;
+
+        if self.config.ignore_power {
+            self.start_charging_rule()?;
+            self.end_charging_rule()?;
+        }
+
         self.lid_close_rule()?;
         self.lid_open_rule()?;
         self.under_powersave_under_rule()?;

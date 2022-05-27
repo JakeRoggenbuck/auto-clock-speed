@@ -20,7 +20,6 @@ use super::terminal::terminal_width;
 use super::Error;
 use super::Settings;
 use crate::display::print_turbo_animation;
-use crate::logger::Log;
 
 pub trait Checker {
     fn apply_to_cpus(
@@ -108,6 +107,12 @@ fn make_gov_schedutil(cpu: &mut CPU) -> Result<(), Error> {
     Ok(())
 }
 
+// TODO Figure out how to make generic governor work
+//fn make_gov_generic(cpu: &mut CPU) -> Result<(), Error> {
+//    cpu.set_gov(generic_gov.to_string())?;
+//    Ok(())
+//}
+
 fn get_battery_status(charging: bool) -> String {
     if has_battery() {
         match read_battery_charge() {
@@ -173,10 +178,10 @@ impl Checker for Daemon {
             if check_available_governors().unwrap().contains(&gov.into()){
                 self.logger.log("Other governors not supported yet", logger::Severity::Log,);
             } else {
-                eprintln!("Gov \"{}\" not available", gov);
+                eprintln!("Governor not available",);
             }
         } else {
-            eprintln!("Error checking available governor");
+            eprintln!("Error checking \"{}\" governor", gov);
         }
         Ok(())
     }

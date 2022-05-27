@@ -5,6 +5,7 @@ use config::{config_dir_exists, get_config};
 use daemon::{daemon_init, Checker};
 use display::show_config;
 use error::Error;
+use power::{DevicePower, Power};
 use interactive::interactive;
 use interface::{Get, Getter, Interface, Set, Setter};
 use settings::Settings;
@@ -193,6 +194,14 @@ fn parse_args(config: config::Config) {
         should_graph: false,
         commit: false,
         testing: false,
+    };
+
+    let mut device_power = DevicePower {
+        did_init: false,
+        _has_battery: false,
+        _best_lid_path: String::new(),
+        _best_power_source_path: String::new(),
+        _best_battery_charge_path: String::new(),
     };
 
     let int = Interface {

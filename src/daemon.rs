@@ -10,7 +10,7 @@ use super::debug;
 use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
-use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
+use super::power::{DevicePower, LidState, Power};
 use super::state::State;
 use super::system::{
     check_cpu_freq, check_turbo_enabled, get_highest_temp, list_cpus, parse_proc_file,
@@ -67,6 +67,8 @@ pub trait Checker {
     fn print(&mut self);
 
     fn set_govs(&mut self, gov: String) -> Result<(), Error>;
+
+    fn get_battery_status(&mut self) -> String;
 }
 
 pub struct Daemon {
@@ -90,6 +92,7 @@ pub struct Daemon {
     pub timeout_battery: time::Duration,
     pub settings: Settings,
     pub state: State,
+    pub device_power: DevicePower,
 }
 
 fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
@@ -100,26 +103,6 @@ fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
 fn make_gov_performance(cpu: &mut CPU) -> Result<(), Error> {
     cpu.set_gov("performance".to_string())?;
     Ok(())
-}
-
-fn get_battery_status(charging: bool) -> String {
-    if has_battery() {
-        match read_battery_charge() {
-            Ok(bat) => {
-                format!(
-                    "Battery: {}",
-                    if charging {
-                        format!("{}%", bat).green()
-                    } else {
-                        format!("{}%", bat).red()
-                    },
-                )
-            }
-            Err(e) => format!("Battery charge could not be read\n{:?}", e),
-        }
-    } else {
-        format!("Battery: {}", "N/A".bold())
-    }
 }
 
 fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize, delay: u64) {
@@ -165,6 +148,26 @@ impl Checker for Daemon {
             eprintln!("Gov \"{}\" not available", gov);
         }
         Ok(())
+    }
+
+    fn get_battery_status(&mut self) -> String {
+        if self.device_power.has_battery() {
+            match self.device_power.read_battery_charge() {
+                Ok(bat) => {
+                    format!(
+                        "Battery: {}",
+                        if self.charging {
+                            format!("{}%", bat).green()
+                        } else {
+                            format!("{}%", bat).red()
+                        },
+                    )
+                }
+                Err(e) => format!("Battery charge could not be read\n{:?}", e),
+            }
+        } else {
+            format!("Battery: {}", "N/A".bold())
+        }
     }
 
     fn lid_closed_or_charge_under(&mut self) {
@@ -316,9 +319,9 @@ impl Checker for Daemon {
         self.update_all()?;
 
         // Update current states
-        self.charging = read_power_source()?;
-        self.charge = read_battery_charge()?;
-        self.lid_state = read_lid_state()?;
+        self.charging = self.device_power.read_power_source()?;
+        self.charge = self.device_power.read_battery_charge()?;
+        self.lid_state = self.device_power.read_lid_state()?;
 
         Ok(())
     }
@@ -423,7 +426,7 @@ impl Checker for Daemon {
         let cpus = &self.cpus.iter().map(|c| c.render()).collect::<String>();
 
         // Prints batter percent or N/A if not
-        let battery_status = get_battery_status(self.charging);
+        let battery_status = self.get_battery_status();
 
         format!("{}{}{}\n{}\n", message, title, cpus, battery_status)
     }
@@ -530,8 +533,17 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
     let mut edit = settings.edit;
     let mut forced_reason: String = String::new();
 
+    // device_power will update has_battery to actual battery status
+    let mut device_power = DevicePower {
+        did_init: false,
+        _has_battery: false,
+        _best_lid_path: String::new(),
+        _best_power_source_path: String::new(),
+        _best_battery_charge_path: String::new(),
+    };
+
     // Check if the device has a battery, otherwise force it to monitor mode
-    if !has_battery() {
+    if !device_power.has_battery() {
         edit = false;
         forced_reason = "the device has no battery".to_string();
     }
@@ -584,7 +596,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         // If edit is still true, then there is definitely a bool result to read_power_source
         // otherwise, there is a real problem, because there should be a power source possible
         charging: if settings.edit {
-            read_power_source()?
+            device_power.read_power_source()?
         } else {
             false
         },
@@ -605,6 +617,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         timeout_battery: time::Duration::from_millis(2),
         state: State::Normal,
         settings: new_settings,
+        device_power,
     };
 
     // Make a cpu struct for each cpu listed

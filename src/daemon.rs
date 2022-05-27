@@ -14,12 +14,13 @@ use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_
 use super::state::State;
 use super::system::{
     check_cpu_freq, check_turbo_enabled, get_highest_temp, list_cpus, parse_proc_file,
-    read_proc_stat_file, ProcStat,
+    read_proc_stat_file, ProcStat, check_available_governors,
 };
 use super::terminal::terminal_width;
 use super::Error;
 use super::Settings;
 use crate::display::print_turbo_animation;
+use crate::logger::Log;
 
 pub trait Checker {
     fn apply_to_cpus(
@@ -102,6 +103,11 @@ fn make_gov_performance(cpu: &mut CPU) -> Result<(), Error> {
     Ok(())
 }
 
+fn make_gov_generic(cpu: &mut CPU) -> Result<(), Error> {
+    cpu.set_gov(generic_gov.to_string())?;
+    Ok(())
+}
+
 fn get_battery_status(charging: bool) -> String {
     if has_battery() {
         match read_battery_charge() {
@@ -161,8 +167,15 @@ impl Checker for Daemon {
             return self.apply_to_cpus(&make_gov_performance);
         } else if gov == "powersave".to_string() {
             return self.apply_to_cpus(&make_gov_powersave);
+        } else if check_available_governors().is_ok() {
+            if check_available_governors().unwrap().contains(&gov.into()){
+                self.logger.log("", logger::Severity::Log,);
+                return self.apply_to_cpus(&make_gov_generic);
+            } else {
+                eprintln!("Gov \"{}\" not available", gov);
+            }
         } else {
-            eprintln!("Gov \"{}\" not available", gov);
+            eprintln!("Error checking available governor");
         }
         Ok(())
     }

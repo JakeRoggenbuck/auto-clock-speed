@@ -13,13 +13,14 @@ use super::logger::Interface;
 use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
 use super::state::State;
 use super::system::{
-    check_cpu_freq, check_turbo_enabled, get_highest_temp, list_cpus, parse_proc_file,
-    read_proc_stat_file, ProcStat,
+    check_available_governors, check_cpu_freq, check_turbo_enabled, get_highest_temp, list_cpus,
+    parse_proc_file, read_proc_stat_file, ProcStat,
 };
 use super::terminal::terminal_width;
 use super::Error;
 use super::Settings;
 use crate::display::print_turbo_animation;
+use crate::warn_user;
 
 pub trait Checker {
     fn apply_to_cpus(
@@ -102,6 +103,17 @@ fn make_gov_performance(cpu: &mut CPU) -> Result<(), Error> {
     Ok(())
 }
 
+fn make_gov_schedutil(cpu: &mut CPU) -> Result<(), Error> {
+    cpu.set_gov("schedutil".to_string())?;
+    Ok(())
+}
+
+// TODO Figure out how to make generic governor work
+//fn make_gov_generic(cpu: &mut CPU) -> Result<(), Error> {
+//    cpu.set_gov(generic_gov.to_string())?;
+//    Ok(())
+//}
+
 fn get_battery_status(charging: bool) -> String {
     if has_battery() {
         match read_battery_charge() {
@@ -156,17 +168,6 @@ impl Checker for Daemon {
         Ok(())
     }
 
-    fn set_govs(&mut self, gov: String) -> Result<(), Error> {
-        if gov == "performance".to_string() {
-            return self.apply_to_cpus(&make_gov_performance);
-        } else if gov == "powersave".to_string() {
-            return self.apply_to_cpus(&make_gov_powersave);
-        } else {
-            eprintln!("Gov \"{}\" not available", gov);
-        }
-        Ok(())
-    }
-
     fn lid_closed_or_charge_under(&mut self) {
         debug!("Just started charging && (lid is closed || charge is lower than powersave_under)");
         self.logger.log(
@@ -209,29 +210,6 @@ impl Checker for Daemon {
         Ok(())
     }
 
-    fn start_high_temperature_rule(&mut self) -> Result<(), Error> {
-        if !self.already_high_temp && self.temp_max > self.config.overheat_threshold {
-            self.logger.log(
-                "Governor set to powersave because CPU temperature is high",
-                logger::Severity::Log,
-            );
-            self.apply_to_cpus(&make_gov_powersave)?;
-            self.already_high_temp = true;
-        }
-        Ok(())
-    }
-
-    fn end_high_temperature_rule(&mut self) -> Result<(), Error> {
-        if self.already_high_temp && self.temp_max < self.config.overheat_threshold {
-            self.logger.log(
-                "Governor set to powesave because CPU temperature is high",
-                logger::Severity::Log,
-            );
-            self.already_high_temp = false;
-        }
-        Ok(())
-    }
-
     fn lid_close_rule(&mut self) -> Result<(), Error> {
         if self.lid_state == LidState::Closed && !self.already_closed {
             self.logger.log(
@@ -244,20 +222,20 @@ impl Checker for Daemon {
         Ok(())
     }
 
+    fn not_charging_or_charge_under(&mut self) -> Result<(), Error> {
+        self.logger.log(
+            "Lid opened however the governor remains unchanged",
+            logger::Severity::Log,
+        );
+        Ok(())
+    }
+
     fn charging_and_charge_over(&mut self) -> Result<(), Error> {
         self.logger.log(
             "Governor set to performance because lid opened",
             logger::Severity::Log,
         );
         self.apply_to_cpus(&make_gov_performance)?;
-        Ok(())
-    }
-
-    fn not_charging_or_charge_under(&mut self) -> Result<(), Error> {
-        self.logger.log(
-            "Lid opened however the governor remains unchanged",
-            logger::Severity::Log,
-        );
         Ok(())
     }
 
@@ -291,6 +269,63 @@ impl Checker for Daemon {
         if self.charge >= self.config.powersave_under {
             self.already_under_powersave_under_percent = false;
         }
+        Ok(())
+    }
+
+    fn start_high_temperature_rule(&mut self) -> Result<(), Error> {
+        if !self.already_high_temp && self.temp_max > self.config.overheat_threshold {
+            self.logger.log(
+                "Governor set to powersave because CPU temperature is high",
+                logger::Severity::Log,
+            );
+            self.apply_to_cpus(&make_gov_powersave)?;
+            self.already_high_temp = true;
+        }
+        Ok(())
+    }
+
+    fn end_high_temperature_rule(&mut self) -> Result<(), Error> {
+        if self.already_high_temp && self.temp_max < self.config.overheat_threshold {
+            self.logger.log(
+                "Governor set to powesave because CPU temperature is high",
+                logger::Severity::Log,
+            );
+            self.already_high_temp = false;
+        }
+        Ok(())
+    }
+
+    fn run(&mut self) -> Result<(), Error> {
+        self.init();
+
+        if self.settings.testing {
+            // Choose which mode acs runs in
+            if self.settings.edit {
+                let mut reps = 4;
+                while reps > 0 {
+                    self.single_edit()?;
+                    reps -= 1;
+                }
+            } else {
+                let mut reps = 4;
+                while reps > 0 {
+                    self.single_monit()?;
+                    reps -= 1;
+                }
+            }
+        } else {
+            // Choose which mode acs runs in
+            if self.settings.edit {
+                loop {
+                    self.single_edit()?;
+                }
+            } else {
+                loop {
+                    self.single_monit()?;
+                }
+            }
+        }
+
         Ok(())
     }
 
@@ -355,40 +390,6 @@ impl Checker for Daemon {
     fn single_monit(&mut self) -> Result<(), Error> {
         self.start_loop()?;
         self.end_loop();
-        Ok(())
-    }
-
-    fn run(&mut self) -> Result<(), Error> {
-        self.init();
-
-        if self.settings.testing {
-            // Choose which mode acs runs in
-            if self.settings.edit {
-                let mut reps = 4;
-                while reps > 0 {
-                    self.single_edit()?;
-                    reps -= 1;
-                }
-            } else {
-                let mut reps = 4;
-                while reps > 0 {
-                    self.single_monit()?;
-                    reps -= 1;
-                }
-            }
-        } else {
-            // Choose which mode acs runs in
-            if self.settings.edit {
-                loop {
-                    self.single_edit()?;
-                }
-            } else {
-                loop {
-                    self.single_monit()?;
-                }
-            }
-        }
-
         Ok(())
     }
 
@@ -500,6 +501,27 @@ impl Checker for Daemon {
 
         // Print more pre-rendered items
         print!("{}", postprint);
+    }
+
+    fn set_govs(&mut self, gov: String) -> Result<(), Error> {
+        if gov == "performance".to_string() {
+            return self.apply_to_cpus(&make_gov_performance);
+        } else if gov == "powersave".to_string() {
+            return self.apply_to_cpus(&make_gov_powersave);
+        } else if gov == "schedutil".to_string() {
+            warn_user!("schedutil governor not officially supported");
+            return self.apply_to_cpus(&make_gov_schedutil);
+        } else if check_available_governors().is_ok() {
+            if check_available_governors().unwrap().contains(&gov.into()) {
+                self.logger
+                    .log("Other governors not supported yet", logger::Severity::Log);
+            } else {
+                eprintln!("Governor not available",);
+            }
+        } else {
+            eprintln!("Error checking \"{}\" governor", gov);
+        }
+        Ok(())
     }
 }
 

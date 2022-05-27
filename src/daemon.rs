@@ -20,6 +20,7 @@ use super::terminal::terminal_width;
 use super::Error;
 use super::Settings;
 use crate::display::print_turbo_animation;
+use crate::warn_user;
 
 pub trait Checker {
     fn apply_to_cpus(
@@ -173,6 +174,7 @@ impl Checker for Daemon {
         } else if gov == "powersave".to_string() {
             return self.apply_to_cpus(&make_gov_powersave);
         } else if gov == "schedutil".to_string() {
+            warn_user!("schedutil governor not officially supported");
             return self.apply_to_cpus(&make_gov_schedutil);
         } else if check_available_governors().is_ok() {
             if check_available_governors().unwrap().contains(&gov.into()){

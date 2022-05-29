@@ -88,7 +88,7 @@ pub struct Daemon {
     pub already_closed: bool,
     pub already_under_powersave_under_percent: bool,
     pub already_high_temp: bool,
-    pub already_high_cpu: bool,
+    pub already_high_usage: bool,
     pub last_below_cpu_usage_percent: Option<SystemTime>,
     pub graph: String,
     pub grapher: Graph,
@@ -319,13 +319,14 @@ impl Checker for Daemon {
 
         match self.last_below_cpu_usage_percent {
             Some(last) => {
-                if SystemTime::now().duration_since(last)?.as_secs() >= 15 {
+                if SystemTime::now().duration_since(last)?.as_secs() >= 15 && !self.already_high_usage {
                     self.logger.log(
                         &format!(
                             "Governor set to performance because cpu was over 70% overall usage for longer than 15 seconds",
                         ),
                         logger::Severity::Log,
                     );
+                    self.already_high_usage = true;
                 }
             },
             None => {},
@@ -336,6 +337,13 @@ impl Checker for Daemon {
     fn end_cpu_usage_rule(&mut self) -> Result<(), Error> {
         if self.usage < 70.0 && self.last_below_cpu_usage_percent.is_some() {
             self.last_below_cpu_usage_percent = None;
+            self.already_high_usage = false;
+            self.logger.log(
+                &format!(
+                    "Governor returning to default because usage dropped below 70%",
+                ),
+                logger::Severity::Log,
+            );
         }
         Ok(())
     }
@@ -647,7 +655,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         already_closed: false,
         already_under_powersave_under_percent: false,
         already_high_temp: false,
-        already_high_cpu: false,
+        already_high_usage: false,
         last_below_cpu_usage_percent: None,
         graph: String::new(),
         grapher: Graph { freqs: vec![0.0] },

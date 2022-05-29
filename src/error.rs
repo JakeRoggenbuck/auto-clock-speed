@@ -5,6 +5,7 @@ https://github.com/JakeRoggenbuck/auto-clock-speed/issues/new/choose";
 
 pub enum Error {
     IO(std::io::Error),
+    TimeError(std::time::SystemTimeError),
     Unknown,
     DivisionByZero,
 }
@@ -12,6 +13,12 @@ pub enum Error {
 impl From<std::io::Error> for Error {
     fn from(e: std::io::Error) -> Error {
         Error::IO(e)
+    }
+}
+
+impl From<std::time::SystemTimeError> for Error {
+    fn from(e: std::time::SystemTimeError) -> Error {
+        Error::TimeError(e)
     }
 }
 

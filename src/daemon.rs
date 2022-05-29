@@ -1,4 +1,5 @@
 use std::convert::TryInto;
+use std::time::SystemTime;
 use std::{thread, time};
 
 use colored::*;
@@ -51,6 +52,10 @@ pub trait Checker {
     fn start_high_temperature_rule(&mut self) -> Result<(), Error>;
     fn end_high_temperature_rule(&mut self) -> Result<(), Error>;
 
+    // High CPU Usage Rule
+    fn start_cpu_usage_rule(&mut self) -> Result<(), Error>;
+    fn end_cpu_usage_rule(&mut self) -> Result<(), Error>;
+
     // Other methods
     fn run(&mut self) -> Result<(), Error>;
     fn init(&mut self);
@@ -77,12 +82,15 @@ pub struct Daemon {
     pub lid_state: LidState,
     pub charging: bool,
     pub charge: i8,
+    pub usage: f32,
     pub logger: logger::Logger,
     pub config: Config,
     pub already_charging: bool,
     pub already_closed: bool,
     pub already_under_powersave_under_percent: bool,
     pub already_high_temp: bool,
+    pub already_high_usage: bool,
+    pub last_below_cpu_usage_percent: Option<SystemTime>,
     pub graph: String,
     pub grapher: Graph,
     pub temp_max: i8,
@@ -156,6 +164,14 @@ fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize, delay
     }
 }
 
+fn calculate_average_usage(cpus: &Vec<CPU>) -> Result<f32, Error> {
+    let mut sum = 0.0;
+    for cpu in cpus {
+        sum += cpu.cur_usage;
+    }
+    Ok((sum / (cpus.len() as f32)) as f32)
+}
+
 impl Checker for Daemon {
     /// Apply a function to every cpu
     fn apply_to_cpus(
@@ -206,6 +222,21 @@ impl Checker for Daemon {
             );
             self.apply_to_cpus(&make_gov_powersave)?;
             self.already_charging = false;
+        }
+        Ok(())
+    }
+
+    fn start_high_temperature_rule(&mut self) -> Result<(), Error> {
+        if !self.already_high_temp
+            && !self.already_high_usage
+            && self.temp_max > self.config.overheat_threshold
+        {
+            self.logger.log(
+                "Governor set to powersave because CPU temperature is high",
+                logger::Severity::Log,
+            );
+            self.apply_to_cpus(&make_gov_powersave)?;
+            self.already_high_temp = true;
         }
         Ok(())
     }
@@ -272,14 +303,38 @@ impl Checker for Daemon {
         Ok(())
     }
 
-    fn start_high_temperature_rule(&mut self) -> Result<(), Error> {
-        if !self.already_high_temp && self.temp_max > self.config.overheat_threshold {
+    fn start_cpu_usage_rule(&mut self) -> Result<(), Error> {
+        if self.usage > 70.0 && self.last_below_cpu_usage_percent.is_none() {
+            self.last_below_cpu_usage_percent = Some(SystemTime::now());
+        }
+
+        match self.last_below_cpu_usage_percent {
+            Some(last) => {
+                if SystemTime::now().duration_since(last)?.as_secs() >= 15
+                    && !self.already_high_usage
+                {
+                    self.logger.log(
+                        &format!(
+                            "Governor set to performance because cpu was over 70% overall usage for longer than 15 seconds",
+                        ),
+                        logger::Severity::Log,
+                    );
+                    self.already_high_usage = true;
+                }
+            }
+            None => {}
+        }
+        Ok(())
+    }
+
+    fn end_cpu_usage_rule(&mut self) -> Result<(), Error> {
+        if self.usage < 70.0 && self.last_below_cpu_usage_percent.is_some() {
+            self.last_below_cpu_usage_percent = None;
+            self.already_high_usage = false;
             self.logger.log(
-                "Governor set to powersave because CPU temperature is high",
+                &format!("Governor returning to default because usage dropped below 70%",),
                 logger::Severity::Log,
             );
-            self.apply_to_cpus(&make_gov_powersave)?;
-            self.already_high_temp = true;
         }
         Ok(())
     }
@@ -354,6 +409,7 @@ impl Checker for Daemon {
         self.charging = read_power_source()?;
         self.charge = read_battery_charge()?;
         self.lid_state = read_lid_state()?;
+        self.usage = calculate_average_usage(&self.cpus)? * 100.0;
 
         Ok(())
     }
@@ -377,6 +433,8 @@ impl Checker for Daemon {
         // Call all rules
         self.start_high_temperature_rule()?;
         self.end_high_temperature_rule()?;
+        self.start_cpu_usage_rule()?;
+        self.end_cpu_usage_rule()?;
 
         if !self.config.ignore_power {
             self.start_charging_rule()?;
@@ -617,6 +675,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
             false
         },
         charge: 100,
+        usage: 0.0,
         logger: logger::Logger {
             logs: Vec::<logger::Log>::new(),
         },
@@ -625,6 +684,8 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         already_closed: false,
         already_under_powersave_under_percent: false,
         already_high_temp: false,
+        already_high_usage: false,
+        last_below_cpu_usage_percent: None,
         graph: String::new(),
         grapher: Graph { freqs: vec![0.0] },
         temp_max: 0,

@@ -1,5 +1,6 @@
 use std::convert::TryInto;
 use std::{thread, time};
+use std::time::{SystemTime};
 
 use colored::*;
 use nix::unistd::Uid;
@@ -86,6 +87,7 @@ pub struct Daemon {
     pub already_closed: bool,
     pub already_under_powersave_under_percent: bool,
     pub already_high_temp: bool,
+    pub last_below_cpu_usage_percent: SystemTime,
     pub graph: String,
     pub grapher: Graph,
     pub temp_max: i8,
@@ -147,6 +149,14 @@ fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize, delay
         Err(e) => eprintln!("Could not check turbo\n{:?}", e),
     }
 }
+    
+fn calculate_average_usage(cpus: &Vec<CPU>) -> Result<f32, Error> {
+    let mut sum = 0.0;
+    for cpu in cpus {
+        sum += cpu.cur_usage;
+    }
+    Ok((sum / (cpus.len() as f32)) as f32)
+}
 
 impl Checker for Daemon {
     /// Apply a function to every cpu
@@ -202,6 +212,7 @@ impl Checker for Daemon {
     }
 
     fn end_charging_rule(&mut self) -> Result<(), Error> {
+
         if !self.charging && self.already_charging {
             self.logger.log(
                 "Governor set to powersave because battery is not charging",
@@ -297,6 +308,16 @@ impl Checker for Daemon {
         }
         Ok(())
     }
+    
+
+    fn start_cpu_usage_rule(&mut self) -> Result<(), Error> {
+        println!("{:?}", calculate_average_usage(&self.cpus)? * 100.0);
+        Ok(())
+    }
+    
+    fn end_cpu_usage_rule(&mut self) -> Result<(), Error> {
+        Ok(())
+    }
 
     fn init(&mut self) {
         // Get the commit hash from the compile time env variable
@@ -351,6 +372,8 @@ impl Checker for Daemon {
         self.lid_close_rule()?;
         self.lid_open_rule()?;
         self.under_powersave_under_rule()?;
+        self.start_cpu_usage_rule()?;
+        self.end_cpu_usage_rule()?;
 
         self.end_loop();
         Ok(())
@@ -601,6 +624,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         already_closed: false,
         already_under_powersave_under_percent: false,
         already_high_temp: false,
+        last_below_cpu_usage_percent: SystemTime::now(),
         graph: String::new(),
         grapher: Graph { freqs: vec![0.0] },
         temp_max: 0,

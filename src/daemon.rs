@@ -1,6 +1,6 @@
 use std::convert::TryInto;
+use std::time::SystemTime;
 use std::{thread, time};
-use std::time::{SystemTime};
 
 use colored::*;
 use nix::unistd::Uid;
@@ -51,7 +51,7 @@ pub trait Checker {
     // High Temperature Rule
     fn start_high_temperature_rule(&mut self) -> Result<(), Error>;
     fn end_high_temperature_rule(&mut self) -> Result<(), Error>;
-    
+
     // High CPU Usage Rule
     fn start_cpu_usage_rule(&mut self) -> Result<(), Error>;
     fn end_cpu_usage_rule(&mut self) -> Result<(), Error>;
@@ -163,7 +163,7 @@ fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize, delay
         Err(e) => eprintln!("Could not check turbo\n{:?}", e),
     }
 }
-    
+
 fn calculate_average_usage(cpus: &Vec<CPU>) -> Result<f32, Error> {
     let mut sum = 0.0;
     for cpu in cpus {
@@ -215,7 +215,6 @@ impl Checker for Daemon {
     }
 
     fn end_charging_rule(&mut self) -> Result<(), Error> {
-
         if !self.charging && self.already_charging {
             self.logger.log(
                 "Governor set to powersave because battery is not charging",
@@ -228,7 +227,10 @@ impl Checker for Daemon {
     }
 
     fn start_high_temperature_rule(&mut self) -> Result<(), Error> {
-        if !self.already_high_temp && !self.already_high_usage && self.temp_max > self.config.overheat_threshold {
+        if !self.already_high_temp
+            && !self.already_high_usage
+            && self.temp_max > self.config.overheat_threshold
+        {
             self.logger.log(
                 "Governor set to powersave because CPU temperature is high",
                 logger::Severity::Log,
@@ -300,7 +302,6 @@ impl Checker for Daemon {
         }
         Ok(())
     }
-    
 
     fn start_cpu_usage_rule(&mut self) -> Result<(), Error> {
         if self.usage > 70.0 && self.last_below_cpu_usage_percent.is_none() {
@@ -309,7 +310,9 @@ impl Checker for Daemon {
 
         match self.last_below_cpu_usage_percent {
             Some(last) => {
-                if SystemTime::now().duration_since(last)?.as_secs() >= 15 && !self.already_high_usage {
+                if SystemTime::now().duration_since(last)?.as_secs() >= 15
+                    && !self.already_high_usage
+                {
                     self.logger.log(
                         &format!(
                             "Governor set to performance because cpu was over 70% overall usage for longer than 15 seconds",
@@ -318,20 +321,18 @@ impl Checker for Daemon {
                     );
                     self.already_high_usage = true;
                 }
-            },
-            None => {},
+            }
+            None => {}
         }
         Ok(())
     }
-    
+
     fn end_cpu_usage_rule(&mut self) -> Result<(), Error> {
         if self.usage < 70.0 && self.last_below_cpu_usage_percent.is_some() {
             self.last_below_cpu_usage_percent = None;
             self.already_high_usage = false;
             self.logger.log(
-                &format!(
-                    "Governor returning to default because usage dropped below 70%",
-                ),
+                &format!("Governor returning to default because usage dropped below 70%",),
                 logger::Severity::Log,
             );
         }

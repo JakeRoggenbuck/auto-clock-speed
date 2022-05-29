@@ -40,8 +40,7 @@ cargo install autoclockspeed
 ```
 
 ## In Action
-[![image](https://user-images.githubusercontent.com/35516367/170426204-b8c0e1bd-4416-453f-9b71-21b361104f6b.png)](https://youtu.be/LGePe4BJLtY)
-
+[![image](https://user-images.githubusercontent.com/35516367/170888770-cf20411e-2b21-43a5-9636-bf6a6b545346.png)](https://www.youtube.com/watch?v=QTnv4pommN4)
 
 ## New Interactive Mode
 ![image](https://user-images.githubusercontent.com/35516367/170414026-2466ee6b-fd6c-48f0-bec8-127237116baf.png)

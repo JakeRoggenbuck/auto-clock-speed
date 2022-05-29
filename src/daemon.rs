@@ -81,13 +81,14 @@ pub struct Daemon {
     pub lid_state: LidState,
     pub charging: bool,
     pub charge: i8,
+    pub usage: f32,
     pub logger: logger::Logger,
     pub config: Config,
     pub already_charging: bool,
     pub already_closed: bool,
     pub already_under_powersave_under_percent: bool,
     pub already_high_temp: bool,
-    pub last_below_cpu_usage_percent: SystemTime,
+    pub last_below_cpu_usage_percent: Option<SystemTime>,
     pub graph: String,
     pub grapher: Graph,
     pub temp_max: i8,
@@ -311,7 +312,10 @@ impl Checker for Daemon {
     
 
     fn start_cpu_usage_rule(&mut self) -> Result<(), Error> {
-        println!("{:?}", calculate_average_usage(&self.cpus)? * 100.0);
+        if self.usage > 70.0 && self.last_below_cpu_usage_percent == None {
+            self.last_below_cpu_usage_percent = Some(SystemTime::now());
+        }
+        self.logger.log(&format!("{:?}", self.last_below_cpu_usage_percent), logger::Severity::Log);
         Ok(())
     }
     
@@ -344,6 +348,7 @@ impl Checker for Daemon {
         self.charging = read_power_source()?;
         self.charge = read_battery_charge()?;
         self.lid_state = read_lid_state()?;
+        self.usage = calculate_average_usage(&self.cpus)? * 100.0;
 
         Ok(())
     }
@@ -616,6 +621,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
             false
         },
         charge: 100,
+        usage: 0.0,
         logger: logger::Logger {
             logs: Vec::<logger::Log>::new(),
         },
@@ -624,7 +630,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         already_closed: false,
         already_under_powersave_under_percent: false,
         already_high_temp: false,
-        last_below_cpu_usage_percent: SystemTime::now(),
+        last_below_cpu_usage_percent: None,
         graph: String::new(),
         grapher: Graph { freqs: vec![0.0] },
         temp_max: 0,

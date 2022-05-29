@@ -377,11 +377,17 @@ impl Checker for Daemon {
         // Call all rules
         self.start_high_temperature_rule()?;
         self.end_high_temperature_rule()?;
-        self.start_charging_rule()?;
-        self.end_charging_rule()?;
-        self.lid_close_rule()?;
-        self.lid_open_rule()?;
-        self.under_powersave_under_rule()?;
+
+        if !self.config.ignore_power {
+            self.start_charging_rule()?;
+            self.end_charging_rule()?;
+        }
+
+        if !self.config.ignore_lid {
+            self.lid_close_rule()?;
+            self.lid_open_rule()?;
+            self.under_powersave_under_rule()?;
+        }
 
         self.end_loop();
         Ok(())

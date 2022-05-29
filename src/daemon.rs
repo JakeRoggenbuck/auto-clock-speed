@@ -88,6 +88,7 @@ pub struct Daemon {
     pub already_closed: bool,
     pub already_under_powersave_under_percent: bool,
     pub already_high_temp: bool,
+    pub already_high_cpu: bool,
     pub last_below_cpu_usage_percent: Option<SystemTime>,
     pub graph: String,
     pub grapher: Graph,
@@ -226,7 +227,7 @@ impl Checker for Daemon {
     }
 
     fn start_high_temperature_rule(&mut self) -> Result<(), Error> {
-        if !self.already_high_temp && self.temp_max > self.config.overheat_threshold {
+        if !self.already_high_temp && !self.already_high_usage && self.temp_max > self.config.overheat_threshold {
             self.logger.log(
                 "Governor set to powersave because CPU temperature is high",
                 logger::Severity::Log,
@@ -312,14 +313,30 @@ impl Checker for Daemon {
     
 
     fn start_cpu_usage_rule(&mut self) -> Result<(), Error> {
-        if self.usage > 70.0 && self.last_below_cpu_usage_percent == None {
+        if self.usage > 70.0 && self.last_below_cpu_usage_percent.is_none() {
             self.last_below_cpu_usage_percent = Some(SystemTime::now());
         }
-        self.logger.log(&format!("{:?}", self.last_below_cpu_usage_percent), logger::Severity::Log);
+
+        match self.last_below_cpu_usage_percent {
+            Some(last) => {
+                if SystemTime::now().duration_since(last)?.as_secs() >= 15 {
+                    self.logger.log(
+                        &format!(
+                            "Governor set to performance because cpu was over 70% overall usage for longer than 15 seconds",
+                        ),
+                        logger::Severity::Log,
+                    );
+                }
+            },
+            None => {},
+        }
         Ok(())
     }
     
     fn end_cpu_usage_rule(&mut self) -> Result<(), Error> {
+        if self.usage < 70.0 && self.last_below_cpu_usage_percent.is_some() {
+            self.last_below_cpu_usage_percent = None;
+        }
         Ok(())
     }
 
@@ -630,6 +647,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         already_closed: false,
         already_under_powersave_under_percent: false,
         already_high_temp: false,
+        already_high_cpu: false,
         last_below_cpu_usage_percent: None,
         graph: String::new(),
         grapher: Graph { freqs: vec![0.0] },

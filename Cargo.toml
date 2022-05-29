@@ -12,7 +12,7 @@ keywords = ["clockspeed", "cpu", "battery"]
 authors = ["jakeroggenbuck <jakeroggenbuck2@gmail.com", "cameron <cameron.bannasch@gmail>", "shuzhengz <treez.zhang@gmail.com>"]
 
 [dependencies]
-structopt = { version = "0.3", default-features = false }
+structopt = { version = "0.3.26", default-features = false }
 termion = "1.5.3"
 nix = "0.15.0"
 chrono = "0.4"

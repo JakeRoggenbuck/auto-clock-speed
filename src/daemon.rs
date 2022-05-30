@@ -12,7 +12,6 @@ use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
 use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
-use super::state::State;
 use super::system::{
     check_available_governors, check_cpu_freq, check_turbo_enabled, get_highest_temp, list_cpus,
     parse_proc_file, read_proc_stat_file, ProcStat,
@@ -22,6 +21,15 @@ use super::Error;
 use super::Settings;
 use crate::display::print_turbo_animation;
 use crate::warn_user;
+
+#[derive(Debug)]
+pub enum State {
+    Normal,
+    BatteryLow,
+    LidClosed,
+    Overheating,
+    CpuUsageHigh,
+}
 
 pub trait Checker {
     fn apply_to_cpus(
@@ -68,6 +76,8 @@ pub trait Checker {
 
     fn update_all(&mut self) -> Result<(), Error>;
 
+    fn run_state_machine(&mut self) -> Result<State, Error>;
+
     fn preprint_render(&mut self) -> String;
     fn postprint_render(&mut self) -> String;
     fn print(&mut self);
@@ -91,6 +101,7 @@ pub struct Daemon {
     pub already_high_temp: bool,
     pub already_high_usage: bool,
     pub last_below_cpu_usage_percent: Option<SystemTime>,
+    pub state: State,
     pub graph: String,
     pub grapher: Graph,
     pub temp_max: i8,
@@ -98,7 +109,6 @@ pub struct Daemon {
     pub timeout: time::Duration,
     pub timeout_battery: time::Duration,
     pub settings: Settings,
-    pub state: State,
 }
 
 fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
@@ -350,6 +360,33 @@ impl Checker for Daemon {
         Ok(())
     }
 
+    fn run_state_machine(&mut self) -> Result<State, Error> {
+        let mut state = State::Normal;
+
+        if self.lid_state == LidState::Closed {
+            state = State::LidClosed;
+        }
+
+        if self.charge < self.config.powersave_under {
+            state = State::BatteryLow;
+        }
+
+        if self.temp_max > self.config.overheat_threshold {
+            state = State::Overheating;
+        }
+
+        // Log current state
+        self.logger.log(
+            &format!(
+                "Current state: {:?}",
+                state
+            ),
+            logger::Severity::Log,
+        );
+
+        Ok(state)
+    }
+
     fn run(&mut self) -> Result<(), Error> {
         self.init();
 
@@ -429,6 +466,8 @@ impl Checker for Daemon {
 
     fn single_edit(&mut self) -> Result<(), Error> {
         self.start_loop()?;
+        
+        self.run_state_machine();
 
         // Call all rules
         self.start_high_temperature_rule()?;

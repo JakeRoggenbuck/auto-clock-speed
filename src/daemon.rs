@@ -181,7 +181,7 @@ impl Checker for Daemon {
 
     fn run_state_machine(&mut self) -> Result<State, Error> {
         let mut state = State::Normal;
-        
+
         if self.usage > 70.0 {
             state = State::CpuUsageHigh;
         }
@@ -189,11 +189,11 @@ impl Checker for Daemon {
         if self.lid_state == LidState::Closed {
             state = State::LidClosed;
         }
-        
+
         if self.charging {
             state = State::Charging;
         }
-        
+
         if self.charge < self.config.powersave_under {
             state = State::BatteryLow;
         }
@@ -287,11 +287,7 @@ impl Checker for Daemon {
         if self.state != state {
             // Log the state change
             self.logger.log(
-                &format!(
-                    "State changed: {:?} -> {:?}",
-                    self.state,
-                    state,
-                ),
+                &format!("State changed: {:?} -> {:?}", self.state, state,),
                 logger::Severity::Log,
             );
 

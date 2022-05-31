@@ -17,6 +17,14 @@ pub fn check_cpu_freq() -> i32 {
     (sum as f32 / freqs.len() as f32) as i32
 }
 
+/// Check the usage of the cpu
+pub fn check_cpu_usage(cpus: &Vec<CPU>) -> i32 {
+    let usage: Vec<i32> = cpus.into_iter().map(|x| (x.cur_usage * 100.0) as i32).collect();
+    let sum: i32 = Iterator::sum(usage.iter());
+    (sum as f32 / usage.len() as f32) as i32
+}
+
+
 pub fn get_highest_temp(cpus: &Vec<CPU>) -> i32 {
     let mut temp_max: i32 = 0;
     for cpu in cpus {

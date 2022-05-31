@@ -27,7 +27,6 @@ pub enum State {
     Normal,
     BatteryLow,
     LidClosed,
-    Overheating,
     Charging,
     CpuUsageHigh,
     Unknown,
@@ -39,7 +38,6 @@ fn get_governor(current_state: &State) -> Result<&'static str, Error> {
         State::Normal => "powersave",
         State::BatteryLow => "powersave",
         State::LidClosed => "powersave",
-        State::Overheating => "powersave",
         State::Charging => "performance",
         State::CpuUsageHigh => "performance",
         State::Unknown => "powersave",
@@ -198,10 +196,6 @@ impl Checker for Daemon {
         
         if self.charge < self.config.powersave_under {
             state = State::BatteryLow;
-        }
-
-        if self.temp_max > self.config.overheat_threshold {
-            state = State::Overheating;
         }
 
         Ok(state)

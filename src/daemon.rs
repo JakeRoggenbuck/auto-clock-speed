@@ -32,7 +32,7 @@ pub enum State {
     Unknown,
 }
 
-// Return governor enum based on current state
+// Return governor string based on current state
 fn get_governor(current_state: &State) -> Result<&'static str, Error> {
     Ok(match current_state {
         State::Normal => "powersave",

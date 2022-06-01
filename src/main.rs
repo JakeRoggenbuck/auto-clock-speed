@@ -1,5 +1,6 @@
 use log::debug;
 use structopt::StructOpt;
+use std::{thread, time};
 
 use config::{config_dir_exists, get_config};
 use daemon::{daemon_init, Checker};
@@ -257,9 +258,17 @@ fn parse_args(config: config::Config) {
         } => {
             if !config_dir_exists() {
                 warn_user!("Config directory '/etc/acs' does not exist!");
+                thread::sleep(time::Duration::from_millis(5000));
             }
 
-            let parsed_graph_type = get_graph_type(&should_graph);
+            let parsed_graph_type = match get_graph_type(&should_graph) {
+                Some(graph_type) => graph_type,
+                None => {
+                    warn_user!("Graph type is not set! Can be hidden, frequency, frequency_individual, usage, usage_individual, temperature, temperature_individual. Continuing in 5 seconds...");
+                    thread::sleep(time::Duration::from_millis(5000));
+                    GraphType::Hidden
+                }
+            };
 
             let mut effective_delay_battery = delay_battery;
             if parsed_graph_type != GraphType::Hidden || delay != 1000 {
@@ -297,8 +306,16 @@ fn parse_args(config: config::Config) {
             if !config_dir_exists() {
                 warn_user!("Config directory '/etc/acs' does not exist!");
             }
+            
 
-            let parsed_graph_type = get_graph_type(&should_graph);
+            let parsed_graph_type = match get_graph_type(&should_graph) {
+                Some(graph_type) => graph_type,
+                None => {
+                    warn_user!("Graph type is not set! Can be hidden, frequency, frequency_individual, usage, usage_individual, temperature, temperature_individual. Continuing in 5 seconds...");
+                    thread::sleep(time::Duration::from_millis(5000));
+                    GraphType::Hidden
+                }
+            };
 
             let mut effective_delay_battery = delay_battery;
             if parsed_graph_type != GraphType::Hidden || delay != 1000 {

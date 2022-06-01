@@ -115,29 +115,31 @@ pub fn print_cpu(cpu: &CPU) {
 
 pub fn render_cpu(cpu: &CPU) -> String {
     let temp: colored::ColoredString;
+    let reduced_cpu_cur_temp = cpu.cur_temp / 1000;
 
-    if cpu.cur_temp / 1000 > 60 {
-        temp = format!("{}C", cpu.cur_temp / 1000).red();
-    } else if cpu.cur_temp / 1000 > 40 {
-        temp = format!("{}C", cpu.cur_temp / 1000).yellow();
-    } else if cpu.cur_temp / 1000 == 1 || cpu.cur_temp / 1000 == 0 {
-        temp = format!("{}C*", cpu.cur_temp / 1000).white();
+    if reduced_cpu_cur_temp > 60 {
+        temp = format!("{}C", reduced_cpu_cur_temp).red();
+    } else if reduced_cpu_cur_temp > 40 {
+        temp = format!("{}C", reduced_cpu_cur_temp).yellow();
+    } else if reduced_cpu_cur_temp == 1 || reduced_cpu_cur_temp == 0 {
+        temp = format!("{}C*", reduced_cpu_cur_temp).white();
     } else {
-        temp = format!("{}C", cpu.cur_temp / 1000).green();
+        temp = format!("{}C", reduced_cpu_cur_temp).green();
     }
 
     let usage: colored::ColoredString;
+    let scaled_cpus_cur_usage = cpu.cur_usage * 100.0;
 
     if cpu.cur_usage > 0.9 {
-        usage = format!("{:.2}%", cpu.cur_usage * 100.0).red();
+        usage = format!("{:.2}%", scaled_cpus_cur_usage).red();
     } else if cpu.cur_usage > 0.5 {
-        usage = format!("{:.2}%", cpu.cur_usage * 100.0).yellow();
+        usage = format!("{:.2}%", scaled_cpus_cur_usage).yellow();
     } else if cpu.cur_usage > 0.2 {
-        usage = format!("{:.2}%", cpu.cur_usage * 100.0).white();
+        usage = format!("{:.2}%", scaled_cpus_cur_usage).white();
     } else if cpu.cur_usage > 0.0000 {
-        usage = format!("{:.2}%", cpu.cur_usage * 100.0).green();
+        usage = format!("{:.2}%", scaled_cpus_cur_usage).green();
     } else {
-        usage = format!("{:.2}%", cpu.cur_usage * 100.0).purple();
+        usage = format!("{:.2}%", scaled_cpus_cur_usage).purple();
     }
 
     format!(

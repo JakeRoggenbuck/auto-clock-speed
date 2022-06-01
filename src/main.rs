@@ -20,7 +20,6 @@ pub mod interface;
 pub mod logger;
 pub mod power;
 pub mod settings;
-pub mod state;
 pub mod system;
 pub mod terminal;
 

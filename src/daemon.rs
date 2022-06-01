@@ -250,7 +250,6 @@ impl Checker for Daemon {
 
         self.timeout_battery = time::Duration::from_millis(self.settings.delay_battery);
         self.timeout = time::Duration::from_millis(self.settings.delay);
-
     }
 
     fn start_loop(&mut self) -> Result<(), Error> {

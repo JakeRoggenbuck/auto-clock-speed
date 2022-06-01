@@ -127,7 +127,7 @@ pub fn get_cpu_percent() -> String {
 
     let avg_timing_2: &ProcStat = &parse_proc_file(proc).unwrap()[0];
 
-   format!(
+    format!(
         "{}",
         calculate_cpu_percent(&avg_timing, &avg_timing_2) * 100.0
     )

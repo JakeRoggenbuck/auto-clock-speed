@@ -326,6 +326,9 @@ impl Checker for Daemon {
         if self.settings.graph == GraphType::Usage {
             self.grapher.vals.push(check_cpu_usage(&self.cpus) as f64);
         }
+        if self.settings.graph == GraphType::Frequency {
+            self.grapher.vals.push(check_cpu_freq(&self.cpus) as f64);
+        }
 
         Ok(())
     }

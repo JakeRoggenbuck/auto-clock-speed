@@ -12,7 +12,7 @@ use super::logger;
 use super::logger::Interface;
 use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
 use super::system::{
-    check_available_governors, check_cpu_freq, check_cpu_usage, check_turbo_enabled, get_highest_temp, list_cpus,
+    check_available_governors, check_cpu_temperature, check_cpu_freq, check_cpu_usage, check_turbo_enabled, get_highest_temp, list_cpus,
     parse_proc_file, read_proc_stat_file, ProcStat,
 };
 use super::terminal::terminal_width;
@@ -328,6 +328,9 @@ impl Checker for Daemon {
         }
         if self.settings.graph == GraphType::Frequency {
             self.grapher.vals.push(check_cpu_freq(&self.cpus) as f64);
+        }
+        if self.settings.graph == GraphType::Temperature {
+            self.grapher.vals.push((check_cpu_temperature(&self.cpus) / 1000.0) as f64);
         }
 
         Ok(())

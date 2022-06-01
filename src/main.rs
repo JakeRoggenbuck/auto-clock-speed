@@ -7,7 +7,7 @@ use display::show_config;
 use error::Error;
 use interactive::interactive;
 use interface::{Get, Getter, Interface, Set, Setter};
-use settings::Settings;
+use settings::{Settings, GraphType, get_graph_type};
 
 pub mod config;
 pub mod cpu;
@@ -104,6 +104,7 @@ enum SetType {
     name = "autoclockspeed",
     about = "Automatic CPU frequency scaler and power saver"
 )]
+
 enum ACSCommand {
     /// Get a specific value or status
     #[structopt(name = "get", alias = "g")]
@@ -148,8 +149,8 @@ enum ACSCommand {
         no_animation: bool,
 
         /// Graph
-        #[structopt(short = "g", long = "--graph")]
-        should_graph: bool,
+        #[structopt(short = "g", long = "--graph", default_value = "none")]
+        should_graph: String,
 
         /// Commit hash
         #[structopt(short, long)]
@@ -172,8 +173,8 @@ enum ACSCommand {
         no_animation: bool,
 
         /// Graph
-        #[structopt(short = "g", long = "--graph")]
-        should_graph: bool,
+        #[structopt(short = "g", long = "--graph", default_value = "none")]
+        should_graph: String,
 
         /// Commit hash
         #[structopt(short, long)]
@@ -190,7 +191,7 @@ fn parse_args(config: config::Config) {
         delay: 0,
         edit: false,
         no_animation: false,
-        should_graph: false,
+        should_graph: GraphType::Hidden,
         commit: false,
         testing: false,
     };
@@ -259,7 +260,7 @@ fn parse_args(config: config::Config) {
             }
 
             let mut effective_delay_battery = delay_battery;
-            if should_graph || delay != 1000 {
+            if should_graph|| delay != 1000 {
                 effective_delay_battery = delay;
             }
 
@@ -269,7 +270,7 @@ fn parse_args(config: config::Config) {
                 delay,
                 edit: true,
                 no_animation,
-                should_graph,
+                graph_type: get_graph_type(should_graph),
                 commit,
                 testing: false,
             };
@@ -306,7 +307,7 @@ fn parse_args(config: config::Config) {
                 delay_battery: effective_delay_battery,
                 edit: false,
                 no_animation,
-                should_graph,
+                graph_type: get_graph_type(should_graph),
                 commit,
                 testing: false,
             };

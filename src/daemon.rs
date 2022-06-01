@@ -32,15 +32,15 @@ pub enum State {
 }
 
 // Return governor string based on current state
-fn get_governor(current_state: &State) -> Result<&'static str, Error> {
-    Ok(match current_state {
+fn get_governor(current_state: &State) -> &'static str {
+    match current_state {
         State::Normal => "powersave",
         State::BatteryLow => "powersave",
         State::LidClosed => "powersave",
         State::Charging => "performance",
         State::CpuUsageHigh => "performance",
         State::Unknown => "powersave",
-    })
+    }
 }
 
 pub trait Checker {
@@ -60,7 +60,7 @@ pub trait Checker {
 
     fn update_all(&mut self) -> Result<(), Error>;
 
-    fn run_state_machine(&mut self) -> Result<State, Error>;
+    fn run_state_machine(&mut self) -> State;
 
     fn preprint_render(&mut self) -> String;
     fn postprint_render(&mut self) -> String;
@@ -173,7 +173,7 @@ impl Checker for Daemon {
         Ok(())
     }
 
-    fn run_state_machine(&mut self) -> Result<State, Error> {
+    fn run_state_machine(&mut self) -> State {
         let mut state = State::Normal;
 
         if self.usage > 70.0 && self.last_below_cpu_usage_percent.is_none() {
@@ -186,7 +186,12 @@ impl Checker for Daemon {
 
         match self.last_below_cpu_usage_percent {
             Some(last) => {
-                if SystemTime::now().duration_since(last)?.as_secs() >= 15 {
+                if SystemTime::now()
+                    .duration_since(last)
+                    .expect("Could not compare times")
+                    .as_secs()
+                    >= 15
+                {
                     state = State::CpuUsageHigh;
                 }
             }
@@ -205,7 +210,7 @@ impl Checker for Daemon {
             state = State::BatteryLow;
         }
 
-        Ok(state)
+        state
     }
 
     fn run(&mut self) -> Result<(), Error> {
@@ -281,7 +286,7 @@ impl Checker for Daemon {
     fn single_edit(&mut self) -> Result<(), Error> {
         self.start_loop()?;
 
-        let state = self.run_state_machine()?;
+        let state = self.run_state_machine();
 
         // Check if the state has changed since the last time we checked
         if self.state != state {
@@ -292,7 +297,7 @@ impl Checker for Daemon {
             );
 
             // Change the cpu governor based on the state
-            self.set_govs(get_governor(&state)?.to_string())?;
+            self.set_govs(get_governor(&state).to_string())?;
         }
 
         self.state = state;

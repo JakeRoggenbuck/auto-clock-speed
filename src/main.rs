@@ -1,6 +1,6 @@
 use log::debug;
-use structopt::StructOpt;
 use std::{thread, time};
+use structopt::StructOpt;
 
 use config::{config_dir_exists, get_config};
 use daemon::{daemon_init, Checker};
@@ -8,7 +8,7 @@ use display::show_config;
 use error::Error;
 use interactive::interactive;
 use interface::{Get, Getter, Interface, Set, Setter};
-use settings::{Settings, GraphType, get_graph_type};
+use settings::{get_graph_type, GraphType, Settings};
 
 pub mod config;
 pub mod cpu;
@@ -306,7 +306,6 @@ fn parse_args(config: config::Config) {
             if !config_dir_exists() {
                 warn_user!("Config directory '/etc/acs' does not exist!");
             }
-            
 
             let parsed_graph_type = match get_graph_type(&should_graph) {
                 Some(graph_type) => graph_type,

@@ -397,6 +397,13 @@ impl Checker for Daemon {
         let preprint = self.preprint_render();
         let postprint = self.postprint_render();
 
+        // Shows if turbo is enabled with an amazing turbo animation
+        let mut effective_delay = self.timeout_battery;
+        if self.charging {
+            effective_delay = self.timeout;
+        }
+        let delay_in_millis = effective_delay.as_millis().try_into().unwrap();
+
         // Clear screen
         println!("{}", termion::clear::All);
 
@@ -406,16 +413,11 @@ impl Checker for Daemon {
         // Print all pre-rendered items
         print!("{}", preprint);
 
-        // Shows if turbo is enabled with an amazing turbo animation
-        let mut effective_delay = self.timeout_battery;
-        if self.charging {
-            effective_delay = self.timeout;
-        }
         print_turbo_status(
             cores,
             self.settings.no_animation,
             term_width,
-            effective_delay.as_millis().try_into().unwrap(),
+            delay_in_millis,
         );
 
         // Print more pre-rendered items

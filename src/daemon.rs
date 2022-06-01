@@ -12,7 +12,6 @@ use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
 use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
-use super::state::State;
 use super::system::{
     check_available_governors, check_cpu_freq, check_cpu_usage, check_turbo_enabled, get_highest_temp, list_cpus,
     parse_proc_file, read_proc_stat_file, ProcStat,
@@ -23,40 +22,34 @@ use super::Settings;
 use crate::display::print_turbo_animation;
 use crate::warn_user;
 
+#[derive(Debug, PartialEq)]
+pub enum State {
+    Normal,
+    BatteryLow,
+    LidClosed,
+    Charging,
+    CpuUsageHigh,
+    Unknown,
+}
+
+// Return governor string based on current state
+fn get_governor(current_state: &State) -> Result<&'static str, Error> {
+    Ok(match current_state {
+        State::Normal => "powersave",
+        State::BatteryLow => "powersave",
+        State::LidClosed => "powersave",
+        State::Charging => "performance",
+        State::CpuUsageHigh => "performance",
+        State::Unknown => "powersave",
+    })
+}
+
 pub trait Checker {
     fn apply_to_cpus(
         &mut self,
         operation: &dyn Fn(&mut CPU) -> Result<(), Error>,
     ) -> Result<(), Error>;
 
-    // Start Charging Rule
-    fn lid_closed_or_charge_under(&mut self);
-    fn lid_open_and_charge_over(&mut self) -> Result<(), Error>;
-    fn start_charging_rule(&mut self) -> Result<(), Error>;
-
-    // End Charging Rule
-    fn end_charging_rule(&mut self) -> Result<(), Error>;
-
-    // Lid Close Rule
-    fn lid_close_rule(&mut self) -> Result<(), Error>;
-
-    // Lid Open Rule
-    fn not_charging_or_charge_under(&mut self) -> Result<(), Error>;
-    fn charging_and_charge_over(&mut self) -> Result<(), Error>;
-    fn lid_open_rule(&mut self) -> Result<(), Error>;
-
-    // Under Powersave Under Rule
-    fn under_powersave_under_rule(&mut self) -> Result<(), Error>;
-
-    // High Temperature Rule
-    fn start_high_temperature_rule(&mut self) -> Result<(), Error>;
-    fn end_high_temperature_rule(&mut self) -> Result<(), Error>;
-
-    // High CPU Usage Rule
-    fn start_cpu_usage_rule(&mut self) -> Result<(), Error>;
-    fn end_cpu_usage_rule(&mut self) -> Result<(), Error>;
-
-    // Other methods
     fn run(&mut self) -> Result<(), Error>;
     fn init(&mut self);
 
@@ -67,6 +60,8 @@ pub trait Checker {
     fn single_monit(&mut self) -> Result<(), Error>;
 
     fn update_all(&mut self) -> Result<(), Error>;
+
+    fn run_state_machine(&mut self) -> Result<State, Error>;
 
     fn preprint_render(&mut self) -> String;
     fn postprint_render(&mut self) -> String;
@@ -91,6 +86,7 @@ pub struct Daemon {
     pub already_high_temp: bool,
     pub already_high_usage: bool,
     pub last_below_cpu_usage_percent: Option<SystemTime>,
+    pub state: State,
     pub graph: String,
     pub grapher: Graph,
     pub temp_max: i8,
@@ -98,7 +94,6 @@ pub struct Daemon {
     pub timeout: time::Duration,
     pub timeout_battery: time::Duration,
     pub settings: Settings,
-    pub state: State,
 }
 
 fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
@@ -184,170 +179,26 @@ impl Checker for Daemon {
         Ok(())
     }
 
-    fn lid_closed_or_charge_under(&mut self) {
-        debug!("Just started charging && (lid is closed || charge is lower than powersave_under)");
-        self.logger.log(
-            "Battery is charging however the governor remains unchanged",
-            logger::Severity::Log,
-        );
-    }
+    fn run_state_machine(&mut self) -> Result<State, Error> {
+        let mut state = State::Normal;
 
-    fn lid_open_and_charge_over(&mut self) -> Result<(), Error> {
-        debug!("Just started charging && (lid is open && charge is higher than powersave_under)");
-        self.logger.log(
-            "Governor set to performance because battery is charging",
-            logger::Severity::Log,
-        );
-        self.apply_to_cpus(&make_gov_performance)?;
-        Ok(())
-    }
-
-    fn start_charging_rule(&mut self) -> Result<(), Error> {
-        if self.charging && !self.already_charging {
-            if self.lid_state == LidState::Closed || self.charge < self.config.powersave_under {
-                self.lid_closed_or_charge_under();
-            } else {
-                self.lid_open_and_charge_over()?;
-            }
-            self.already_charging = true;
-        }
-        Ok(())
-    }
-
-    fn end_charging_rule(&mut self) -> Result<(), Error> {
-        if !self.charging && self.already_charging {
-            self.logger.log(
-                "Governor set to powersave because battery is not charging",
-                logger::Severity::Log,
-            );
-            self.apply_to_cpus(&make_gov_powersave)?;
-            self.already_charging = false;
-        }
-        Ok(())
-    }
-
-    fn start_high_temperature_rule(&mut self) -> Result<(), Error> {
-        if !self.already_high_temp
-            && !self.already_high_usage
-            && self.temp_max > self.config.overheat_threshold
-        {
-            self.logger.log(
-                "Governor set to powersave because CPU temperature is high",
-                logger::Severity::Log,
-            );
-            self.apply_to_cpus(&make_gov_powersave)?;
-            self.already_high_temp = true;
-        }
-        Ok(())
-    }
-
-    fn lid_close_rule(&mut self) -> Result<(), Error> {
-        if self.lid_state == LidState::Closed && !self.already_closed {
-            self.logger.log(
-                "Governor set to powersave because lid closed",
-                logger::Severity::Log,
-            );
-            self.apply_to_cpus(&make_gov_powersave)?;
-            self.already_closed = true;
-        }
-        Ok(())
-    }
-
-    fn not_charging_or_charge_under(&mut self) -> Result<(), Error> {
-        self.logger.log(
-            "Lid opened however the governor remains unchanged",
-            logger::Severity::Log,
-        );
-        Ok(())
-    }
-
-    fn charging_and_charge_over(&mut self) -> Result<(), Error> {
-        self.logger.log(
-            "Governor set to performance because lid opened",
-            logger::Severity::Log,
-        );
-        self.apply_to_cpus(&make_gov_performance)?;
-        Ok(())
-    }
-
-    fn lid_open_rule(&mut self) -> Result<(), Error> {
-        if self.lid_state == LidState::Open && self.already_closed {
-            // A few checks in order to insure the computer should actually be in performance
-            if self.charging && !(self.charge < self.config.powersave_under) {
-                self.charging_and_charge_over()?;
-            } else {
-                self.not_charging_or_charge_under()?;
-            }
-            self.already_closed = false;
+        if self.usage > 70.0 {
+            state = State::CpuUsageHigh;
         }
 
-        Ok(())
-    }
-
-    fn under_powersave_under_rule(&mut self) -> Result<(), Error> {
-        if self.charge < self.config.powersave_under && !self.already_under_powersave_under_percent
-        {
-            self.logger.log(
-                &format!(
-                    "Governor set to powersave because battery was less than {}",
-                    self.config.powersave_under
-                ),
-                logger::Severity::Log,
-            );
-            self.apply_to_cpus(&make_gov_powersave)?;
-            self.already_under_powersave_under_percent = true;
-        }
-        if self.charge >= self.config.powersave_under {
-            self.already_under_powersave_under_percent = false;
-        }
-        Ok(())
-    }
-
-    fn start_cpu_usage_rule(&mut self) -> Result<(), Error> {
-        if self.usage > 70.0 && self.last_below_cpu_usage_percent.is_none() {
-            self.last_below_cpu_usage_percent = Some(SystemTime::now());
+        if self.lid_state == LidState::Closed {
+            state = State::LidClosed;
         }
 
-        match self.last_below_cpu_usage_percent {
-            Some(last) => {
-                if SystemTime::now().duration_since(last)?.as_secs() >= 15
-                    && !self.already_high_usage
-                {
-                    self.logger.log(
-                        &format!(
-                            "Governor set to performance because cpu was over 70% overall usage for longer than 15 seconds",
-                        ),
-                        logger::Severity::Log,
-                    );
-                    self.already_high_usage = true;
-                }
-            }
-            None => {}
+        if self.charging {
+            state = State::Charging;
         }
-        Ok(())
-    }
 
-    fn end_cpu_usage_rule(&mut self) -> Result<(), Error> {
-        if self.usage < 70.0 && self.last_below_cpu_usage_percent.is_some() {
-            self.last_below_cpu_usage_percent = None;
-            self.already_high_usage = false;
-            self.logger.log(
-                &format!("Governor returning to default because usage dropped below 70%",),
-                logger::Severity::Log,
-            );
+        if self.charge < self.config.powersave_under {
+            state = State::BatteryLow;
         }
-        Ok(())
-    }
 
-    fn end_high_temperature_rule(&mut self) -> Result<(), Error> {
-        if self.already_high_temp && self.temp_max < self.config.overheat_threshold {
-            self.logger.log(
-                "Governor set to powesave because CPU temperature is high",
-                logger::Severity::Log,
-            );
-            self.already_high_temp = false;
-        }
-        Ok(())
+        Ok(state)
     }
 
     fn run(&mut self) -> Result<(), Error> {
@@ -430,22 +281,21 @@ impl Checker for Daemon {
     fn single_edit(&mut self) -> Result<(), Error> {
         self.start_loop()?;
 
-        // Call all rules
-        self.start_high_temperature_rule()?;
-        self.end_high_temperature_rule()?;
-        self.start_cpu_usage_rule()?;
-        self.end_cpu_usage_rule()?;
+        let state = self.run_state_machine()?;
 
-        if !self.config.ignore_power {
-            self.start_charging_rule()?;
-            self.end_charging_rule()?;
+        // Check if the state has changed since the last time we checked
+        if self.state != state {
+            // Log the state change
+            self.logger.log(
+                &format!("State changed: {:?} -> {:?}", self.state, state,),
+                logger::Severity::Log,
+            );
+
+            // Change the cpu governor based on the state
+            self.set_govs(get_governor(&state)?.to_string())?;
         }
 
-        if !self.config.ignore_lid {
-            self.lid_close_rule()?;
-            self.lid_open_rule()?;
-            self.under_powersave_under_rule()?;
-        }
+        self.state = state;
 
         self.end_loop();
         Ok(())
@@ -692,7 +542,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         commit_hash: String::new(),
         timeout: time::Duration::from_millis(1),
         timeout_battery: time::Duration::from_millis(2),
-        state: State::Normal,
+        state: State::Unknown,
         settings: new_settings,
     };
 

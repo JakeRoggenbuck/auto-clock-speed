@@ -7,7 +7,6 @@ use nix::unistd::Uid;
 
 use super::config::Config;
 use super::cpu::{Speed, CPU};
-use super::debug;
 use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
@@ -177,8 +176,21 @@ impl Checker for Daemon {
     fn run_state_machine(&mut self) -> Result<State, Error> {
         let mut state = State::Normal;
 
-        if self.usage > 70.0 {
-            state = State::CpuUsageHigh;
+        if self.usage > 70.0 && self.last_below_cpu_usage_percent.is_none() {
+            self.last_below_cpu_usage_percent = Some(SystemTime::now());
+        }
+
+        if self.usage <= 70.0 {
+            self.last_below_cpu_usage_percent = None;
+        }
+
+        match self.last_below_cpu_usage_percent {
+            Some(last) => {
+                if SystemTime::now().duration_since(last)?.as_secs() >= 15 {
+                    state = State::CpuUsageHigh;
+                }
+            }
+            None => {}
         }
 
         if self.lid_state == LidState::Closed {

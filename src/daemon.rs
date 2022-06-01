@@ -80,11 +80,6 @@ pub struct Daemon {
     pub usage: f32,
     pub logger: logger::Logger,
     pub config: Config,
-    pub already_charging: bool,
-    pub already_closed: bool,
-    pub already_under_powersave_under_percent: bool,
-    pub already_high_temp: bool,
-    pub already_high_usage: bool,
     pub last_below_cpu_usage_percent: Option<SystemTime>,
     pub state: State,
     pub graph: String,
@@ -244,12 +239,6 @@ impl Checker for Daemon {
         self.timeout_battery = time::Duration::from_millis(self.settings.delay_battery);
         self.timeout = time::Duration::from_millis(self.settings.delay);
 
-        // If we just daemonized then make sure the states are the opposite of what they should
-        // The logic after this block will make sure that they are set to the correct state
-        // but only if the previous states were incorrect
-        self.already_charging = !self.charging;
-        self.already_under_powersave_under_percent = !(self.charge < self.config.powersave_under);
-        self.already_closed = self.lid_state == LidState::Closed;
     }
 
     fn start_loop(&mut self) -> Result<(), Error> {
@@ -530,11 +519,6 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
             logs: Vec::<logger::Log>::new(),
         },
         config,
-        already_charging: false,
-        already_closed: false,
-        already_under_powersave_under_percent: false,
-        already_high_temp: false,
-        already_high_usage: false,
         last_below_cpu_usage_percent: None,
         graph: String::new(),
         grapher: Graph { freqs: vec![0.0] },

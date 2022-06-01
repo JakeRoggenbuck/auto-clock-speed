@@ -7,7 +7,6 @@ use nix::unistd::Uid;
 
 use super::config::Config;
 use super::cpu::{Speed, CPU};
-use super::debug;
 use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
@@ -18,7 +17,7 @@ use super::system::{
 };
 use super::terminal::terminal_width;
 use super::Error;
-use super::Settings;
+use super::settings::{GraphType, Settings};
 use crate::display::print_turbo_animation;
 use crate::warn_user;
 
@@ -324,7 +323,7 @@ impl Checker for Daemon {
         self.temp_max = (get_highest_temp(&self.cpus) / 1000) as i8;
 
         // Update the data in the graph and render it
-        if self.settings.should_graph {
+        if self.settings.graph == GraphType::Usage {
             self.grapher.vals.push(check_cpu_usage(&self.cpus) as f64);
         }
 
@@ -345,7 +344,7 @@ impl Checker for Daemon {
 
     fn postprint_render(&mut self) -> String {
         // Render the graph if should_graph
-        let graph = if self.settings.should_graph {
+        let graph = if self.settings.graph != GraphType::Hidden {
             self.graph.clone()
         } else {
             String::from("")
@@ -380,7 +379,7 @@ impl Checker for Daemon {
         let cores = self.cpus.len();
 
         // Compute graph before screen is cleared
-        if self.settings.should_graph {
+        if self.settings.graph != GraphType::Hidden {
             self.graph = self.grapher.update_one(&mut self.grapher.vals.clone());
         }
 
@@ -506,7 +505,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         delay_battery: settings.delay_battery,
         edit, // Use new edit for new settings
         no_animation: settings.no_animation,
-        should_graph: settings.should_graph,
+        graph: settings.graph,
         commit: settings.commit,
         testing: settings.testing,
     };

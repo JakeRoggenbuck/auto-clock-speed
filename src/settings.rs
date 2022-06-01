@@ -1,4 +1,4 @@
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub enum GraphType {
     Hidden,
     Frequency,
@@ -29,7 +29,7 @@ pub struct Settings {
     pub delay_battery: u64,
     pub edit: bool,
     pub no_animation: bool,
-    pub should_graph: GraphType,
+    pub graph: GraphType,
     pub commit: bool,
     pub testing: bool,
 }

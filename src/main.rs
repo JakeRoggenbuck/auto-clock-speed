@@ -191,7 +191,7 @@ fn parse_args(config: config::Config) {
         delay: 0,
         edit: false,
         no_animation: false,
-        should_graph: GraphType::Hidden,
+        graph: GraphType::Hidden,
         commit: false,
         testing: false,
     };
@@ -259,8 +259,10 @@ fn parse_args(config: config::Config) {
                 warn_user!("Config directory '/etc/acs' does not exist!");
             }
 
+            let parsed_graph_type = get_graph_type(&should_graph);
+
             let mut effective_delay_battery = delay_battery;
-            if should_graph|| delay != 1000 {
+            if parsed_graph_type != GraphType::Hidden || delay != 1000 {
                 effective_delay_battery = delay;
             }
 
@@ -270,7 +272,7 @@ fn parse_args(config: config::Config) {
                 delay,
                 edit: true,
                 no_animation,
-                graph_type: get_graph_type(should_graph),
+                graph: parsed_graph_type,
                 commit,
                 testing: false,
             };
@@ -296,8 +298,10 @@ fn parse_args(config: config::Config) {
                 warn_user!("Config directory '/etc/acs' does not exist!");
             }
 
+            let parsed_graph_type = get_graph_type(&should_graph);
+
             let mut effective_delay_battery = delay_battery;
-            if should_graph || delay != 1000 {
+            if parsed_graph_type != GraphType::Hidden || delay != 1000 {
                 effective_delay_battery = delay;
             }
 
@@ -307,7 +311,7 @@ fn parse_args(config: config::Config) {
                 delay_battery: effective_delay_battery,
                 edit: false,
                 no_animation,
-                graph_type: get_graph_type(should_graph),
+                graph: parsed_graph_type,
                 commit,
                 testing: false,
             };

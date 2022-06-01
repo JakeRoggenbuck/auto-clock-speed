@@ -264,7 +264,7 @@ fn parse_args(config: config::Config) {
             let parsed_graph_type = match get_graph_type(&should_graph) {
                 Some(graph_type) => graph_type,
                 None => {
-                    warn_user!("Graph type is not set! Can be hidden, frequency, frequency_individual, usage, usage_individual, temperature, temperature_individual. Continuing in 5 seconds...");
+                    warn_user!("Graph type is not set! Can be freq, usage, or temp Continuing in 5 seconds...");
                     thread::sleep(time::Duration::from_millis(5000));
                     GraphType::Hidden
                 }
@@ -311,7 +311,7 @@ fn parse_args(config: config::Config) {
             let parsed_graph_type = match get_graph_type(&should_graph) {
                 Some(graph_type) => graph_type,
                 None => {
-                    warn_user!("Graph type is not set! Can be hidden, frequency, frequency_individual, usage, usage_individual, temperature, temperature_individual. Continuing in 5 seconds...");
+                    warn_user!("Graph type is not set! Can be freq, usage, or temp Continuing in 5 seconds...");
                     thread::sleep(time::Duration::from_millis(5000));
                     GraphType::Hidden
                 }

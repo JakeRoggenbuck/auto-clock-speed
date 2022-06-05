@@ -260,7 +260,7 @@ fn parse_args(config: config::Config) {
                 warn_user!("Config directory '/etc/acs' does not exist!");
                 thread::sleep(time::Duration::from_millis(5000));
             }
-            
+
             let mut parsed_graph_type = GraphType::Hidden;
 
             match graph_type {
@@ -271,8 +271,7 @@ fn parse_args(config: config::Config) {
                         thread::sleep(time::Duration::from_millis(5000));
                     }
                 }
-                None => {
-                }
+                None => {}
             }
 
             let mut effective_delay_battery = delay_battery;
@@ -322,8 +321,7 @@ fn parse_args(config: config::Config) {
                         thread::sleep(time::Duration::from_millis(5000));
                     }
                 }
-                None => {
-                }
+                None => {}
             }
 
             let mut effective_delay_battery = delay_battery;

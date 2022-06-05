@@ -151,7 +151,7 @@ enum ACSCommand {
 
         /// Graph
         #[structopt(short = "g", long = "--graph")]
-        should_graph: Option<String>,
+        graph_type: Option<String>,
 
         /// Commit hash
         #[structopt(short, long)]
@@ -175,7 +175,7 @@ enum ACSCommand {
 
         /// Graph
         #[structopt(short = "g", long = "--graph")]
-        should_graph: Option<String>,
+        graph_type: Option<String>,
 
         /// Commit hash
         #[structopt(short, long)]
@@ -253,7 +253,7 @@ fn parse_args(config: config::Config) {
             delay,
             delay_battery,
             no_animation,
-            should_graph,
+            graph_type,
             commit,
         } => {
             if !config_dir_exists() {
@@ -263,7 +263,7 @@ fn parse_args(config: config::Config) {
             
             let mut parsed_graph_type = GraphType::Hidden;
 
-            match should_graph {
+            match graph_type {
                 Some(graph_name) => {
                     parsed_graph_type = get_graph_type(&graph_name);
                     if parsed_graph_type == GraphType::Unknown {
@@ -305,7 +305,7 @@ fn parse_args(config: config::Config) {
             delay,
             delay_battery,
             no_animation,
-            should_graph,
+            graph_type,
             commit,
         } => {
             if !config_dir_exists() {
@@ -314,7 +314,7 @@ fn parse_args(config: config::Config) {
 
             let mut parsed_graph_type = GraphType::Hidden;
 
-            match should_graph {
+            match graph_type {
                 Some(graph_name) => {
                     parsed_graph_type = get_graph_type(&graph_name);
                     if parsed_graph_type == GraphType::Unknown {

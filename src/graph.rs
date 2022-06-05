@@ -8,12 +8,12 @@ pub trait Grapher {
 }
 
 pub struct Graph {
-    pub freqs: Vec<f64>,
+    pub vals: Vec<f64>,
 }
 
 impl Grapher for Graph {
     fn update_all(&mut self) {
-        self.update_one(&mut self.freqs.clone());
+        self.update_one(&mut self.vals.clone());
     }
 
     fn update_one(&self, vec: &mut Vec<f64>) -> String {

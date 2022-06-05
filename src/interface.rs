@@ -27,7 +27,7 @@ pub trait Getter {
 
 impl Getter for Get {
     fn freq(&self, raw: bool) {
-        let f = check_cpu_freq();
+        let f = check_cpu_freq(&list_cpus());
         print_freq(f, raw);
     }
 

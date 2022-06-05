@@ -29,11 +29,11 @@ pub fn show_config() {
     println!("{}", get_config());
 }
 
-pub fn print_freq(f: i32, raw: bool) {
+pub fn print_freq(f: f32, raw: bool) {
     if raw {
         println!("{}", f);
     } else {
-        println!("CPU freq is {} MHz", f / 1000)
+        println!("CPU freq is {} MHz", f / 1000.0)
     }
 }
 

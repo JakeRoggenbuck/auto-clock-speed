@@ -1,4 +1,5 @@
 use log::debug;
+use std::{thread, time};
 use structopt::StructOpt;
 
 use config::{config_dir_exists, get_config};
@@ -7,7 +8,7 @@ use display::show_config;
 use error::Error;
 use interactive::interactive;
 use interface::{Get, Getter, Interface, Set, Setter};
-use settings::Settings;
+use settings::{get_graph_type, GraphType, Settings};
 
 pub mod config;
 pub mod cpu;
@@ -104,6 +105,7 @@ enum SetType {
     name = "autoclockspeed",
     about = "Automatic CPU frequency scaler and power saver"
 )]
+
 enum ACSCommand {
     /// Get a specific value or status
     #[structopt(name = "get", alias = "g")]
@@ -149,7 +151,7 @@ enum ACSCommand {
 
         /// Graph
         #[structopt(short = "g", long = "--graph")]
-        should_graph: bool,
+        graph_type: Option<String>,
 
         /// Commit hash
         #[structopt(short, long)]
@@ -173,7 +175,7 @@ enum ACSCommand {
 
         /// Graph
         #[structopt(short = "g", long = "--graph")]
-        should_graph: bool,
+        graph_type: Option<String>,
 
         /// Commit hash
         #[structopt(short, long)]
@@ -190,7 +192,7 @@ fn parse_args(config: config::Config) {
         delay: 0,
         edit: false,
         no_animation: false,
-        should_graph: false,
+        graph: GraphType::Hidden,
         commit: false,
         testing: false,
     };
@@ -251,15 +253,29 @@ fn parse_args(config: config::Config) {
             delay,
             delay_battery,
             no_animation,
-            should_graph,
+            graph_type,
             commit,
         } => {
             if !config_dir_exists() {
                 warn_user!("Config directory '/etc/acs' does not exist!");
+                thread::sleep(time::Duration::from_millis(5000));
+            }
+
+            let mut parsed_graph_type = GraphType::Hidden;
+
+            match graph_type {
+                Some(graph_name) => {
+                    parsed_graph_type = get_graph_type(&graph_name);
+                    if parsed_graph_type == GraphType::Unknown {
+                        warn_user!("Graph type does not exist! Can be freq, usage, or temp Continuing in 5 seconds...");
+                        thread::sleep(time::Duration::from_millis(5000));
+                    }
+                }
+                None => {}
             }
 
             let mut effective_delay_battery = delay_battery;
-            if should_graph || delay != 1000 {
+            if parsed_graph_type != GraphType::Hidden || delay != 1000 {
                 effective_delay_battery = delay;
             }
 
@@ -269,7 +285,7 @@ fn parse_args(config: config::Config) {
                 delay,
                 edit: true,
                 no_animation,
-                should_graph,
+                graph: parsed_graph_type,
                 commit,
                 testing: false,
             };
@@ -288,15 +304,28 @@ fn parse_args(config: config::Config) {
             delay,
             delay_battery,
             no_animation,
-            should_graph,
+            graph_type,
             commit,
         } => {
             if !config_dir_exists() {
                 warn_user!("Config directory '/etc/acs' does not exist!");
             }
 
+            let mut parsed_graph_type = GraphType::Hidden;
+
+            match graph_type {
+                Some(graph_name) => {
+                    parsed_graph_type = get_graph_type(&graph_name);
+                    if parsed_graph_type == GraphType::Unknown {
+                        warn_user!("Graph type does not exist! Can be freq, usage, or temp Continuing in 5 seconds...");
+                        thread::sleep(time::Duration::from_millis(5000));
+                    }
+                }
+                None => {}
+            }
+
             let mut effective_delay_battery = delay_battery;
-            if should_graph || delay != 1000 {
+            if parsed_graph_type != GraphType::Hidden || delay != 1000 {
                 effective_delay_battery = delay;
             }
 
@@ -306,7 +335,7 @@ fn parse_args(config: config::Config) {
                 delay_battery: effective_delay_battery,
                 edit: false,
                 no_animation,
-                should_graph,
+                graph: parsed_graph_type,
                 commit,
                 testing: false,
             };

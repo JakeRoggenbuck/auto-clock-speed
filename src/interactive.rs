@@ -1,6 +1,6 @@
 use super::config::{get_config, Config};
 use super::interface::{Get, Getter, Interface, Set, Setter};
-use super::settings::Settings;
+use super::settings::{GraphType, Settings};
 use colored::Colorize;
 use std::io::{stdin, stdout, Write};
 
@@ -39,7 +39,7 @@ pub fn interactive() {
         delay: 0,
         edit: false,
         no_animation: false,
-        should_graph: false,
+        graph: GraphType::Hidden,
         commit: false,
         testing: false,
     };

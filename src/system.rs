@@ -10,11 +10,28 @@ use crate::debug;
 use super::cpu::CPU;
 use super::Error;
 
-/// Check the frequency of the cpu
-pub fn check_cpu_freq() -> i32 {
-    let freqs: Vec<i32> = list_cpus().into_iter().map(|x| x.cur_freq).collect();
+/// Find the average frequency of all cores
+pub fn check_cpu_freq(cpus: &Vec<CPU>) -> f32 {
+    let freqs: Vec<i32> = cpus.into_iter().map(|x| x.cur_freq).collect();
     let sum: i32 = Iterator::sum(freqs.iter());
-    (sum as f32 / freqs.len() as f32) as i32
+    sum as f32 / freqs.len() as f32
+}
+
+/// Find the average usage of all cores
+pub fn check_cpu_usage(cpus: &Vec<CPU>) -> f32 {
+    let usage: Vec<i32> = cpus
+        .into_iter()
+        .map(|x| (x.cur_usage * 100.0) as i32)
+        .collect();
+    let sum: i32 = Iterator::sum(usage.iter());
+    sum as f32 / usage.len() as f32
+}
+
+/// Find the average temperature of all cores
+pub fn check_cpu_temperature(cpus: &Vec<CPU>) -> f32 {
+    let usage: Vec<i32> = cpus.into_iter().map(|x| x.cur_temp).collect();
+    let sum: i32 = Iterator::sum(usage.iter());
+    sum as f32 / usage.len() as f32
 }
 
 pub fn get_highest_temp(cpus: &Vec<CPU>) -> i32 {
@@ -283,8 +300,7 @@ mod tests {
 
     #[test]
     fn check_cpu_freq_acs_test() {
-        assert_eq!(type_of(check_cpu_freq()), type_of(1));
-        assert!(check_cpu_freq() > 0);
+        assert!(check_cpu_freq(&list_cpus()) > 0.0);
     }
 
     #[test]

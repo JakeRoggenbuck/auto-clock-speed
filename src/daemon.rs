@@ -11,13 +11,14 @@ use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
 use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
+use super::settings::{GraphType, Settings};
 use super::system::{
-    check_available_governors, check_cpu_freq, check_turbo_enabled, get_highest_temp, list_cpus,
-    parse_proc_file, read_proc_stat_file, ProcStat,
+    check_available_governors, check_cpu_freq, check_cpu_temperature, check_cpu_usage,
+    check_turbo_enabled, get_highest_temp, list_cpus, parse_proc_file, read_proc_stat_file,
+    ProcStat,
 };
 use super::terminal::terminal_width;
 use super::Error;
-use super::Settings;
 use crate::display::print_turbo_animation;
 use crate::warn_user;
 
@@ -324,8 +325,16 @@ impl Checker for Daemon {
         self.temp_max = (get_highest_temp(&self.cpus) / 1000) as i8;
 
         // Update the data in the graph and render it
-        if self.settings.should_graph {
-            self.grapher.freqs.push(check_cpu_freq() as f64);
+        if self.settings.graph == GraphType::Usage {
+            self.grapher.vals.push(check_cpu_usage(&self.cpus) as f64);
+        }
+        if self.settings.graph == GraphType::Frequency {
+            self.grapher.vals.push(check_cpu_freq(&self.cpus) as f64);
+        }
+        if self.settings.graph == GraphType::Temperature {
+            self.grapher
+                .vals
+                .push((check_cpu_temperature(&self.cpus) / 1000.0) as f64);
         }
 
         Ok(())
@@ -345,7 +354,7 @@ impl Checker for Daemon {
 
     fn postprint_render(&mut self) -> String {
         // Render the graph if should_graph
-        let graph = if self.settings.should_graph {
+        let graph = if self.settings.graph != GraphType::Hidden {
             self.graph.clone()
         } else {
             String::from("")
@@ -380,8 +389,8 @@ impl Checker for Daemon {
         let cores = self.cpus.len();
 
         // Compute graph before screen is cleared
-        if self.settings.should_graph {
-            self.graph = self.grapher.update_one(&mut self.grapher.freqs.clone());
+        if self.settings.graph != GraphType::Hidden {
+            self.graph = self.grapher.update_one(&mut self.grapher.vals.clone());
         }
 
         let term_width = terminal_width();
@@ -506,7 +515,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         delay_battery: settings.delay_battery,
         edit, // Use new edit for new settings
         no_animation: settings.no_animation,
-        should_graph: settings.should_graph,
+        graph: settings.graph,
         commit: settings.commit,
         testing: settings.testing,
     };
@@ -532,7 +541,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         config,
         last_below_cpu_usage_percent: None,
         graph: String::new(),
-        grapher: Graph { freqs: vec![0.0] },
+        grapher: Graph { vals: vec![0.0] },
         temp_max: 0,
         commit_hash: String::new(),
         timeout: time::Duration::from_millis(1),
@@ -564,7 +573,7 @@ mod tests {
             delay_battery: 2,
             edit: true,
             no_animation: false,
-            should_graph: false,
+            graph: GraphType::Hidden,
             commit: false,
             testing: true,
         };
@@ -583,7 +592,7 @@ mod tests {
             delay_battery: 2,
             edit: true,
             no_animation: false,
-            should_graph: false,
+            graph: GraphType::Hidden,
             commit: false,
             testing: true,
         };
@@ -608,7 +617,7 @@ mod tests {
             delay_battery: 2,
             edit: false,
             no_animation: false,
-            should_graph: false,
+            graph: GraphType::Hidden,
             commit: false,
             testing: true,
         };

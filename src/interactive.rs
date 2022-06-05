@@ -5,21 +5,25 @@ use colored::Colorize;
 use std::io::{stdin, stdout, Write};
 
 pub fn help() {
+    const HELP_TEXT: &str = "\
+    - get
+      - freq
+      - cpus
+      - temp
+      - govs
+      - power
+      - usage
+      - turbo
+      - available_governors
+
+    - set
+      - gov
+
+    E.g. 'get cpus'
+    ";
+
     println!("{}\n", "Help:".bold().green());
-    println!("- get");
-    println!("  - freq");
-    println!("  - cpus");
-    println!("  - temp");
-    println!("  - govs");
-    println!("  - power");
-    println!("  - usage");
-    println!("  - turbo");
-    println!("  - available_governors");
-    println!("  ");
-    println!("- set");
-    println!("  - gov");
-    println!("  ");
-    println!("E.g. 'get cpus'");
+    println!("{HELP_TEXT}")
 }
 
 pub fn interactive() {

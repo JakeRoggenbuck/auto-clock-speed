@@ -126,7 +126,7 @@ rm /etc/systemd/system/acs.service
 ```
 
 ## Example Usage
-Here are some examles of how acs can be used.
+Here are some examples of how acs can be used.
 ```sh
 # Monitor mode
 acs monitor

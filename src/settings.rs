@@ -4,15 +4,16 @@ pub enum GraphType {
     Frequency,
     Usage,
     Temperature,
+    Unknown,
 }
 
-pub fn get_graph_type(graph_type: &str) -> Option<GraphType> {
+pub fn get_graph_type(graph_type: &str) -> GraphType {
     match graph_type.to_lowercase().as_str() {
-        "hidden" => Some(GraphType::Hidden),
-        "freq" => Some(GraphType::Frequency),
-        "usage" => Some(GraphType::Usage),
-        "temp" => Some(GraphType::Temperature),
-        _ => None,
+        "hidden" => GraphType::Hidden,
+        "freq" => GraphType::Frequency,
+        "usage" => GraphType::Usage,
+        "temp" => GraphType::Temperature,
+        _ => GraphType::Unknown,
     }
 }
 

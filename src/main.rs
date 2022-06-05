@@ -150,8 +150,8 @@ enum ACSCommand {
         no_animation: bool,
 
         /// Graph
-        #[structopt(short = "g", long = "--graph", default_value = "none")]
-        should_graph: String,
+        #[structopt(short = "g", long = "--graph")]
+        should_graph: Option<String>,
 
         /// Commit hash
         #[structopt(short, long)]
@@ -174,8 +174,8 @@ enum ACSCommand {
         no_animation: bool,
 
         /// Graph
-        #[structopt(short = "g", long = "--graph", default_value = "none")]
-        should_graph: String,
+        #[structopt(short = "g", long = "--graph")]
+        should_graph: Option<String>,
 
         /// Commit hash
         #[structopt(short, long)]
@@ -260,15 +260,20 @@ fn parse_args(config: config::Config) {
                 warn_user!("Config directory '/etc/acs' does not exist!");
                 thread::sleep(time::Duration::from_millis(5000));
             }
+            
+            let mut parsed_graph_type = GraphType::Hidden;
 
-            let parsed_graph_type = match get_graph_type(&should_graph) {
-                Some(graph_type) => graph_type,
-                None => {
-                    warn_user!("Graph type is not set! Can be freq, usage, or temp Continuing in 5 seconds...");
-                    thread::sleep(time::Duration::from_millis(5000));
-                    GraphType::Hidden
+            match should_graph {
+                Some(graph_name) => {
+                    parsed_graph_type = get_graph_type(&graph_name);
+                    if parsed_graph_type == GraphType::Unknown {
+                        warn_user!("Graph type does not exist! Can be freq, usage, or temp Continuing in 5 seconds...");
+                        thread::sleep(time::Duration::from_millis(5000));
+                    }
                 }
-            };
+                None => {
+                }
+            }
 
             let mut effective_delay_battery = delay_battery;
             if parsed_graph_type != GraphType::Hidden || delay != 1000 {
@@ -307,14 +312,19 @@ fn parse_args(config: config::Config) {
                 warn_user!("Config directory '/etc/acs' does not exist!");
             }
 
-            let parsed_graph_type = match get_graph_type(&should_graph) {
-                Some(graph_type) => graph_type,
-                None => {
-                    warn_user!("Graph type is not set! Can be freq, usage, or temp Continuing in 5 seconds...");
-                    thread::sleep(time::Duration::from_millis(5000));
-                    GraphType::Hidden
+            let mut parsed_graph_type = GraphType::Hidden;
+
+            match should_graph {
+                Some(graph_name) => {
+                    parsed_graph_type = get_graph_type(&graph_name);
+                    if parsed_graph_type == GraphType::Unknown {
+                        warn_user!("Graph type does not exist! Can be freq, usage, or temp Continuing in 5 seconds...");
+                        thread::sleep(time::Duration::from_millis(5000));
+                    }
                 }
-            };
+                None => {
+                }
+            }
 
             let mut effective_delay_battery = delay_battery;
             if parsed_graph_type != GraphType::Hidden || delay != 1000 {

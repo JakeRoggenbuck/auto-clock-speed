@@ -135,7 +135,7 @@ pub fn parse_proc_file(proc: String) -> Result<Vec<ProcStat>, Error> {
     Ok(procs)
 }
 
-pub fn get_cpu_percent() -> Result<String, Error> {
+pub fn get_cpu_percent() -> String {
     let mut proc = read_proc_stat_file().unwrap();
     let avg_timing: &ProcStat = &parse_proc_file(proc).unwrap()[0];
 
@@ -144,10 +144,10 @@ pub fn get_cpu_percent() -> Result<String, Error> {
 
     let avg_timing_2: &ProcStat = &parse_proc_file(proc).unwrap()[0];
 
-    Ok(format!(
+    format!(
         "{}",
         calculate_cpu_percent(&avg_timing, &avg_timing_2) * 100.0
-    ))
+    )
 }
 
 pub fn calculate_cpu_percent(timing_1: &ProcStat, timing_2: &ProcStat) -> f32 {
@@ -305,7 +305,7 @@ mod tests {
 
     #[test]
     fn test_parse_proc_stat_file() {
-        let cpu_percent = get_cpu_percent().unwrap().parse::<f32>().unwrap();
+        let cpu_percent = get_cpu_percent().parse::<f32>().unwrap();
         assert_eq!(type_of(cpu_percent), type_of(0.0_f32));
         assert!(cpu_percent > 0.0 && cpu_percent < 100.0);
     }

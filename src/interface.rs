@@ -63,15 +63,12 @@ impl Getter for Get {
         if !raw {
             println!("Calculating cpu percentage over 1 second.");
         }
-        match get_cpu_percent() {
-            Ok(content) => {
-                if raw {
-                    println!("{}", content)
-                } else {
-                    println!("CPU is at {}%", content)
-                }
-            }
-            Err(_) => println!("Unable to usage status"),
+        let percent = get_cpu_percent();
+
+        if raw {
+            println!("{}", percent)
+        } else {
+            println!("CPU is at {}%", percent)
         }
     }
 

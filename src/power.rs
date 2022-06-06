@@ -1,10 +1,10 @@
+use colored::Colorize;
 use std::any::Any;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::fs::{read_dir, File};
 use std::io::Read;
 use std::path::Path;
-use colored::Colorize;
 
 use super::create_issue;
 use super::Error;

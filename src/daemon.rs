@@ -492,19 +492,18 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
     if edit {
         // If not running as root, tell the user and force to monitor
         if !Uid::effective().is_root() {
-            println!(
+            if !settings.testing {
+                println!(
                 "{}{}",
                 "In order to properly run the daemon in edit mode you must give the executable root privileges.\n",
                 "Continuing anyway in 5 seconds...".red()
             );
 
-            if !settings.testing {
                 let timeout = time::Duration::from_millis(5000);
                 thread::sleep(timeout);
             }
-
-            edit = false;
             forced_reason = "acs was not run as root".to_string();
+            edit = false;
         }
     }
 
@@ -610,7 +609,7 @@ mod tests {
 
         let mut daemon = daemon_init(settings, config).unwrap();
         let preprint = Checker::preprint_render(&mut daemon);
-        assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[31medit\u{1b}[0m mode with a delay of 1ms normally and 2ms when on battery\n"));
+        assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[33mmonitor\u{1b}[0m mode with a delay of 1ms normally and 2ms when on battery"));
         assert!(preprint.contains("Name  Max\tMin\tFreq\tTemp\tUsage\tGovernor\n"));
         assert!(preprint.contains("Hz"));
         assert!(preprint.contains("cpu"));

@@ -548,7 +548,9 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         config,
         last_below_cpu_usage_percent: None,
         graph: String::new(),
-        grapher: Graph { vals: Vec::<f64>::new() },
+        grapher: Graph {
+            vals: Vec::<f64>::new(),
+        },
         temp_max: 0,
         commit_hash: String::new(),
         timeout: time::Duration::from_millis(1),

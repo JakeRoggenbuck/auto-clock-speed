@@ -10,12 +10,14 @@ use super::cpu::{Speed, CPU};
 use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
-use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
+use super::power::{
+    get_battery_status, has_battery, read_battery_charge, read_lid_state, read_power_source,
+    LidState,
+};
 use super::settings::{GraphType, Settings};
 use super::system::{
     check_available_governors, check_cpu_freq, check_cpu_temperature, check_cpu_usage,
-    get_highest_temp, list_cpus, parse_proc_file, read_proc_stat_file,
-    ProcStat,
+    get_highest_temp, list_cpus, parse_proc_file, read_proc_stat_file, ProcStat,
 };
 use super::terminal::terminal_width;
 use super::Error;
@@ -111,27 +113,6 @@ fn make_gov_schedutil(cpu: &mut CPU) -> Result<(), Error> {
 //    cpu.set_gov(generic_gov.to_string())?;
 //    Ok(())
 //}
-
-fn get_battery_status(charging: bool) -> String {
-    if has_battery() {
-        match read_battery_charge() {
-            Ok(bat) => {
-                format!(
-                    "Battery: {}",
-                    if charging {
-                        format!("{}%", bat).green()
-                    } else {
-                        format!("{}%", bat).red()
-                    },
-                )
-            }
-            Err(e) => format!("Battery charge could not be read\n{:?}", e),
-        }
-    } else {
-        format!("Battery: {}", "N/A".bold())
-    }
-}
-
 
 fn calculate_average_usage(cpus: &Vec<CPU>) -> Result<f32, Error> {
     let mut sum = 0.0;

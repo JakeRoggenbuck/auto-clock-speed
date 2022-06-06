@@ -108,18 +108,12 @@ fn make_gov_schedutil(cpu: &mut CPU) -> Result<(), Error> {
     Ok(())
 }
 
-// TODO Figure out how to make generic governor work
-//fn make_gov_generic(cpu: &mut CPU) -> Result<(), Error> {
-//    cpu.set_gov(generic_gov.to_string())?;
-//    Ok(())
-//}
-
-fn calculate_average_usage(cpus: &Vec<CPU>) -> Result<f32, Error> {
+fn calculate_average_usage(cpus: &Vec<CPU>) -> f32 {
     let mut sum = 0.0;
     for cpu in cpus {
         sum += cpu.cur_usage;
     }
-    Ok((sum / (cpus.len() as f32)) as f32)
+    (sum / (cpus.len() as f32)) as f32
 }
 
 impl Checker for Daemon {
@@ -226,7 +220,7 @@ impl Checker for Daemon {
         self.charging = read_power_source()?;
         self.charge = read_battery_charge()?;
         self.lid_state = read_lid_state()?;
-        self.usage = calculate_average_usage(&self.cpus)? * 100.0;
+        self.usage = calculate_average_usage(&self.cpus) * 100.0;
 
         Ok(())
     }

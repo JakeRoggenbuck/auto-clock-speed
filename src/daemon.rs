@@ -501,9 +501,9 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
 
                 let timeout = time::Duration::from_millis(5000);
                 thread::sleep(timeout);
-                forced_reason = "acs was not run as root".to_string();
-                edit = false;
             }
+            forced_reason = "acs was not run as root".to_string();
+            edit = false;
         }
     }
 
@@ -574,6 +574,25 @@ mod tests {
     use crate::config::default_config;
 
     #[test]
+    fn daemon_init_force_to_monit_integration_test() {
+        let settings = Settings {
+            verbose: true,
+            delay: 1,
+            delay_battery: 2,
+            edit: true,
+            no_animation: false,
+            graph: GraphType::Hidden,
+            commit: false,
+            testing: true,
+        };
+
+        let config = default_config();
+
+        let daemon = daemon_init(settings, config).unwrap();
+        assert_eq!(daemon.settings.edit, false);
+    }
+
+    #[test]
     fn preprint_render_test_edit_integration_test() {
         let settings = Settings {
             verbose: true,
@@ -590,7 +609,8 @@ mod tests {
 
         let mut daemon = daemon_init(settings, config).unwrap();
         let preprint = Checker::preprint_render(&mut daemon);
-        assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[31medit\u{1b}[0m mode with a delay of 1ms normally and 2ms when on battery\n"));
+        println!("{}", preprint);
+        assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[33mmonitor\u{1b}[0m mode with a delay of 1ms normally and 2ms when on battery"));
         assert!(preprint.contains("Name  Max\tMin\tFreq\tTemp\tUsage\tGovernor\n"));
         assert!(preprint.contains("Hz"));
         assert!(preprint.contains("cpu"));

@@ -492,9 +492,8 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
     if edit {
         // If not running as root, tell the user and force to monitor
         if !Uid::effective().is_root() {
-            
             if !settings.testing {
-            println!(
+                println!(
                 "{}{}",
                 "In order to properly run the daemon in edit mode you must give the executable root privileges.\n",
                 "Continuing anyway in 5 seconds...".red()
@@ -505,7 +504,6 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
                 forced_reason = "acs was not run as root".to_string();
                 edit = false;
             }
-
         }
     }
 

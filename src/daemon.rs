@@ -14,12 +14,12 @@ use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_
 use super::settings::{GraphType, Settings};
 use super::system::{
     check_available_governors, check_cpu_freq, check_cpu_temperature, check_cpu_usage,
-    check_turbo_enabled, get_highest_temp, list_cpus, parse_proc_file, read_proc_stat_file,
+    get_highest_temp, list_cpus, parse_proc_file, read_proc_stat_file,
     ProcStat,
 };
 use super::terminal::terminal_width;
 use super::Error;
-use crate::display::print_turbo_animation;
+use crate::display::print_turbo_status;
 use crate::warn_user;
 
 #[derive(Debug, PartialEq)]
@@ -32,7 +32,7 @@ pub enum State {
     Unknown,
 }
 
-// Return governor string based on current state
+/// Return governor string based on current state
 fn get_governor(current_state: &State) -> &'static str {
     match current_state {
         State::Normal => "powersave",
@@ -132,27 +132,6 @@ fn get_battery_status(charging: bool) -> String {
     }
 }
 
-fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize, delay: u64) {
-    let mut turbo_y_pos: usize = 7;
-    let title_width = 94;
-
-    if term_width > title_width {
-        turbo_y_pos = 6
-    }
-
-    match check_turbo_enabled() {
-        Ok(turbo) => {
-            let enabled_message = if turbo { "yes" } else { "no" };
-
-            println!("{} {}", "  Turbo:", enabled_message.bold(),);
-
-            if !no_animation {
-                print_turbo_animation(cores, turbo_y_pos, delay);
-            }
-        }
-        Err(e) => eprintln!("Could not check turbo\n{:?}", e),
-    }
-}
 
 fn calculate_average_usage(cpus: &Vec<CPU>) -> Result<f32, Error> {
     let mut sum = 0.0;

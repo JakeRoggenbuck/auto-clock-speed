@@ -4,6 +4,7 @@ use std::thread;
 use super::config::get_config;
 use super::cpu::CPU;
 use super::power::LidState;
+use super::system::check_turbo_enabled;
 use colored::*;
 
 #[macro_export]
@@ -77,6 +78,28 @@ pub fn print_turbo_animation(cpu: usize, y_pos: usize, delay: u64) {
             std::thread::sleep(std::time::Duration::from_millis(100));
         }
     });
+}
+
+pub fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize, delay: u64) {
+    let mut turbo_y_pos: usize = 7;
+    let title_width = 94;
+
+    if term_width > title_width {
+        turbo_y_pos = 6
+    }
+
+    match check_turbo_enabled() {
+        Ok(turbo) => {
+            let enabled_message = if turbo { "yes" } else { "no" };
+
+            println!("{} {}", "  Turbo:", enabled_message.bold(),);
+
+            if !no_animation {
+                print_turbo_animation(cores, turbo_y_pos, delay);
+            }
+        }
+        Err(e) => eprintln!("Could not check turbo\n{:?}", e),
+    }
 }
 
 fn print_vec<T: Display>(t: Vec<T>, raw: bool) {

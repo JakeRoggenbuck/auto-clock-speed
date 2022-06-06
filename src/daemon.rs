@@ -609,7 +609,6 @@ mod tests {
 
         let mut daemon = daemon_init(settings, config).unwrap();
         let preprint = Checker::preprint_render(&mut daemon);
-        println!("{}", preprint);
         assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[33mmonitor\u{1b}[0m mode with a delay of 1ms normally and 2ms when on battery"));
         assert!(preprint.contains("Name  Max\tMin\tFreq\tTemp\tUsage\tGovernor\n"));
         assert!(preprint.contains("Hz"));

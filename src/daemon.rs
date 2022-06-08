@@ -22,7 +22,7 @@ use super::Error;
 use crate::display::print_turbo_animation;
 use crate::warn_user;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum State {
     Normal,
     BatteryLow,

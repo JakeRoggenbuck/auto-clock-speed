@@ -177,7 +177,10 @@ impl Checker for Daemon {
     fn run_state_machine(&mut self) -> State {
         let mut state = State::Normal;
 
-        if self.usage > 70.0 && self.last_below_cpu_usage_percent.is_none() && self.config.active_rules.contains(&State::CpuUsageHigh) {
+        if self.usage > 70.0
+            && self.last_below_cpu_usage_percent.is_none()
+            && self.config.active_rules.contains(&State::CpuUsageHigh)
+        {
             self.last_below_cpu_usage_percent = Some(SystemTime::now());
         }
 

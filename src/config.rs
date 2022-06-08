@@ -1,6 +1,6 @@
+use super::daemon::State;
 use super::warn_user;
 use serde::{Deserialize, Serialize};
-use super::daemon::State;
 use std::fmt;
 use std::fs::File;
 use std::io::Read;
@@ -27,7 +27,12 @@ pub fn default_config() -> Config {
     Config {
         powersave_under: 20,
         overheat_threshold: 80,
-        active_rules: vec![State::BatteryLow, State::LidClosed, State::Charging, State::CpuUsageHigh],
+        active_rules: vec![
+            State::BatteryLow,
+            State::LidClosed,
+            State::Charging,
+            State::CpuUsageHigh,
+        ],
     }
 }
 

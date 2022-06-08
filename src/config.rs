@@ -1,5 +1,6 @@
 use super::warn_user;
 use serde::{Deserialize, Serialize};
+use super::daemon::State;
 use std::fmt;
 use std::fs::File;
 use std::io::Read;
@@ -26,15 +27,15 @@ pub fn default_config() -> Config {
     Config {
         powersave_under: 20,
         overheat_threshold: 80,
-        active_rules: Vec::<String>::new(),
+        active_rules: Vec::<State>::new(),
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug)]
 pub struct Config {
     pub powersave_under: i8,
     pub overheat_threshold: i8,
-    pub active_rules: Vec<String>,
+    pub active_rules: Vec<State>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -74,10 +75,15 @@ impl SafeFillConfig for SafeConfig {
         }
 
         if self.active_rules.is_some() {
-            for (i, rule) in self.active_rules.clone().unwrap().iter().enumerate() {
-                println!("{}{}", i, rule);
+            for rule in self.active_rules.clone().unwrap() {
+                base.active_rules.push(match rule.as_str() {
+                    "battery_percent_rule" => State::BatteryLow,
+                    "lid_open_rule" => State::LidClosed,
+                    "ac_charging_rule" => State::Charging,
+                    "cpu_usage_rule" => State::CpuUsageHigh,
+                    _ => State::Unknown,
+                });
             }
-            base.active_rules = self.active_rules.clone().unwrap();
         }
 
         return base;

@@ -27,7 +27,7 @@ pub fn default_config() -> Config {
     Config {
         powersave_under: 20,
         overheat_threshold: 80,
-        active_rules: Vec::<State>::new(),
+        active_rules: vec![State::BatteryLow, State::LidClosed, State::Charging, State::CpuUsageHigh],
     }
 }
 
@@ -75,6 +75,7 @@ impl SafeFillConfig for SafeConfig {
         }
 
         if self.active_rules.is_some() {
+            base.active_rules.clear();
             for rule in self.active_rules.clone().unwrap() {
                 base.active_rules.push(match rule.as_str() {
                     "battery_percent_rule" => State::BatteryLow,

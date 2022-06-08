@@ -177,41 +177,48 @@ impl Checker for Daemon {
     fn run_state_machine(&mut self) -> State {
         let mut state = State::Normal;
 
-        if self.usage > 70.0
-            && self.last_below_cpu_usage_percent.is_none()
-            && self.config.active_rules.contains(&State::CpuUsageHigh)
-        {
-            self.last_below_cpu_usage_percent = Some(SystemTime::now());
-        }
-
-        if self.usage <= 70.0 {
-            self.last_below_cpu_usage_percent = None;
-        }
-
-        match self.last_below_cpu_usage_percent {
-            Some(last) => {
-                if SystemTime::now()
-                    .duration_since(last)
-                    .expect("Could not compare times")
-                    .as_secs()
-                    >= 15
-                {
-                    state = State::CpuUsageHigh;
-                }
+        if self.config.active_rules.contains(&State::CpuUsageHigh) {
+            if self.usage > 70.0
+                && self.last_below_cpu_usage_percent.is_none()
+            {
+                self.last_below_cpu_usage_percent = Some(SystemTime::now());
             }
-            None => {}
+
+            if self.usage <= 70.0  {
+                self.last_below_cpu_usage_percent = None;
+            }
+
+            match self.last_below_cpu_usage_percent {
+                Some(last) => {
+                    if SystemTime::now()
+                        .duration_since(last)
+                        .expect("Could not compare times")
+                        .as_secs()
+                        >= 15
+                    {
+                        state = State::CpuUsageHigh;
+                    }
+                }
+                None => {}
+            }
         }
 
-        if self.lid_state == LidState::Closed {
-            state = State::LidClosed;
+        if self.config.active_rules.contains(&State::LidClosed) {
+            if self.lid_state == LidState::Closed {
+                state = State::LidClosed;
+            }
         }
 
-        if self.charging {
-            state = State::Charging;
+        if self.config.active_rules.contains(&State::Charging) {
+            if self.charging {
+                state = State::Charging;
+            }
         }
 
-        if self.charge < self.config.powersave_under {
-            state = State::BatteryLow;
+        if self.config.active_rules.contains(&State::BatteryLow) {
+            if self.charge < self.config.powersave_under {
+                state = State::BatteryLow;
+            }
         }
 
         state

@@ -81,7 +81,7 @@ impl SafeFillConfig for SafeConfig {
         if self.overheat_threshold.is_some() {
             base.overheat_threshold = self.overheat_threshold.unwrap();
         }
-        
+
         if self.high_cpu_threshold.is_some() {
             base.high_cpu_threshold = self.high_cpu_threshold.unwrap();
         }

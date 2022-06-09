@@ -178,11 +178,11 @@ impl Checker for Daemon {
         let mut state = State::Normal;
 
         if self.config.active_rules.contains(&State::CpuUsageHigh) {
-            if self.usage > 70.0 && self.last_below_cpu_usage_percent.is_none() {
+            if self.usage > self.config.high_cpu_threshold.into() && self.last_below_cpu_usage_percent.is_none() {
                 self.last_below_cpu_usage_percent = Some(SystemTime::now());
             }
 
-            if self.usage <= 70.0 {
+            if self.usage <= self.config.high_cpu_threshold.into() {
                 self.last_below_cpu_usage_percent = None;
             }
 

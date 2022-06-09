@@ -27,6 +27,7 @@ pub fn default_config() -> Config {
     Config {
         powersave_under: 20,
         overheat_threshold: 80,
+        high_cpu_threshold: 50,
         active_rules: vec![
             State::BatteryLow,
             State::LidClosed,
@@ -40,6 +41,7 @@ pub fn default_config() -> Config {
 pub struct Config {
     pub powersave_under: i8,
     pub overheat_threshold: i8,
+    pub high_cpu_threshold: i8,
     pub active_rules: Vec<State>,
 }
 
@@ -47,6 +49,7 @@ pub struct Config {
 pub struct SafeConfig {
     pub powersave_under: Option<i8>,
     pub overheat_threshold: Option<i8>,
+    pub high_cpu_threshold: Option<i8>,
     pub active_rules: Option<Vec<String>>,
 }
 
@@ -78,6 +81,10 @@ impl SafeFillConfig for SafeConfig {
         if self.overheat_threshold.is_some() {
             base.overheat_threshold = self.overheat_threshold.unwrap();
         }
+        
+        if self.high_cpu_threshold.is_some() {
+            base.high_cpu_threshold = self.high_cpu_threshold.unwrap();
+        }
 
         if self.active_rules.is_some() {
             base.active_rules.clear();
@@ -102,8 +109,8 @@ impl fmt::Display for Config {
         // config iterable. This would also make safe_fill_config a lot easier as well.
         write!(
             f,
-            "powersave_under = {}\noverheat_threshold = {}\nacive_rules = {:?}",
-            self.powersave_under, self.overheat_threshold, self.active_rules,
+            "powersave_under = {}\noverheat_threshold = {}\nhigh_cpu_threshold = {}\nacive_rules = {:?}",
+            self.powersave_under, self.overheat_threshold, self.high_cpu_threshold, self.active_rules,
         )
     }
 }
@@ -122,6 +129,7 @@ fn parse_as_toml(config: String) -> Config {
         toml::from_str(config.as_str()).unwrap_or_else(|_| SafeConfig {
             powersave_under: None,
             overheat_threshold: None,
+            high_cpu_threshold: None,
             active_rules: None,
         });
 

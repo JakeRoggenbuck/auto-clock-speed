@@ -10,16 +10,18 @@ use super::cpu::{Speed, CPU};
 use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
-use super::power::{has_battery, read_battery_charge, read_lid_state, read_power_source, LidState};
+use super::power::{
+    get_battery_status, has_battery, read_battery_charge, read_lid_state, read_power_source,
+    LidState,
+};
 use super::settings::{GraphType, Settings};
 use super::system::{
     check_available_governors, check_cpu_freq, check_cpu_temperature, check_cpu_usage,
-    check_turbo_enabled, get_highest_temp, list_cpus, parse_proc_file, read_proc_stat_file,
-    ProcStat,
+    get_highest_temp, list_cpus, parse_proc_file, read_proc_stat_file, ProcStat,
 };
 use super::terminal::terminal_width;
 use super::Error;
-use crate::display::print_turbo_animation;
+use crate::display::print_turbo_status;
 use crate::warn_user;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -32,7 +34,7 @@ pub enum State {
     Unknown,
 }
 
-// Return governor string based on current state
+/// Return governor string based on current state
 fn get_governor(current_state: &State) -> &'static str {
     match current_state {
         State::Normal => "powersave",
@@ -106,60 +108,12 @@ fn make_gov_schedutil(cpu: &mut CPU) -> Result<(), Error> {
     Ok(())
 }
 
-// TODO Figure out how to make generic governor work
-//fn make_gov_generic(cpu: &mut CPU) -> Result<(), Error> {
-//    cpu.set_gov(generic_gov.to_string())?;
-//    Ok(())
-//}
-
-fn get_battery_status(charging: bool) -> String {
-    if has_battery() {
-        match read_battery_charge() {
-            Ok(bat) => {
-                format!(
-                    "Battery: {}",
-                    if charging {
-                        format!("{}%", bat).green()
-                    } else {
-                        format!("{}%", bat).red()
-                    },
-                )
-            }
-            Err(e) => format!("Battery charge could not be read\n{:?}", e),
-        }
-    } else {
-        format!("Battery: {}", "N/A".bold())
-    }
-}
-
-fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize, delay: u64) {
-    let mut turbo_y_pos: usize = 7;
-    let title_width = 94;
-
-    if term_width > title_width {
-        turbo_y_pos = 6
-    }
-
-    match check_turbo_enabled() {
-        Ok(turbo) => {
-            let enabled_message = if turbo { "yes" } else { "no" };
-
-            println!("{} {}", "  Turbo:", enabled_message.bold(),);
-
-            if !no_animation {
-                print_turbo_animation(cores, turbo_y_pos, delay);
-            }
-        }
-        Err(e) => eprintln!("Could not check turbo\n{:?}", e),
-    }
-}
-
-fn calculate_average_usage(cpus: &Vec<CPU>) -> Result<f32, Error> {
+fn calculate_average_usage(cpus: &Vec<CPU>) -> f32 {
     let mut sum = 0.0;
     for cpu in cpus {
         sum += cpu.cur_usage;
     }
-    Ok((sum / (cpus.len() as f32)) as f32)
+    (sum / (cpus.len() as f32)) as f32
 }
 
 impl Checker for Daemon {
@@ -276,7 +230,7 @@ impl Checker for Daemon {
         self.charging = read_power_source()?;
         self.charge = read_battery_charge()?;
         self.lid_state = read_lid_state()?;
-        self.usage = calculate_average_usage(&self.cpus)? * 100.0;
+        self.usage = calculate_average_usage(&self.cpus) * 100.0;
 
         Ok(())
     }

@@ -1,3 +1,4 @@
+use colored::Colorize;
 use std::any::Any;
 use std::cmp::PartialEq;
 use std::fmt;
@@ -90,6 +91,26 @@ pub fn read_lid_state() -> Result<LidState, Error> {
     };
 
     Ok(state)
+}
+
+pub fn get_battery_status(charging: bool) -> String {
+    if has_battery() {
+        match read_battery_charge() {
+            Ok(bat) => {
+                format!(
+                    "Battery: {}",
+                    if charging {
+                        format!("{}%", bat).green()
+                    } else {
+                        format!("{}%", bat).red()
+                    },
+                )
+            }
+            Err(e) => format!("Battery charge could not be read\n{:?}", e),
+        }
+    } else {
+        format!("Battery: {}", "N/A".bold())
+    }
 }
 
 pub fn read_battery_charge() -> Result<i8, Error> {

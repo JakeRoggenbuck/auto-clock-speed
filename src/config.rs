@@ -1,3 +1,4 @@
+use super::daemon::State;
 use super::warn_user;
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -26,25 +27,27 @@ pub fn default_config() -> Config {
     Config {
         powersave_under: 20,
         overheat_threshold: 80,
-        ignore_power: false,
-        ignore_lid: false,
+        active_rules: vec![
+            State::BatteryLow,
+            State::LidClosed,
+            State::Charging,
+            State::CpuUsageHigh,
+        ],
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug)]
 pub struct Config {
     pub powersave_under: i8,
     pub overheat_threshold: i8,
-    pub ignore_power: bool,
-    pub ignore_lid: bool,
+    pub active_rules: Vec<State>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct SafeConfig {
     pub powersave_under: Option<i8>,
     pub overheat_threshold: Option<i8>,
-    pub ignore_power: Option<bool>,
-    pub ignore_lid: Option<bool>,
+    pub active_rules: Option<Vec<String>>,
 }
 
 trait SafeFillConfig {
@@ -76,12 +79,17 @@ impl SafeFillConfig for SafeConfig {
             base.overheat_threshold = self.overheat_threshold.unwrap();
         }
 
-        if self.ignore_power.is_some() {
-            base.ignore_power = self.ignore_power.unwrap();
-        }
-
-        if self.ignore_lid.is_some() {
-            base.ignore_lid = self.ignore_lid.unwrap();
+        if self.active_rules.is_some() {
+            base.active_rules.clear();
+            for rule in self.active_rules.clone().unwrap() {
+                base.active_rules.push(match rule.as_str() {
+                    "battery_percent_rule" => State::BatteryLow,
+                    "lid_open_rule" => State::LidClosed,
+                    "ac_charging_rule" => State::Charging,
+                    "cpu_usage_rule" => State::CpuUsageHigh,
+                    _ => State::Unknown,
+                });
+            }
         }
 
         return base;
@@ -94,8 +102,8 @@ impl fmt::Display for Config {
         // config iterable. This would also make safe_fill_config a lot easier as well.
         write!(
             f,
-            "powersave_under = {}\noverheat_threshold = {}\nignore_power = {}\nignore_lid = {} ",
-            self.powersave_under, self.overheat_threshold, self.ignore_power, self.ignore_lid,
+            "powersave_under = {}\noverheat_threshold = {}\nacive_rules = {:?}",
+            self.powersave_under, self.overheat_threshold, self.active_rules,
         )
     }
 }
@@ -114,8 +122,7 @@ fn parse_as_toml(config: String) -> Config {
         toml::from_str(config.as_str()).unwrap_or_else(|_| SafeConfig {
             powersave_under: None,
             overheat_threshold: None,
-               ignore_power: None,
-            ignore_lid: None,
+            active_rules: None,
         });
 
     safe_config.safe_fill_config()

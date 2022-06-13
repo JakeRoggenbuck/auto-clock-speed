@@ -12,6 +12,11 @@ If you encounter any issues or bugs, please refer to the [wiki](https://github.c
 - Secondly, try to improve upon AdnanHodzic's already amazing [auto-cpufreq](https://github.com/AdnanHodzic/auto-cpufreq)
 - Add options to display raw output of governors, clockspeed, turbo, battery, etc. for use in scripts or display panels like polybar.
 
+## Want to help? Yay! Welcome!
+- Read our [CONTRIBUTING.md](CONTRIBUTING.md) for some helpful tips
+- Find an issue - ["good first issue"](https://github.com/JakeRoggenbuck/auto-clock-speed/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) recommended
+- Feel free to ask questions!
+
 ## Install Latest Release
 If you have cargo on your machine, skip to step 3
 

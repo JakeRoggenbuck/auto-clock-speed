@@ -2,7 +2,7 @@ use log::debug;
 use std::{thread, time};
 use structopt::StructOpt;
 
-use config::{config_dir_exists, get_config};
+use config::{config_dir_exists, get_config, init_config};
 use daemon::{daemon_init, Checker};
 use display::show_config;
 use error::Error;
@@ -129,6 +129,10 @@ enum ACSCommand {
     #[structopt(name = "showconfig", alias = "conf")]
     ShowConfig {},
 
+    /// Initialize config
+    #[structopt(name = "initconfig")]
+    InitConfig {},
+
     /// Run the daemon, this checks and edit your cpu's speed
     #[structopt(name = "run")]
     Run {
@@ -244,6 +248,7 @@ fn parse_args(config: config::Config) {
         },
 
         ACSCommand::ShowConfig {} => show_config(),
+        ACSCommand::InitConfig {} => init_config(),
         ACSCommand::Interactive {} => interactive(),
 
         // Run command

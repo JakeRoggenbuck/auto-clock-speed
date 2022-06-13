@@ -197,7 +197,7 @@ pub fn get_config() -> Config {
     match open_config() {
         Ok(conf) => conf,
         Err(_) => {
-            warn_user!("Using default config. Create file '/etc/acs/acs.toml' for custom config.");
+            warn_user!("Using default config. Create file '/etc/acs/acs.toml' for custom config or run 'acs initconfig' to setup default config automatically.");
             // Use default config as config
             default_config()
         }

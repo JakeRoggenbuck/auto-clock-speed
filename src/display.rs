@@ -16,6 +16,14 @@ macro_rules! warn_user {
 }
 
 #[macro_export]
+macro_rules! print_error {
+    ($a:expr) => {{
+        use colored::Colorize;
+        println!("{}: {}", "ERROR".bold().red(), $a,);
+    }};
+}
+
+#[macro_export]
 macro_rules! create_issue {
     ($a:expr) => {{
         eprintln!(

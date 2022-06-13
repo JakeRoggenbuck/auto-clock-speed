@@ -1,3 +1,5 @@
+use crate::print_error;
+
 use super::daemon::State;
 use super::warn_user;
 use serde::{Deserialize, Serialize};
@@ -47,11 +49,11 @@ pub fn init_config() {
                 Err(error) => {
                     match error.kind() {
                         ErrorKind::PermissionDenied => {
-                            warn_user!("Could not create config directory '/etc/acs/' Permission denied");
+                            print_error!("Could not create config directory '/etc/acs/'. Permission denied. Try running as root or use sudo.");
                             return;
                         }
                         other_error => {
-                            warn_user!(format!("Failed to create config directory: {}", other_error));
+                            print_error!(format!("Failed to create config directory: {}", other_error));
                             return;
                         }
                     }
@@ -63,11 +65,11 @@ pub fn init_config() {
             Ok(file) => file,
             Err(error) => match error.kind() {
                 ErrorKind::PermissionDenied => {
-                    warn_user!("Looks like you don't have permission to write to /etc/acs/acs.toml");
+                    print_error!("Looks like you don't have permission to write to /etc/acs/acs.toml. Try running this program as root or using sudo.");
                     return;
                 }
                 other_error => {
-                    warn_user!(format!("Failed to create config file: {}", other_error));
+                    print_error!(format!("Failed to create config file: {}", other_error));
                     return;
                 }
             } 
@@ -77,7 +79,7 @@ pub fn init_config() {
         config.write_all(serialized.as_bytes()).unwrap();
         println!("Created config file at '/etc/acs/acs.toml'");
     } else {
-        warn_user!("Config file already exists at '/etc/acs/acs.toml'");
+        warn_user!("Config file already exists at '/etc/acs/acs.toml'. No changes made.");
         return;
     }
 }

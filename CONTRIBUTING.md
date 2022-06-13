@@ -2,7 +2,8 @@
 
 ## Bug Reports & Feature Requests
 - Bug reports and feature requests are greatly appreciated and can be done in form of an [issue](https://github.com/JakeRoggenbuck/auto-clock-speed/issues)
-- The most helpful reports generally follow the bug report template. One tip, is to run acs with the `-c` to show exactly what the latest commit the executable is running with. 
+- The most helpful reports generally follow the bug report template. One tip, is to run acs with the `-c` to show exactly what the latest commit the executable is running with
+- Bugs should always get moved to the soonest release
 
 ## Develop
 If you would like to help complete a task, comment in the issue and we may assign it to you!

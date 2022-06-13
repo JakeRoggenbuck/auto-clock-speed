@@ -1,9 +1,11 @@
 ![Auto Clock Speed Banner Logo](https://user-images.githubusercontent.com/35516367/169680198-99d02746-22f7-433d-a9a1-d8858edef512.png)
 ![Rust](https://img.shields.io/github/workflow/status/jakeroggenbuck/auto-clock-speed/Rust?style=for-the-badge)
+![Crates Version](https://img.shields.io/crates/v/autoclockspeed?style=for-the-badge)
+![Downloads](https://img.shields.io/crates/d/autoclockspeed?style=for-the-badge)
 
 A utility to check stats about your CPU, and auto regulate clock speeds to help with either performance or battery life.
 This proram is designed for Linux and Intel laptops, although it should theoretically work on AMD systems and sometimes desktops as well.
-If you encounter any issues or bugs, please refer to the [wiki](https://github.com/JakeRoggenbuck/auto-clock-speed/wiki) to see if there is a solution
+If you encounter any issues or bugs, please refer to the [wiki](https://github.com/JakeRoggenbuck/auto-clock-speed/wiki) to see if there is a solution.
 
 ![image](https://user-images.githubusercontent.com/35516367/151893537-1ed4241d-9e3c-4e02-a620-568820ce13d0.png)
 
@@ -80,7 +82,7 @@ ExecStart=/home/your-user-here/.cargo/bin/acs run --no-animation --quiet
 WantedBy=multi-user.target
 ```
 
-# Config
+## Config
 ### Using default config
 ```sh
 WARN: Using default config. Create file /etc/acs/acs.toml for custom config.
@@ -166,7 +168,7 @@ SUBCOMMANDS:
     showconfig     Show the current config in use
 ```
 
-# More Images
+## More Images
 
 ![image](https://user-images.githubusercontent.com/35516367/154004837-16a1a30d-dab4-42b8-80bc-ef86de1c6177.png)
 

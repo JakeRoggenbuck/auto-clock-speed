@@ -75,6 +75,10 @@ pub fn init_config() {
         let default_config = default_config();
         let serialized = toml::to_string(&default_config).unwrap();
         config.write_all(serialized.as_bytes()).unwrap();
+        println!("Created config file at '/etc/acs/acs.toml'");
+    } else {
+        warn_user!("Config file already exists at '/etc/acs/acs.toml'");
+        return;
     }
 }
 

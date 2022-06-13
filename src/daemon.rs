@@ -4,6 +4,7 @@ use std::{thread, time};
 
 use colored::*;
 use nix::unistd::Uid;
+use serde::Serialize;
 
 use super::config::Config;
 use super::cpu::{Speed, CPU};
@@ -24,12 +25,16 @@ use super::Error;
 use crate::display::print_turbo_status;
 use crate::warn_user;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum State {
     Normal,
+    #[serde(rename = "battery_percent_rule")]
     BatteryLow,
+    #[serde(rename = "lid_open_rule")]
     LidClosed,
+    #[serde(rename = "ac_charging_rule")]
     Charging,
+    #[serde(rename = "cpu_usage_rule")]
     CpuUsageHigh,
     Unknown,
 }

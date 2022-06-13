@@ -3,7 +3,7 @@ use super::warn_user;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::fs::File;
-use std::io::Read;
+use std::io::{Read, Write, ErrorKind};
 use std::path::Path;
 
 /// Return the local config path
@@ -36,8 +36,49 @@ pub fn default_config() -> Config {
         ],
     }
 }
+/// Creates a config file at the default location if it doesn't exist
+pub fn init_config() {
+    if !config_file_exists() {
+        // If the config directory doesn't exist, create it
+        if !config_dir_exists() {
+            let acs_dir = std::fs::create_dir_all("/etc/acs/");
+            match acs_dir {
+                Ok(_) => {}
+                Err(error) => {
+                    match error.kind() {
+                        ErrorKind::PermissionDenied => {
+                            warn_user!("Could not create config directory '/etc/acs/' Permission denied");
+                            return;
+                        }
+                        other_error => {
+                            warn_user!(format!("Failed to create config directory: {}", other_error));
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+        let config_file = File::create(&config_path());
+        let mut config = match config_file {
+            Ok(file) => file,
+            Err(error) => match error.kind() {
+                ErrorKind::PermissionDenied => {
+                    warn_user!("Looks like you don't have permission to write to /etc/acs/acs.toml");
+                    return;
+                }
+                other_error => {
+                    warn_user!(format!("Failed to create config file: {}", other_error));
+                    return;
+                }
+            } 
+        };
+        let default_config = default_config();
+        let serialized = toml::to_string(&default_config).unwrap();
+        config.write_all(serialized.as_bytes()).unwrap();
+    }
+}
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Config {
     pub powersave_under: i8,
     pub overheat_threshold: i8,

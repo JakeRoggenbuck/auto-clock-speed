@@ -95,10 +95,11 @@ cp ./acs.toml /etc/acs/acs.toml
 ### This is an example config
 also the default settings if no config is provided
 
-```yaml
+```toml
 # acs.toml
 powersave_under = 20
 overheat_threshold = 80
+active_rules = [ "battery_percent_rule", "lid_open_rule", "ac_charging_rule", "cpu_usage_rule" ]
 ```
 
 ## Turn Off

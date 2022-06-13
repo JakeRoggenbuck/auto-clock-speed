@@ -5,7 +5,7 @@ use super::warn_user;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::fs::File;
-use std::io::{Read, Write, ErrorKind};
+use std::io::{ErrorKind, Read, Write};
 use std::path::Path;
 
 /// Return the local config path
@@ -46,18 +46,19 @@ pub fn init_config() {
             let acs_dir = std::fs::create_dir_all("/etc/acs/");
             match acs_dir {
                 Ok(_) => {}
-                Err(error) => {
-                    match error.kind() {
-                        ErrorKind::PermissionDenied => {
-                            print_error!("Could not create config directory '/etc/acs/'. Permission denied. Try running as root or use sudo.");
-                            return;
-                        }
-                        other_error => {
-                            print_error!(format!("Failed to create config directory: {}", other_error));
-                            return;
-                        }
+                Err(error) => match error.kind() {
+                    ErrorKind::PermissionDenied => {
+                        print_error!("Could not create config directory '/etc/acs/'. Permission denied. Try running as root or use sudo.");
+                        return;
                     }
-                }
+                    other_error => {
+                        print_error!(format!(
+                            "Failed to create config directory: {}",
+                            other_error
+                        ));
+                        return;
+                    }
+                },
             }
         }
         let config_file = File::create(&config_path());
@@ -72,7 +73,7 @@ pub fn init_config() {
                     print_error!(format!("Failed to create config file: {}", other_error));
                     return;
                 }
-            } 
+            },
         };
         let default_config = default_config();
         let serialized = toml::to_string(&default_config).unwrap();

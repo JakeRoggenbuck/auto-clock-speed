@@ -137,12 +137,12 @@ enum ACSCommand {
         quiet: bool,
 
         /// Milliseconds between update
-        #[structopt(short, long, default_value = "1000")]
-        delay: u64,
+        #[structopt(short, long)]
+        delay: Option<u64>,
 
         /// Milliseconds between update
-        #[structopt(short = "b", long = "delay-battery", default_value = "5000")]
-        delay_battery: u64,
+        #[structopt(short = "b", long = "delay-battery")]
+        delay_battery: Option<u64>,
 
         /// No animations, for systemctl updating issue
         #[structopt(short, long)]
@@ -160,13 +160,13 @@ enum ACSCommand {
     /// Monitor each cpu, it's min, max, and current speed, along with the governor
     #[structopt(name = "monitor", alias = "monit")]
     Monitor {
-        /// Milliseconds between update when on AC
-        #[structopt(short, long, default_value = "1000")]
-        delay: u64,
+        /// Milliseconds between update
+        #[structopt(short, long)]
+        delay: Option<u64>,
 
         /// Milliseconds between update
-        #[structopt(short = "b", long = "delay-battery", default_value = "5000")]
-        delay_battery: u64,
+        #[structopt(short = "b", long = "delay-battery")]
+        delay_battery: Option<u64>,
 
         /// No animations, for systemctl updating issue
         #[structopt(short, long)]
@@ -273,15 +273,22 @@ fn parse_args(config: config::Config) {
                 None => {}
             }
 
-            let mut effective_delay_battery = delay_battery;
-            if parsed_graph_type != GraphType::Hidden || delay != 1000 {
-                effective_delay_battery = delay;
+            let mut effective_delay_battery = match delay_battery {
+                Some(s) => s,
+                None => 5000,
+            };
+            let regular_delay = match delay {
+                Some(s) => s,
+                None => 1000,
+            };
+            if parsed_graph_type != GraphType::Hidden || delay.is_some() {
+                effective_delay_battery = delay.unwrap();
             }
 
             let settings = Settings {
                 verbose: !quiet,
                 delay_battery: effective_delay_battery,
-                delay,
+                delay: regular_delay,
                 edit: true,
                 no_animation,
                 graph: parsed_graph_type,
@@ -323,14 +330,21 @@ fn parse_args(config: config::Config) {
                 None => {}
             }
 
-            let mut effective_delay_battery = delay_battery;
-            if parsed_graph_type != GraphType::Hidden || delay != 1000 {
-                effective_delay_battery = delay;
+            let mut effective_delay_battery = match delay_battery {
+                Some(s) => s,
+                None => 5000,
+            };
+            let regular_delay = match delay {
+                Some(s) => s,
+                None => 1000,
+            };
+            if parsed_graph_type != GraphType::Hidden || delay.is_some() {
+                effective_delay_battery = delay.unwrap();
             }
 
             let settings = Settings {
                 verbose: true,
-                delay,
+                delay: regular_delay,
                 delay_battery: effective_delay_battery,
                 edit: false,
                 no_animation,

@@ -550,8 +550,25 @@ mod tests {
     use super::*;
     use crate::config::default_config;
 
-    #[test]
-    fn daemon_init_force_to_monit_integration_test() {
+    fn daemon_init_force_to_monit_integration_root_test() {
+        let settings = Settings {
+            verbose: true,
+            delay: 1,
+            delay_battery: 2,
+            edit: true,
+            no_animation: false,
+            graph: GraphType::Hidden,
+            commit: false,
+            testing: true,
+        };
+
+        let config = default_config();
+
+        let daemon = daemon_init(settings, config).unwrap();
+        assert_eq!(daemon.settings.edit, true);
+    }
+
+    fn daemon_init_force_to_monit_integration_normal_test() {
         let settings = Settings {
             verbose: true,
             delay: 1,
@@ -570,7 +587,39 @@ mod tests {
     }
 
     #[test]
-    fn preprint_render_test_edit_integration_test() {
+    fn daemon_init_force_to_monit_integration_base_test() {
+        if Uid::effective().is_root() {
+            daemon_init_force_to_monit_integration_root_test();
+        } else {
+            daemon_init_force_to_monit_integration_normal_test();
+        }
+    }
+
+    fn preprint_render_test_edit_integration_root_test() {
+        let settings = Settings {
+            verbose: true,
+            delay: 1,
+            delay_battery: 2,
+            edit: true,
+            no_animation: false,
+            graph: GraphType::Hidden,
+            commit: false,
+            testing: true,
+        };
+
+        let config = default_config();
+
+        let mut daemon = daemon_init(settings, config).unwrap();
+        let preprint = Checker::preprint_render(&mut daemon);
+        assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[31medit\u{1b}[0m mode with a delay of 1ms normally and 2ms when on battery"));
+        assert!(preprint.contains("Name  Max\tMin\tFreq\tTemp\tUsage\tGovernor\n"));
+        assert!(preprint.contains("Hz"));
+        assert!(preprint.contains("cpu"));
+        assert!(preprint.contains("C"));
+        assert!(preprint.contains("Battery: "));
+    }
+
+    fn preprint_render_test_edit_integration_normal_test() {
         let settings = Settings {
             verbose: true,
             delay: 1,
@@ -592,6 +641,15 @@ mod tests {
         assert!(preprint.contains("cpu"));
         assert!(preprint.contains("C"));
         assert!(preprint.contains("Battery: "));
+    }
+
+    #[test]
+    fn preprint_render_test_edit_integration_base_test() {
+        if Uid::effective().is_root() {
+            preprint_render_test_edit_integration_root_test();
+        } else {
+            preprint_render_test_edit_integration_normal_test();
+        }
     }
 
     #[test]

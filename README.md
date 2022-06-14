@@ -3,6 +3,8 @@
 ![Crates Version](https://img.shields.io/crates/v/autoclockspeed?style=for-the-badge)
 ![Downloads](https://img.shields.io/crates/d/autoclockspeed?style=for-the-badge)
 
+#### [ACS Upstream](https://github.com/jakeroggenbuck/auto-clock-speed) - [autoclockspeed.org](https://autoclockspeed.org) - [Our crates.io](https://crates.io/crates/autoclockspeed) - [ACS Github Org](https://github.com/autoclockspeed)
+
 A utility to check stats about your CPU, and auto regulate clock speeds to help with either performance or battery life.
 This proram is designed for Linux and Intel laptops, although it should theoretically work on AMD systems and sometimes desktops as well.
 If you encounter any issues or bugs, please refer to the [wiki](https://github.com/JakeRoggenbuck/auto-clock-speed/wiki) to see if there is a solution.

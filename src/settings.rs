@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(PartialEq, Clone)]
 pub enum GraphType {
     Hidden,
@@ -5,6 +7,18 @@ pub enum GraphType {
     Usage,
     Temperature,
     Unknown,
+}
+
+impl fmt::Display for GraphType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            GraphType::Hidden => write!(f, "hidden"),
+            GraphType::Frequency => write!(f, "frequency"),
+            GraphType::Usage => write!(f, "usage"),
+            GraphType::Temperature => write!(f, "temperature"),
+            GraphType::Unknown => write!(f, "unknown"),
+        }
+    }
 }
 
 pub fn get_graph_type(graph_type: &str) -> GraphType {

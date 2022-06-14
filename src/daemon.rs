@@ -547,6 +547,8 @@ mod tests {
         // You cannot skip a test at runtime see https://internals.rust-lang.org/t/pre-rfc-skippable-tests/14611/27
         // Unfortunately the user will not be notified if the test is skipped either.
         // This is a limitation of the current rust test framework
+        // Take a look at my dev-log for more information on the rationale of this change
+        // https://github.com/Camerooooon/dev-log/blob/main/logs/2022-06-13.md
         if Uid::effective().is_root() {
             warn_user!("This test should not be run as root but will pass anyway");
             return;
@@ -575,6 +577,8 @@ mod tests {
         // You cannot skip a test at runtime see https://internals.rust-lang.org/t/pre-rfc-skippable-tests/14611/27
         // Unfortunately the user will not be notified if the test is skipped either.
         // This is a limitation of the current rust test framework
+        // Take a look at my dev-log for more information on the rationale of this change
+        // https://github.com/Camerooooon/dev-log/blob/main/logs/2022-06-13.md
         if Uid::effective().is_root() {
             warn_user!("This test should not be run as root but will pass anyway");
             return;

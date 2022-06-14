@@ -327,7 +327,6 @@ impl Checker for Daemon {
     }
 
     fn postprint_render(&mut self) -> String {
-
         // Display the current graph type
         let graph_type = if self.settings.graph != GraphType::Hidden {
             format!("Graphing: {}", self.settings.graph)
@@ -363,7 +362,10 @@ impl Checker for Daemon {
             String::from("")
         };
 
-        format!("{}\n{}\n\n{}\n\n{}\n{}", graph_type, graph, stop_message, logs, commit)
+        format!(
+            "{}\n{}\n\n{}\n\n{}\n{}",
+            graph_type, graph, stop_message, logs, commit
+        )
     }
 
     /// Output the values from each cpu

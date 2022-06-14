@@ -286,8 +286,8 @@ fn parse_args(config: config::Config) {
                 Some(s) => s,
                 None => 1000,
             };
-            if parsed_graph_type != GraphType::Hidden || delay.is_some() {
-                effective_delay_battery = delay.unwrap();
+            if parsed_graph_type != GraphType::Hidden {
+                effective_delay_battery = regular_delay;
             }
 
             let settings = Settings {
@@ -343,8 +343,8 @@ fn parse_args(config: config::Config) {
                 Some(s) => s,
                 None => 1000,
             };
-            if parsed_graph_type != GraphType::Hidden || delay.is_some() {
-                effective_delay_battery = delay.unwrap();
+            if parsed_graph_type != GraphType::Hidden {
+                effective_delay_battery = regular_delay;
             }
 
             let settings = Settings {

@@ -410,7 +410,6 @@ microcode	: 0xea
         assert_eq!(type_of(list_cpus()), type_of(Vec::<CPU>::new()));
 
         for x in list_cpus() {
-            println!("{:?}", x);
             assert!(x.name.len() > 0);
             assert!(x.max_freq > 0);
             assert!(x.min_freq > 0);

@@ -543,10 +543,6 @@ mod tests {
     #[test]
     fn daemon_init_force_to_monit_integration_test() {
         // THERE IS NO BETTER WAY TO DO THIS
-        // Trust me it's a rabbit hole
-        // You cannot skip a test at runtime see https://internals.rust-lang.org/t/pre-rfc-skippable-tests/14611/27
-        // Unfortunately the user will not be notified if the test is skipped either.
-        // This is a limitation of the current rust test framework
         // Take a look at my dev-log for more information on the rationale of this change
         // https://github.com/Camerooooon/dev-log/blob/main/logs/2022-06-13.md
         if Uid::effective().is_root() {
@@ -573,10 +569,6 @@ mod tests {
     #[test]
     fn preprint_render_test_edit_integration_test() {
         // THERE IS NO BETTER WAY TO DO THIS
-        // Trust me it's a rabbit hole
-        // You cannot skip a test at runtime see https://internals.rust-lang.org/t/pre-rfc-skippable-tests/14611/27
-        // Unfortunately the user will not be notified if the test is skipped either.
-        // This is a limitation of the current rust test framework
         // Take a look at my dev-log for more information on the rationale of this change
         // https://github.com/Camerooooon/dev-log/blob/main/logs/2022-06-13.md
         if Uid::effective().is_root() {

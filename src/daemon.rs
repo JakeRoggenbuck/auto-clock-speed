@@ -529,8 +529,6 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
 
     // Make a cpu struct for each cpu listed
     for mut cpu in list_cpus() {
-        // Fill that value that were zero with real values
-        cpu.init_cpu()?;
         daemon.cpus.push(cpu);
     }
 

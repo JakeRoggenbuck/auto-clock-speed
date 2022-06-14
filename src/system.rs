@@ -264,6 +264,8 @@ pub fn list_cpus() -> Vec<CPU> {
             gov: "Unknown".to_string(),
         };
 
+        new.init_cpu().unwrap();
+
         new.update().unwrap();
 
         to_return.push(new)

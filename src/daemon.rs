@@ -542,13 +542,6 @@ mod tests {
 
     #[test]
     fn daemon_init_force_to_monit_integration_test() {
-        // THERE IS NO BETTER WAY TO DO THIS
-        // Take a look at my dev-log for more information on the rationale of this change
-        // https://github.com/Camerooooon/dev-log/blob/main/logs/2022-06-13.md
-        if Uid::effective().is_root() {
-            warn_user!("This test should not be run as root but will pass anyway");
-            return;
-        }
         let settings = Settings {
             verbose: true,
             delay: 1,
@@ -563,19 +556,18 @@ mod tests {
         let config = default_config();
 
         let daemon = daemon_init(settings, config).unwrap();
-        assert_eq!(daemon.settings.edit, false);
+
+        if Uid::effective().is_root() {
+            assert_eq!(daemon.settings.edit, true);
+        } else {
+            assert_eq!(daemon.settings.edit, false);
+        }
     }
 
     #[test]
     fn preprint_render_test_edit_integration_test() {
-        // THERE IS NO BETTER WAY TO DO THIS
-        // Take a look at my dev-log for more information on the rationale of this change
+        // It should be possible to skip tests ):<
         // https://github.com/Camerooooon/dev-log/blob/main/logs/2022-06-13.md
-        if Uid::effective().is_root() {
-            warn_user!("This test should not be run as root but will pass anyway");
-            return;
-        }
-
         let settings = Settings {
             verbose: true,
             delay: 1,
@@ -591,7 +583,11 @@ mod tests {
 
         let mut daemon = daemon_init(settings, config).unwrap();
         let preprint = Checker::preprint_render(&mut daemon);
-        assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[33mmonitor\u{1b}[0m mode with a delay of 1ms normally and 2ms when on battery"));
+        if Uid::effective().is_root() {
+            assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[31medit\u{1b}[0m mode with a delay of 1ms normally and 2ms when on battery"));
+        } else {
+            assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[33mmonitor\u{1b}[0m mode with a delay of 1ms normally and 2ms when on battery"));
+        }
         assert!(preprint.contains("Name  Max\tMin\tFreq\tTemp\tUsage\tGovernor\n"));
         assert!(preprint.contains("Hz"));
         assert!(preprint.contains("cpu"));

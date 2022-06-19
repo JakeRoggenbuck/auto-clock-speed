@@ -175,10 +175,6 @@ SUBCOMMANDS:
     showconfig     Show the current config in use
 ```
 
-## More Images
-
-![image](https://user-images.githubusercontent.com/35516367/154004837-16a1a30d-dab4-42b8-80bc-ef86de1c6177.png)
-
 <!--       _
        .__(.)< (qwak)
         \___)   

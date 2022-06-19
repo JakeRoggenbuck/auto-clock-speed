@@ -13,6 +13,14 @@
 //             %%%%%%%%%%%%%@%%%%%%%%%%%%
 //               %%%%%%%%%%%@%%%%%%%%%%%
 //                    %%%%%%@%%%%%%
+//
+//
+// Automatic CPU frequency scaler and power saver
+//
+// https://github.com/jakeroggenbuck/auto-clock-speed
+// https://autoclockspeed.org
+// https://crates.io/crates/autoclockspeed
+// https://github.com/autoclockspeed
 
 use log::debug;
 use std::{thread, time};

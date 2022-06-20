@@ -18,7 +18,8 @@ use super::power::{
 use super::settings::{GraphType, Settings};
 use super::system::{
     check_available_governors, check_cpu_freq, check_cpu_temperature, check_cpu_usage,
-    get_highest_temp, list_cpus, parse_proc_file, read_proc_stat_file, ProcStat, get_battery_condition,
+    get_battery_condition, get_highest_temp, list_cpus, parse_proc_file, read_proc_stat_file,
+    ProcStat,
 };
 use super::terminal::terminal_width;
 use super::Error;
@@ -325,13 +326,16 @@ impl Checker for Daemon {
         let battery_status = get_battery_status(self.charging);
 
         let mut battery_condition: String = "N/A".to_string();
-        if let Ok(check_bat_cond) = check_bat_cond(){
+        if let Ok(check_bat_cond) = check_bat_cond() {
             battery_condition = get_battery_condition(check_bat_cond).unwrap().to_string();
         } else {
             println!("Failed to get battery condition");
         }
 
-        format!("{}{}{}\n{}{}\n", message, title, cpus, battery_status, battery_condition)
+        format!(
+            "{}{}{}\n{}{}\n",
+            message, title, cpus, battery_status, battery_condition
+        )
     }
 
     fn postprint_render(&mut self) -> String {

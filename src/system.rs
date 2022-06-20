@@ -185,9 +185,11 @@ fn read_bat_energy_full(design: bool) -> Result<i32, Error> {
     let mut capacity_readings: String = String::new();
     let bat_energy_full_path: &str = "/sys/class/power_supply/BAT0/";
     if design == true {
-        File::open(bat_energy_full_path.to_string() + "energy_full_design")?.read_to_string(&mut capacity_readings)?;
+        File::open(bat_energy_full_path.to_string() + "energy_full_design")?
+            .read_to_string(&mut capacity_readings)?;
     } else {
-        File::open(bat_energy_full_path.to_string() + "energy_full")?.read_to_string(&mut capacity_readings)?;
+        File::open(bat_energy_full_path.to_string() + "energy_full")?
+            .read_to_string(&mut capacity_readings)?;
     }
     Ok(capacity_readings.parse::<i32>().unwrap())
 }

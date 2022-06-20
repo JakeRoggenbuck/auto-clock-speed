@@ -1,5 +1,6 @@
 use super::config::Config;
 use super::daemon::{daemon_init, Checker};
+use super::thermal::read_thermal_zones;
 use super::display::{
     print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpu_temp, print_cpus,
     print_freq, print_power, print_turbo,
@@ -17,6 +18,7 @@ pub trait Getter {
     fn freq(&self, raw: bool);
     fn power(&self, raw: bool);
     fn usage(&self, raw: bool);
+    fn thermal(&self, raw: bool);
     fn turbo(&self, raw: bool);
     fn available_govs(&self, raw: bool);
     fn cpus(&self, raw: bool);
@@ -70,6 +72,10 @@ impl Getter for Get {
         } else {
             println!("CPU is at {}%", percent)
         }
+    }
+
+    fn thermal(&self, raw: bool) {
+        read_thermal_zones();
     }
 
     fn turbo(&self, raw: bool) {

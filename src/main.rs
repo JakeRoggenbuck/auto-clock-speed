@@ -24,6 +24,7 @@ use display::show_config;
 use error::Error;
 use interactive::interactive;
 use interface::{Get, Getter, Interface, Set, Setter};
+use security::security_update_check;
 use settings::{get_graph_type, GraphType, Settings};
 
 pub mod config;
@@ -36,6 +37,7 @@ pub mod interactive;
 pub mod interface;
 pub mod logger;
 pub mod power;
+pub mod security;
 pub mod settings;
 pub mod system;
 pub mod terminal;
@@ -401,6 +403,10 @@ fn main() {
     env_logger::init();
 
     let config: config::Config = get_config();
+
+    if config.security_update_warnings {
+        security_update_check();
+    }
 
     parse_args(config);
 }

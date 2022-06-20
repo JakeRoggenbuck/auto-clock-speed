@@ -3,7 +3,7 @@ use std::io::{Read, Write};
 use std::path::Path;
 
 use super::display::{print_cpu, render_cpu};
-use super::system::{calculate_cpu_percent, ProcStat, read_int, read_str};
+use super::system::{calculate_cpu_percent, read_int, read_str, ProcStat};
 use super::Error;
 
 #[cfg(test)]
@@ -131,15 +131,27 @@ impl Speed for CPU {
     }
 
     fn get_max(&mut self) {
-        self.max_freq = read_int(&format!("/sys/devices/system/cpu/{}/{}", self.name, "cpufreq/scaling_max_freq")).unwrap_or(0);
+        self.max_freq = read_int(&format!(
+            "/sys/devices/system/cpu/{}/{}",
+            self.name, "cpufreq/scaling_max_freq"
+        ))
+        .unwrap_or(0);
     }
 
     fn get_min(&mut self) {
-        self.min_freq = read_int(&format!("/sys/devices/system/cpu/{}/{}", self.name, "cpufreq/scaling_min_freq")).unwrap_or(0);
+        self.min_freq = read_int(&format!(
+            "/sys/devices/system/cpu/{}/{}",
+            self.name, "cpufreq/scaling_min_freq"
+        ))
+        .unwrap_or(0);
     }
 
     fn get_cur(&mut self) {
-        self.cur_freq = read_int(&format!("/sys/devices/system/cpu/{}/{}", self.name, "cpufreq/scaling_cur_freq")).unwrap_or(0);
+        self.cur_freq = read_int(&format!(
+            "/sys/devices/system/cpu/{}/{}",
+            self.name, "cpufreq/scaling_cur_freq"
+        ))
+        .unwrap_or(0);
     }
 
     fn get_temp(&mut self) -> Result<(), Error> {
@@ -148,7 +160,11 @@ impl Speed for CPU {
     }
 
     fn get_gov(&mut self) -> Result<(), Error> {
-        self.gov = read_str(&format!("/sys/devices/system/cpu/{}/{}", self.name, "cpufreq/scaling_governor")).unwrap_or("unknown".to_string());
+        self.gov = read_str(&format!(
+            "/sys/devices/system/cpu/{}/{}",
+            self.name, "cpufreq/scaling_governor"
+        ))
+        .unwrap_or("unknown".to_string());
         Ok(())
     }
 

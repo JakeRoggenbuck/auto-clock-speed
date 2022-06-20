@@ -1,5 +1,5 @@
-use std::fs::read_dir;
 use super::Error;
+use std::fs::read_dir;
 
 const THERMAL_ZONE_DIR: &str = "/sys/class/thermal/";
 
@@ -33,8 +33,6 @@ pub fn read_thermal_zones() -> Vec<ThermalZone> {
         if !path_string.starts_with(&[THERMAL_ZONE_DIR, "thermal_zone"].concat()) {
             continue;
         }
-
-        
 
         println!("{}", path_string);
     }

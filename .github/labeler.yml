@@ -1,0 +1,3 @@
+docs:
+  - any: ['README.md', 'CONTRIBUTING.md']
+    all: ['!src/*']

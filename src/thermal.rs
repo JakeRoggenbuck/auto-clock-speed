@@ -1,4 +1,4 @@
-use std::fs::{read_dir};
+use std::fs::read_dir;
 
 const THERMAL_ZONE_DIR: &str = "/sys/class/thermal/";
 
@@ -20,7 +20,7 @@ impl Default for ThermalZone {
     }
 }
 
-pub fn read_thermal_zones() -> Vec::<ThermalZone> {
+pub fn read_thermal_zones() -> Vec<ThermalZone> {
     let mut zones = Vec::<ThermalZone>::new();
 
     for a in read_dir(THERMAL_ZONE_DIR).expect("Could not read thermal directory") {
@@ -29,7 +29,6 @@ pub fn read_thermal_zones() -> Vec::<ThermalZone> {
             continue;
         }
         println!("{}", path_string);
-
     }
     zones
 }

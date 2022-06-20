@@ -1,6 +1,5 @@
 use super::config::Config;
 use super::daemon::{daemon_init, Checker};
-use super::thermal::read_thermal_zones;
 use super::display::{
     print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpu_temp, print_cpus,
     print_freq, print_power, print_turbo,
@@ -11,6 +10,7 @@ use super::system::{
     check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
     get_cpu_percent, list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus,
 };
+use super::thermal::read_thermal_zones;
 
 pub struct Get {}
 

@@ -57,7 +57,7 @@ enum GetType {
         #[structopt(short, long)]
         raw: bool,
     },
-    
+
     /// Get the thermal zones
     #[structopt(name = "thermal")]
     Thermal {
@@ -262,7 +262,7 @@ fn parse_args(config: config::Config) {
             GetType::Usage { raw } => {
                 int.get.usage(raw);
             }
-            
+
             GetType::Thermal { raw } => {
                 int.get.thermal(raw);
             }

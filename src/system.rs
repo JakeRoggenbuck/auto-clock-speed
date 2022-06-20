@@ -3,6 +3,8 @@ use std::fs::{read_dir, File};
 use std::io::Read;
 use std::string::String;
 use std::{thread, time};
+use rust_decimal::RoundingStrategy;
+use rust_decimal::Decimal;
 
 use crate::cpu::Speed;
 use crate::debug;
@@ -202,6 +204,16 @@ pub fn check_turbo_enabled() -> Result<bool, Error> {
 pub fn check_bat_cond() -> Result<f32, Error> {
     let bat_cond_calc: f32 = (read_bat_energy_full(false)? / read_bat_energy_full(true)?) as f32;
     Ok(bat_cond_calc)
+}
+
+pub fn get_battery_condition() -> Result<f32, Error> {
+    let mut bat_cond = 0.0;
+    if check_bat_cond().unwrap() * 100.0 >= 100.0 {
+        bat_cond = 100.00;
+    } else {
+        bat_cond = check_bat_cond().unwrap().round_dp_with_strategy(2, RoundingStrategy::MidpointAwayFromZero);
+    }
+    Ok(bat_cond)
 }
 
 fn read_govs_file() -> Result<String, Error> {

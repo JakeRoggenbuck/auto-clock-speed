@@ -112,6 +112,13 @@ enum GetType {
         #[structopt(short, long)]
         raw: bool,
     },
+
+    /// The battery condition in percentage
+    #[structopt(name = "bat_cond")]
+    BatCond {
+        #[structopt(short, long)]
+        raw: bool,
+    },
 }
 
 #[derive(StructOpt)]
@@ -274,6 +281,9 @@ fn parse_args(config: config::Config) {
 
             GetType::Govs { raw } => {
                 int.get.govs(raw);
+            }
+            GetType::BatCond { raw } => {
+                int.get.bat_cond(raw);
             }
         },
 

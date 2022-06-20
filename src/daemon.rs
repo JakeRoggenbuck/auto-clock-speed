@@ -18,11 +18,11 @@ use super::power::{
 use super::settings::{GraphType, Settings};
 use super::system::{
     check_available_governors, check_cpu_freq, check_cpu_temperature, check_cpu_usage,
-    get_highest_temp, list_cpus, parse_proc_file, read_proc_stat_file, ProcStat,
+    get_highest_temp, list_cpus, parse_proc_file, read_proc_stat_file, ProcStat, get_battery_condition,
 };
 use super::terminal::terminal_width;
 use super::Error;
-use crate::display::print_turbo_status;
+use crate::display::{print_bat_cond, print_turbo_status};
 use crate::warn_user;
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -323,7 +323,9 @@ impl Checker for Daemon {
         // Prints batter percent or N/A if not
         let battery_status = get_battery_status(self.charging);
 
-        format!("{}{}{}\n{}\n", message, title, cpus, battery_status)
+        let battery_condition = get_battery_condition().unwrap();
+
+        format!("{}{}{}\n{}{}\n", message, title, cpus, battery_status, battery_condition)
     }
 
     fn postprint_render(&mut self) -> String {

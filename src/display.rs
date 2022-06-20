@@ -58,7 +58,7 @@ pub fn print_bat_cond(c:f32, raw : bool) {
     if raw {
         println!("{}", c);
     } else {
-        println!("{:.2}%", c / 100.0)
+        println!("{:.2}%", c * 100.0)
     }
 }
 

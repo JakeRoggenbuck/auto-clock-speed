@@ -54,6 +54,14 @@ pub fn print_power(lid: LidState, bat: i8, plugged: bool, raw: bool) {
     }
 }
 
+pub fn print_bat_cond(c:f32, raw : bool) {
+    if raw {
+        println!("{}", c);
+    } else {
+        println!("{:.2}%", c / 100.0)
+    }
+}
+
 pub fn print_turbo(t: bool, raw: bool) {
     if raw {
         println!("{}", t);

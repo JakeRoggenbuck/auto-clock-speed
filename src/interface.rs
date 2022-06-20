@@ -2,13 +2,13 @@ use super::config::Config;
 use super::daemon::{daemon_init, Checker};
 use super::display::{
     print_available_governors, print_cpu_governors, print_cpu_speeds, print_cpu_temp, print_cpus,
-    print_freq, print_power, print_turbo,
+    print_freq, print_power, print_turbo, print_bat_cond,
 };
 use super::power::{read_battery_charge, read_lid_state, read_power_source};
 use super::settings::Settings;
 use super::system::{
     check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
-    get_cpu_percent, list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus,
+    get_cpu_percent, list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus, check_bat_cond,
 };
 
 pub struct Get {}
@@ -23,6 +23,7 @@ pub trait Getter {
     fn speeds(&self, raw: bool);
     fn temp(&self, raw: bool);
     fn govs(&self, raw: bool);
+    fn bat_cond(&self, raw:bool);
 }
 
 impl Getter for Get {
@@ -107,6 +108,13 @@ impl Getter for Get {
     fn govs(&self, raw: bool) {
         let govs = list_cpu_governors();
         print_cpu_governors(govs, raw);
+    }
+
+    fn bat_cond(&self, raw: bool) {
+        match check_bat_cond() {
+            Ok(bat_cond) => print_bat_cond(bat_cond, raw),
+            Err(_) => println!("Failed to get battery condition"),
+        }
     }
 }
 

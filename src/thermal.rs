@@ -1,4 +1,5 @@
 use std::fs::read_dir;
+use super::Error;
 
 const THERMAL_ZONE_DIR: &str = "/sys/class/thermal/";
 
@@ -7,6 +8,10 @@ pub struct ThermalZone {
     pub location: String,
     pub temp: i32,
     pub enabled: bool,
+}
+
+pub trait Thermal {
+    fn update(&mut self) -> Result<(), Error>;
 }
 
 impl Default for ThermalZone {
@@ -28,6 +33,9 @@ pub fn read_thermal_zones() -> Vec<ThermalZone> {
         if !path_string.starts_with(&[THERMAL_ZONE_DIR, "thermal_zone"].concat()) {
             continue;
         }
+
+        
+
         println!("{}", path_string);
     }
     zones

@@ -290,6 +290,27 @@ pub fn list_cpu_governors() -> Vec<String> {
     list_cpus().into_iter().map(|x| x.gov).collect()
 }
 
+pub fn read_int(path: &str) -> Result<i32, Error> {
+    let mut value: String = String::new();
+
+    File::open(path)?.read_to_string(&mut value)?;
+
+    // Remove trailing newline
+    value.pop();
+    Ok(value.parse::<i32>().unwrap_or_else(|e| panic!("Could not parse {}\n{}", path, e)))
+}
+
+pub fn read_str(path: &str) -> Result<String, Error> {
+    let mut value: String = String::new();
+
+    File::open(path)?.read_to_string(&mut value)?;
+
+    // Remove trailing newline
+    value.pop();
+    Ok(value)
+}
+
+
 #[cfg(test)]
 mod tests {
     use std::any::type_name;

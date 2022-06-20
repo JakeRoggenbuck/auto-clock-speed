@@ -3,15 +3,13 @@ use std::io::{Read, Write};
 use std::path::Path;
 
 use super::display::{print_cpu, render_cpu};
-use super::system::{calculate_cpu_percent, ProcStat};
+use super::system::{calculate_cpu_percent, ProcStat, read_int, read_str};
 use super::Error;
 
 #[cfg(test)]
 use mockall::{automock, predicate::*};
 #[cfg_attr(test, automock)]
 pub trait Speed {
-    fn read_int(&mut self, sub_path: &str) -> i32;
-    fn read_str(&mut self, sub_path: &str) -> String;
     fn read_temp(&mut self, sub_path: &str) -> Result<i32, Error>;
     fn write_value(&mut self, value: WritableValue) -> Result<(), Error>;
     fn update(&mut self) -> Result<(), Error>;
@@ -49,36 +47,6 @@ pub enum WritableValue {
 }
 
 impl Speed for CPU {
-    /// A generic function to take a path and a single cpu (single core) and get an i32
-    fn read_int(&mut self, sub_path: &str) -> i32 {
-        let mut info: String = String::new();
-        let cpu_info_path: String = format!("/sys/devices/system/cpu/{}/{}", self.name, sub_path);
-
-        File::open(cpu_info_path)
-            .unwrap()
-            .read_to_string(&mut info)
-            .unwrap();
-
-        // Remove newline
-        info.pop();
-        info.parse::<i32>()
-            .unwrap_or_else(|e| panic!("Could not parse {}\n{}", sub_path, e))
-    }
-
-    fn read_str(&mut self, sub_path: &str) -> String {
-        let mut info: String = String::new();
-        let cpu_info_path: String = format!("/sys/devices/system/cpu/{}/{}", self.name, sub_path);
-
-        File::open(cpu_info_path)
-            .unwrap()
-            .read_to_string(&mut info)
-            .unwrap();
-
-        // Remove newline
-        info.pop();
-        info
-    }
-
     fn read_temp(&mut self, sub_path: &str) -> Result<i32, Error> {
         let mut info: String = String::new();
         let cpu_info_path: String = format!(
@@ -163,15 +131,15 @@ impl Speed for CPU {
     }
 
     fn get_max(&mut self) {
-        self.max_freq = self.read_int("cpufreq/scaling_max_freq");
+        self.max_freq = read_int(&format!("/sys/devices/system/cpu/{}/{}", self.name, "cpufreq/scaling_max_freq")).unwrap_or(0);
     }
 
     fn get_min(&mut self) {
-        self.min_freq = self.read_int("cpufreq/scaling_min_freq");
+        self.min_freq = read_int(&format!("/sys/devices/system/cpu/{}/{}", self.name, "cpufreq/scaling_min_freq")).unwrap_or(0);
     }
 
     fn get_cur(&mut self) {
-        self.cur_freq = self.read_int("cpufreq/scaling_cur_freq");
+        self.cur_freq = read_int(&format!("/sys/devices/system/cpu/{}/{}", self.name, "cpufreq/scaling_cur_freq")).unwrap_or(0);
     }
 
     fn get_temp(&mut self) -> Result<(), Error> {
@@ -180,7 +148,7 @@ impl Speed for CPU {
     }
 
     fn get_gov(&mut self) -> Result<(), Error> {
-        self.gov = self.read_str("cpufreq/scaling_governor");
+        self.gov = read_str(&format!("/sys/devices/system/cpu/{}/{}", self.name, "cpufreq/scaling_governor")).unwrap_or("unknown".to_string());
         Ok(())
     }
 

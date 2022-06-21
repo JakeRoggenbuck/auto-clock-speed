@@ -47,12 +47,20 @@ pub mod power;
 pub mod settings;
 pub mod system;
 pub mod terminal;
+pub mod thermal;
 
 #[derive(StructOpt)]
 enum GetType {
     /// Get the power
     #[structopt(name = "power")]
     Power {
+        #[structopt(short, long)]
+        raw: bool,
+    },
+
+    /// Get the thermal zones
+    #[structopt(name = "thermal")]
+    Thermal {
         #[structopt(short, long)]
         raw: bool,
     },
@@ -250,8 +258,13 @@ fn parse_args(config: config::Config) {
             GetType::Power { raw } => {
                 int.get.power(raw);
             }
+
             GetType::Usage { raw } => {
                 int.get.usage(raw);
+            }
+
+            GetType::Thermal { raw } => {
+                int.get.thermal(raw);
             }
 
             GetType::Turbo { raw } => {

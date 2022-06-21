@@ -36,49 +36,56 @@ pub fn default_config() -> Config {
             State::Charging,
             State::CpuUsageHigh,
         ],
+        security_update_warnings: false,
     }
 }
+
+fn init_config_dir() {
+    // If the config directory doesn't exist, create it
+    if !config_dir_exists() {
+        let acs_dir = std::fs::create_dir_all("/etc/acs/");
+        match acs_dir {
+            Ok(_) => {}
+            Err(error) => match error.kind() {
+                ErrorKind::PermissionDenied => {
+                    print_error!("Could not create config directory '/etc/acs/'. Permission denied. Try running as root or use sudo.");
+                }
+                other_error => {
+                    print_error!(format!(
+                        "Failed to create config directory: {}",
+                        other_error
+                    ));
+                }
+            },
+        }
+    }
+}
+
+fn init_config_file() {
+    let config_file = File::create(&config_path());
+    let mut config = match config_file {
+        Ok(file) => file,
+        Err(error) => match error.kind() {
+            ErrorKind::PermissionDenied => {
+                print_error!("Looks like you don't have permission to write to /etc/acs/acs.toml. Try running this program as root or using sudo.");
+            }
+            other_error => {
+                print_error!(format!("Failed to create config file: {}", other_error));
+            }
+        },
+    };
+
+    let default_config = default_config();
+    let serialized = toml::to_string(&default_config).unwrap();
+    config.write_all(serialized.as_bytes()).unwrap();
+    println!("Created config file at '/etc/acs/acs.toml'");
+}
+
 /// Creates a config file at the default location if it doesn't exist
 pub fn init_config() {
     if !config_file_exists() {
-        // If the config directory doesn't exist, create it
-        if !config_dir_exists() {
-            let acs_dir = std::fs::create_dir_all("/etc/acs/");
-            match acs_dir {
-                Ok(_) => {}
-                Err(error) => match error.kind() {
-                    ErrorKind::PermissionDenied => {
-                        print_error!("Could not create config directory '/etc/acs/'. Permission denied. Try running as root or use sudo.");
-                        return;
-                    }
-                    other_error => {
-                        print_error!(format!(
-                            "Failed to create config directory: {}",
-                            other_error
-                        ));
-                        return;
-                    }
-                },
-            }
-        }
-        let config_file = File::create(&config_path());
-        let mut config = match config_file {
-            Ok(file) => file,
-            Err(error) => match error.kind() {
-                ErrorKind::PermissionDenied => {
-                    print_error!("Looks like you don't have permission to write to /etc/acs/acs.toml. Try running this program as root or using sudo.");
-                    return;
-                }
-                other_error => {
-                    print_error!(format!("Failed to create config file: {}", other_error));
-                    return;
-                }
-            },
-        };
-        let default_config = default_config();
-        let serialized = toml::to_string(&default_config).unwrap();
-        config.write_all(serialized.as_bytes()).unwrap();
-        println!("Created config file at '/etc/acs/acs.toml'");
+        init_config_dir();
+        init_config_file();
     } else {
         warn_user!("Config file already exists at '/etc/acs/acs.toml'. No changes made.");
         return;
@@ -90,6 +97,7 @@ pub struct Config {
     pub powersave_under: i8,
     pub overheat_threshold: i8,
     pub high_cpu_threshold: i8,
+    pub security_update_warnings: bool,
     pub active_rules: Vec<State>,
 }
 
@@ -98,6 +106,7 @@ pub struct SafeConfig {
     pub powersave_under: Option<i8>,
     pub overheat_threshold: Option<i8>,
     pub high_cpu_threshold: Option<i8>,
+    pub security_update_warnings: Option<bool>,
     pub active_rules: Option<Vec<String>>,
 }
 
@@ -134,6 +143,10 @@ impl SafeFillConfig for SafeConfig {
             base.high_cpu_threshold = self.high_cpu_threshold.unwrap();
         }
 
+        if self.security_update_warnings.is_some() {
+            base.security_update_warnings = self.security_update_warnings.unwrap();
+        }
+
         if self.active_rules.is_some() {
             base.active_rules.clear();
             for rule in self.active_rules.clone().unwrap() {
@@ -157,8 +170,8 @@ impl fmt::Display for Config {
         // config iterable. This would also make safe_fill_config a lot easier as well.
         write!(
             f,
-            "powersave_under = {}\noverheat_threshold = {}\nhigh_cpu_threshold = {}\nacive_rules = {:?}",
-            self.powersave_under, self.overheat_threshold, self.high_cpu_threshold, self.active_rules,
+            "powersave_under = {}\noverheat_threshold = {}\nhigh_cpu_threshold = {}\nsecurity_update_warnings = {}\nacive_rules = {:?}",
+            self.powersave_under, self.overheat_threshold, self.high_cpu_threshold, self.security_update_warnings, self.active_rules,
         )
     }
 }
@@ -178,6 +191,7 @@ fn parse_as_toml(config: String) -> Config {
             powersave_under: None,
             overheat_threshold: None,
             high_cpu_threshold: None,
+            security_update_warnings: None,
             active_rules: None,
         });
 

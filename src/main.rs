@@ -13,6 +13,14 @@
 //             %%%%%%%%%%%%%@%%%%%%%%%%%%
 //               %%%%%%%%%%%@%%%%%%%%%%%
 //                    %%%%%%@%%%%%%
+//
+//
+// Automatic CPU frequency scaler and power saver
+//
+// https://github.com/jakeroggenbuck/auto-clock-speed
+// https://autoclockspeed.org
+// https://crates.io/crates/autoclockspeed
+// https://github.com/autoclockspeed
 
 use log::debug;
 use std::{thread, time};
@@ -41,12 +49,20 @@ pub mod security;
 pub mod settings;
 pub mod system;
 pub mod terminal;
+pub mod thermal;
 
 #[derive(StructOpt)]
 enum GetType {
     /// Get the power
     #[structopt(name = "power")]
     Power {
+        #[structopt(short, long)]
+        raw: bool,
+    },
+
+    /// Get the thermal zones
+    #[structopt(name = "thermal")]
+    Thermal {
         #[structopt(short, long)]
         raw: bool,
     },
@@ -244,8 +260,13 @@ fn parse_args(config: config::Config) {
             GetType::Power { raw } => {
                 int.get.power(raw);
             }
+
             GetType::Usage { raw } => {
                 int.get.usage(raw);
+            }
+
+            GetType::Thermal { raw } => {
+                int.get.thermal(raw);
             }
 
             GetType::Turbo { raw } => {

@@ -92,13 +92,12 @@ WantedBy=multi-user.target
 ## Config
 ### Using default config
 ```sh
-WARN: Using default config. Create file /etc/acs/acs.toml for custom config.
+WARN: Using default config. Create file '/etc/acs/acs.toml' for custom config or run 'acs initconfig' to setup default config automatically.
 ```
-This warning recommends creating a config file, use the following example and install at `/etc/acs/acs.toml`
+This warning recommends creating a config file, use the initconfig command to automatically create one for you!
 
 ```sh
-mkdir /etc/acs
-cp ./acs.toml /etc/acs/acs.toml
+sudo acs initconfig
 ```
 
 ### This is an example config
@@ -174,10 +173,6 @@ SUBCOMMANDS:
     set            Set a specific value
     showconfig     Show the current config in use
 ```
-
-## More Images
-
-![image](https://user-images.githubusercontent.com/35516367/154004837-16a1a30d-dab4-42b8-80bc-ef86de1c6177.png)
 
 <!--       _
        .__(.)< (qwak)

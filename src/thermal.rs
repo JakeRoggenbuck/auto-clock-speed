@@ -34,13 +34,14 @@ impl Display for ThermalZone {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         write!(
             f,
-            "{} {} {}",
+            "{} {}{} {}",
             if self.enabled {
                 self.name.green()
             } else {
                 self.name.red()
             },
-            self.temp.to_string().yellow(),
+            (self.temp / 1000).to_string().yellow(),
+            "C°".yellow(),
             self.path
         )
     }

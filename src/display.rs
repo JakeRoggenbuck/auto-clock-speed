@@ -20,7 +20,6 @@ macro_rules! print_error {
     ($a:expr) => {{
         use colored::Colorize;
         println!("{}: {}", "ERROR".bold().red(), $a,);
-        std::process::exit(-1);
     }};
 }
 

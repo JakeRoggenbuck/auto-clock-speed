@@ -1,9 +1,9 @@
-use super::Error;
-use std::fmt::Formatter;
-use std::fmt::Display;
 use super::system::{read_int, read_str};
-use std::fs::read_dir;
+use super::Error;
 use colored::*;
+use std::fmt::Display;
+use std::fmt::Formatter;
+use std::fs::read_dir;
 
 const THERMAL_ZONE_DIR: &str = "/sys/class/thermal/";
 
@@ -32,8 +32,17 @@ impl Default for ThermalZone {
 
 impl Display for ThermalZone {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-
-        write!(f, "{} {} {}", if self.enabled { self.name.green() } else { self.name.red() }, self.temp.to_string().yellow(), self.path)
+        write!(
+            f,
+            "{} {} {}",
+            if self.enabled {
+                self.name.green()
+            } else {
+                self.name.red()
+            },
+            self.temp.to_string().yellow(),
+            self.path
+        )
     }
 }
 
@@ -50,7 +59,10 @@ pub fn read_thermal_zones() -> Vec<ThermalZone> {
 
         zone.temp = read_int(&[&path_string, "/temp"].concat()).unwrap_or(0);
         zone.name = read_str(&[&path_string, "/type"].concat()).unwrap_or("unknown".to_string());
-        zone.enabled = if read_str(&[&path_string, "/mode"].concat()).unwrap_or("disable".to_string()) == "enabled" {
+        zone.enabled = if read_str(&[&path_string, "/mode"].concat())
+            .unwrap_or("disable".to_string())
+            == "enabled"
+        {
             true
         } else {
             false

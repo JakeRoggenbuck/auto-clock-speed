@@ -36,7 +36,6 @@ pub fn default_config() -> Config {
             State::Charging,
             State::CpuUsageHigh,
         ],
-        security_update_warnings: false,
     }
 }
 
@@ -97,7 +96,6 @@ pub struct Config {
     pub powersave_under: i8,
     pub overheat_threshold: i8,
     pub high_cpu_threshold: i8,
-    pub security_update_warnings: bool,
     pub active_rules: Vec<State>,
 }
 
@@ -106,7 +104,6 @@ pub struct SafeConfig {
     pub powersave_under: Option<i8>,
     pub overheat_threshold: Option<i8>,
     pub high_cpu_threshold: Option<i8>,
-    pub security_update_warnings: Option<bool>,
     pub active_rules: Option<Vec<String>>,
 }
 
@@ -143,10 +140,6 @@ impl SafeFillConfig for SafeConfig {
             base.high_cpu_threshold = self.high_cpu_threshold.unwrap();
         }
 
-        if self.security_update_warnings.is_some() {
-            base.security_update_warnings = self.security_update_warnings.unwrap();
-        }
-
         if self.active_rules.is_some() {
             base.active_rules.clear();
             for rule in self.active_rules.clone().unwrap() {
@@ -170,8 +163,8 @@ impl fmt::Display for Config {
         // config iterable. This would also make safe_fill_config a lot easier as well.
         write!(
             f,
-            "powersave_under = {}\noverheat_threshold = {}\nhigh_cpu_threshold = {}\nsecurity_update_warnings = {}\nacive_rules = {:?}",
-            self.powersave_under, self.overheat_threshold, self.high_cpu_threshold, self.security_update_warnings, self.active_rules,
+            "powersave_under = {}\noverheat_threshold = {}\nhigh_cpu_threshold = {}\nacive_rules = {:?}",
+            self.powersave_under, self.overheat_threshold, self.high_cpu_threshold, self.active_rules,
         )
     }
 }
@@ -191,7 +184,6 @@ fn parse_as_toml(config: String) -> Config {
             powersave_under: None,
             overheat_threshold: None,
             high_cpu_threshold: None,
-            security_update_warnings: None,
             active_rules: None,
         });
 

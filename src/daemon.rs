@@ -1,4 +1,5 @@
 use std::convert::TryInto;
+use std::os::unix::net::{UnixStream, UnixListener};
 use std::time::SystemTime;
 use std::{thread, time};
 
@@ -95,6 +96,7 @@ pub struct Daemon {
     pub commit_hash: String,
     pub timeout: time::Duration,
     pub timeout_battery: time::Duration,
+    pub stream: UnixListener,
     pub settings: Settings,
 }
 
@@ -535,6 +537,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         timeout_battery: time::Duration::from_millis(2),
         state: State::Unknown,
         settings: new_settings,
+        stream: UnixListener::bind("/tmp/acs.sock").unwrap(),
     };
 
     // Make a cpu struct for each cpu listed

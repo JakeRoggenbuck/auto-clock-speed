@@ -75,7 +75,14 @@ impl Getter for Get {
     }
 
     fn thermal(&self, raw: bool) {
-        read_thermal_zones();
+        let zones = read_thermal_zones();
+        if raw {
+            println!("{:?}", zones)
+        } else {
+            for zone in zones {
+                println!("{}", zone);
+            }
+        }
     }
 
     fn turbo(&self, raw: bool) {

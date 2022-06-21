@@ -187,14 +187,16 @@ impl Speed for CPU {
 mod tests {
     use super::*;
 
-    #[test]
-    fn render_unit_test() {
-        let mut mock = MockSpeed::new();
-        mock.expect_read_int().return_const(42);
-        mock.expect_read_str().return_const("yflat".to_string());
+    // Since the read_int and read_str functions are no longer implemented for speed this test is
+    // pointless I beleive.
+    // #[test]
+    // fn render_unit_test() {
+    //     let mut mock = MockSpeed::new();
+    //     mock.expect_read_int().return_const(42);
+    //     mock.expect_read_str().return_const("yflat".to_string());
 
-        // This passes, as expected
-        assert_eq!(mock.read_str("zflat"), "yflat");
-        assert_eq!(mock.read_int("abc"), 42);
-    }
+    //     // This passes, as expected
+    //     assert_eq!(mock.read_str("zflat"), "yflat");
+    //     assert_eq!(mock.read_int("abc"), 42);
+    // }
 }

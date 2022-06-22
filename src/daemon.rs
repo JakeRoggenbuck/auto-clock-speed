@@ -23,7 +23,7 @@ use super::system::{
 };
 use super::terminal::terminal_width;
 use super::Error;
-use crate::display::{print_bat_cond, print_turbo_status};
+use crate::display::{print_turbo_status};
 use crate::system::check_bat_cond;
 use crate::warn_user;
 

@@ -208,11 +208,11 @@ pub fn check_bat_cond() -> Result<f32, Error> {
 }
 
 pub fn get_battery_condition(check_bat_cond: f32) -> Result<f32, Error> {
-    let mut bat_cond = 0.0;
-    if check_bat_cond * 100.0 >= 100.0 {
+    let mut bat_cond = check_bat_cond * 100.0;
+    if bat_cond >= 100.0 {
         bat_cond = 100.00;
-    } else {
-        bat_cond = check_bat_cond * 100.0;
+    } else if bat_cond <= 0.0 {
+        bat_cond = 0.0;
     }
     Ok(bat_cond.round())
 }

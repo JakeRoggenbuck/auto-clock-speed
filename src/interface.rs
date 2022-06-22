@@ -10,6 +10,7 @@ use super::system::{
     check_available_governors, check_bat_cond, check_cpu_freq, check_cpu_name, check_turbo_enabled,
     get_cpu_percent, list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus,
 };
+use super::thermal::read_thermal_zones;
 
 pub struct Get {}
 
@@ -17,6 +18,7 @@ pub trait Getter {
     fn freq(&self, raw: bool);
     fn power(&self, raw: bool);
     fn usage(&self, raw: bool);
+    fn thermal(&self, raw: bool);
     fn turbo(&self, raw: bool);
     fn available_govs(&self, raw: bool);
     fn cpus(&self, raw: bool);
@@ -70,6 +72,17 @@ impl Getter for Get {
             println!("{}", percent)
         } else {
             println!("CPU is at {}%", percent)
+        }
+    }
+
+    fn thermal(&self, raw: bool) {
+        let zones = read_thermal_zones();
+        if raw {
+            println!("{:?}", zones)
+        } else {
+            for zone in zones {
+                println!("{}", zone);
+            }
         }
     }
 

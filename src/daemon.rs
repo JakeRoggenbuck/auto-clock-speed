@@ -23,7 +23,7 @@ use super::system::{
 };
 use super::terminal::terminal_width;
 use super::Error;
-use crate::display::{print_turbo_status};
+use crate::display::print_turbo_status;
 use crate::system::check_bat_cond;
 use crate::warn_user;
 
@@ -328,7 +328,7 @@ impl Checker for Daemon {
         let mut battery_condition: String = "N/A".to_string();
         if let Ok(check_bat_cond) = check_bat_cond() {
             battery_condition = format!(
-                "Battery Condition: {}%",
+                "Condition: {}%",
                 get_battery_condition(check_bat_cond).unwrap().to_string()
             );
         } else {

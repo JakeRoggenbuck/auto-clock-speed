@@ -327,8 +327,10 @@ impl Checker for Daemon {
 
         let mut battery_condition: String = "N/A".to_string();
         if let Ok(check_bat_cond) = check_bat_cond() {
-            battery_condition = format!("Battery Condition: {}%",
-                                        get_battery_condition(check_bat_cond).unwrap().to_string());
+            battery_condition = format!(
+                "Battery Condition: {}%",
+                get_battery_condition(check_bat_cond).unwrap().to_string()
+            );
         } else {
             println!("Failed to get battery condition");
         }

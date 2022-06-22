@@ -69,6 +69,7 @@ pub fn interactive() {
                     "get speeds" => int.get.speeds(false),
                     "get temp" => int.get.temp(false),
                     "get govs" => int.get.govs(false),
+                    "get battery_condition" => int.get.bat_cond(false),
 
                     "set gov performance" => {
                         let config: Config = get_config();

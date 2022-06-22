@@ -181,11 +181,41 @@ fn interpret_turbo(is_turbo: &mut String) -> Result<bool, Error> {
     }
 }
 
+fn read_bat_energy_full(design: bool) -> Result<i32, Error> {
+    let mut capacity_readings: String = String::new();
+    let bat_energy_full_path: &str = "/sys/class/power_supply/BAT0/";
+    if design == true {
+        File::open(bat_energy_full_path.to_string() + "energy_full_design")?
+            .read_to_string(&mut capacity_readings)?;
+    } else {
+        File::open(bat_energy_full_path.to_string() + "energy_full")?
+            .read_to_string(&mut capacity_readings)?;
+    }
+    capacity_readings.pop();
+    Ok(capacity_readings.parse::<i32>().unwrap())
+}
+
 /// Check if turbo is enabled for the machine, (enabled in bios)
 pub fn check_turbo_enabled() -> Result<bool, Error> {
     let mut turbo_string = read_turbo_file()?;
     let is_turbo = interpret_turbo(&mut turbo_string)?;
     Ok(is_turbo)
+}
+
+pub fn check_bat_cond() -> Result<f32, Error> {
+    let bat_cond_calc: f32 =
+        (read_bat_energy_full(false).unwrap() / read_bat_energy_full(true).unwrap()) as f32;
+    Ok(bat_cond_calc)
+}
+
+pub fn get_battery_condition(check_bat_cond: f32) -> Result<f32, Error> {
+    let mut bat_cond = check_bat_cond * 100.0;
+    if bat_cond >= 100.0 {
+        bat_cond = 100.00;
+    } else if bat_cond <= 0.0 {
+        bat_cond = 0.0;
+    }
+    Ok(bat_cond.round())
 }
 
 fn read_govs_file() -> Result<String, Error> {

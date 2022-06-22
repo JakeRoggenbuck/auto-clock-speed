@@ -54,6 +54,14 @@ pub fn print_power(lid: LidState, bat: i8, plugged: bool, raw: bool) {
     }
 }
 
+pub fn print_bat_cond(c: f32, raw: bool) {
+    if raw {
+        println!("{}", c);
+    } else {
+        println!("{:.2}%", c * 100.0)
+    }
+}
+
 pub fn print_turbo(t: bool, raw: bool) {
     if raw {
         println!("{}", t);
@@ -89,11 +97,11 @@ pub fn print_turbo_animation(cpu: usize, y_pos: usize, delay: u64) {
 }
 
 pub fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize, delay: u64) {
-    let mut turbo_y_pos: usize = 7;
+    let mut turbo_y_pos: usize = 8;
     let title_width = 94;
 
     if term_width > title_width {
-        turbo_y_pos = 6
+        turbo_y_pos = 7
     }
 
     match check_turbo_enabled() {

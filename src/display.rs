@@ -97,11 +97,11 @@ pub fn print_turbo_animation(cpu: usize, y_pos: usize, delay: u64) {
 }
 
 pub fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize, delay: u64) {
-    let mut turbo_y_pos: usize = 7;
+    let mut turbo_y_pos: usize = 8;
     let title_width = 94;
 
     if term_width > title_width {
-        turbo_y_pos = 6
+        turbo_y_pos = 7
     }
 
     match check_turbo_enabled() {

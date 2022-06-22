@@ -212,7 +212,7 @@ pub fn get_battery_condition(check_bat_cond: f32) -> Result<f32, Error> {
     if check_bat_cond * 100.0 >= 100.0 {
         bat_cond = 100.00;
     } else {
-        bat_cond = check_bat_cond;
+        bat_cond = check_bat_cond * 100.0;
     }
     Ok(bat_cond.round())
 }

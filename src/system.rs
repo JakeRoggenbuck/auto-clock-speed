@@ -191,6 +191,7 @@ fn read_bat_energy_full(design: bool) -> Result<i32, Error> {
         File::open(bat_energy_full_path.to_string() + "energy_full")?
             .read_to_string(&mut capacity_readings)?;
     }
+    capacity_readings.pop();
     Ok(capacity_readings.parse::<i32>().unwrap())
 }
 

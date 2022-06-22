@@ -6,9 +6,6 @@ use super::display::{print_cpu, render_cpu};
 use super::system::{calculate_cpu_percent, read_int, read_str, ProcStat};
 use super::Error;
 
-#[cfg(test)]
-use mockall::{automock, predicate::*};
-#[cfg_attr(test, automock)]
 pub trait Speed {
     fn read_temp(&mut self, sub_path: &str) -> Result<i32, Error>;
     fn write_value(&mut self, value: WritableValue) -> Result<(), Error>;

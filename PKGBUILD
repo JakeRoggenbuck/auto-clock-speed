@@ -14,7 +14,7 @@ arch=("x86_64")
 provides=("autoclockspeed")
 conflicts=("autoclockspeed")
 source=("https://github.com/JakeRoggenbuck/auto-clock-speed/releases/download/v$pkgver/autoclockspeed-$pkgver-x86_64.tar.gz")
-sha256sums=("ed8b2b45ad3441afd4d17fa888f019c43eb367bed351e2d8a11455866b8858e5")
+sha256sums=("a85616cd8861e76c11791584879defa70b03c88f86a33ce86c348c7251227a1c")
 
 package() {
     install -Dm755 acs -t "$pkgdir/usr/bin"

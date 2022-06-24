@@ -2,6 +2,7 @@ use std::convert::TryInto;
 use std::os::unix::net::{UnixStream, UnixListener};
 use std::time::SystemTime;
 use std::{thread, time};
+use std::io::Write;
 
 use colored::*;
 use nix::unistd::Uid;
@@ -96,7 +97,6 @@ pub struct Daemon {
     pub commit_hash: String,
     pub timeout: time::Duration,
     pub timeout_battery: time::Duration,
-    pub stream: UnixListener,
     pub settings: Settings,
 }
 
@@ -224,6 +224,27 @@ impl Checker for Daemon {
         if self.settings.commit {
             self.commit_hash = env!("GIT_HASH").to_string();
         }
+
+        let listener = UnixListener::bind("/tmp/acs.sock").unwrap();
+
+        // Spawn a new thread to listen for commands
+        thread::spawn(move || {
+            for stream in listener.incoming() {
+                match stream {
+                    Ok(mut stream) => {
+                        /* connection succeeded */
+                        thread::spawn(move || {
+                            stream.write_all(b"Hello world from auto clock speed!").unwrap();
+                            thread::sleep(time::Duration::from_secs(5));
+                        });
+                    }
+                    Err(err) => {
+                        /* connection failed */
+                        break;
+                    }
+                }
+            }
+        });
 
         self.timeout_battery = time::Duration::from_millis(self.settings.delay_battery);
         self.timeout = time::Duration::from_millis(self.settings.delay);
@@ -537,7 +558,6 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         timeout_battery: time::Duration::from_millis(2),
         state: State::Unknown,
         settings: new_settings,
-        stream: UnixListener::bind("/tmp/acs.sock").unwrap(),
     };
 
     // Make a cpu struct for each cpu listed

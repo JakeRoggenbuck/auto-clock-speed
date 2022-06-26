@@ -1,9 +1,9 @@
 use std::convert::TryInto;
-use std::os::unix::net::{UnixStream, UnixListener};
+use std::io::Write;
+use std::os::unix::net::{UnixListener, UnixStream};
+use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::SystemTime;
 use std::{thread, time};
-use std::sync::{Arc, Mutex, MutexGuard};
-use std::io::Write;
 
 use colored::*;
 use nix::unistd::Uid;
@@ -190,7 +190,6 @@ impl Checker for Daemon {
         if self.settings.commit {
             self.commit_hash = env!("GIT_HASH").to_string();
         }
-
 
         self.timeout_battery = time::Duration::from_millis(self.settings.delay_battery);
         self.timeout = time::Duration::from_millis(self.settings.delay);
@@ -520,20 +519,19 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
                     Ok(mut stream) => {
                         /* connection succeeded */
                         let mut daemon = c_daemon_mutex.lock().unwrap();
-                        daemon.logger.log(
-                            "Received connection from socket",
-                            logger::Severity::Log,
-                        );
-                        stream.write_all(format!("{:?}", daemon.charge).as_bytes()).unwrap();
-
-                    },
+                        daemon
+                            .logger
+                            .log("Received connection from socket", logger::Severity::Log);
+                        stream
+                            .write_all(format!("{:?}", daemon.charge).as_bytes())
+                            .unwrap();
+                    }
                     Err(err) => {
                         /* connection failed */
                         let mut daemon = c_daemon_mutex.lock().unwrap();
-                        daemon.logger.log(
-                            "Failed to connect from socket",
-                            logger::Severity::Error,
-                        );
+                        daemon
+                            .logger
+                            .log("Failed to connect from socket", logger::Severity::Error);
                         break;
                     }
                 }
@@ -545,10 +543,9 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
 }
 
 pub fn run(mut daemon_mutex: Arc<Mutex<Daemon>>) -> Result<(), Error> {
-
     // Aquire the lock for a bit
     let mut daemon = daemon_mutex.lock().unwrap();
-    
+
     daemon.init();
 
     if daemon.settings.testing {

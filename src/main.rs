@@ -223,7 +223,6 @@ enum ACSCommand {
 }
 
 fn parse_args(config: config::Config) {
-
     let set_settings = Settings {
         verbose: true,
         delay_battery: 0,

@@ -14,6 +14,7 @@ use super::cpu::{Speed, CPU};
 use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
+use super::network::Packet;
 use super::power::{
     get_battery_status, has_battery, read_battery_charge, read_lid_state, read_power_source,
     LidState,
@@ -519,11 +520,18 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
                     Ok(mut stream) => {
                         /* connection succeeded */
                         let mut daemon = c_daemon_mutex.lock().unwrap();
-                        daemon
-                            .logger
-                            .log("Received connection from socket", logger::Severity::Log);
+                        daemon.logger.log(
+                            &format!(
+                                "Received connection from socket on {:?}",
+                                stream.peer_addr().expect("Couldn't get local addr")
+                            ),
+                            logger::Severity::Log,
+                        );
+
+                        // Broadcast hello packet
+                        let hello_packet = Packet::HelloResponse("Hello from acs".to_string(), 0);
                         stream
-                            .write_all(format!("{:?}", daemon.charge).as_bytes())
+                            .write_all(format!("{}", hello_packet).as_bytes())
                             .unwrap();
                     }
                     Err(err) => {

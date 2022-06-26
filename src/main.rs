@@ -43,6 +43,7 @@ pub mod graph;
 pub mod interactive;
 pub mod interface;
 pub mod logger;
+pub mod network;
 pub mod power;
 pub mod settings;
 pub mod system;

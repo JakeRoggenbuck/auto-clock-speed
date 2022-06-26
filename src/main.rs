@@ -223,7 +223,6 @@ enum ACSCommand {
 }
 
 fn parse_args(config: config::Config) {
-    let mut daemon: daemon::Daemon;
 
     let set_settings = Settings {
         verbose: true,
@@ -339,8 +338,7 @@ fn parse_args(config: config::Config) {
 
             match daemon_init(settings, config) {
                 Ok(d) => {
-                    daemon = d;
-                    daemon.run().unwrap_err();
+                    daemon::run(d).unwrap_err();
                 }
                 Err(_) => eprint!("Could not run daemon in edit mode"),
             }
@@ -396,8 +394,7 @@ fn parse_args(config: config::Config) {
 
             match daemon_init(settings, config) {
                 Ok(d) => {
-                    daemon = d;
-                    daemon.run().unwrap_err();
+                    daemon::run(d).unwrap_err();
                 }
                 Err(_) => eprint!("Could not run daemon in monitor mode"),
             }

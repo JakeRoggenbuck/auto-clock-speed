@@ -2,6 +2,7 @@ use std::convert::TryInto;
 use std::os::unix::net::{UnixStream, UnixListener};
 use std::time::SystemTime;
 use std::{thread, time};
+use std::sync::{Arc, Mutex, MutexGuard};
 use std::io::Write;
 
 use colored::*;
@@ -59,7 +60,6 @@ pub trait Checker {
         operation: &dyn Fn(&mut CPU) -> Result<(), Error>,
     ) -> Result<(), Error>;
 
-    fn run(&mut self) -> Result<(), Error>;
     fn init(&mut self);
 
     fn start_loop(&mut self) -> Result<(), Error>;
@@ -185,66 +185,12 @@ impl Checker for Daemon {
         state
     }
 
-    fn run(&mut self) -> Result<(), Error> {
-        self.init();
-
-        if self.settings.testing {
-            // Choose which mode acs runs in
-            if self.settings.edit {
-                let mut reps = 4;
-                while reps > 0 {
-                    self.single_edit()?;
-                    reps -= 1;
-                }
-            } else {
-                let mut reps = 4;
-                while reps > 0 {
-                    self.single_monit()?;
-                    reps -= 1;
-                }
-            }
-        } else {
-            // Choose which mode acs runs in
-            if self.settings.edit {
-                loop {
-                    self.single_edit()?;
-                }
-            } else {
-                loop {
-                    self.single_monit()?;
-                }
-            }
-        }
-
-        Ok(())
-    }
-
     fn init(&mut self) {
         // Get the commit hash from the compile time env variable
         if self.settings.commit {
             self.commit_hash = env!("GIT_HASH").to_string();
         }
 
-        let listener = UnixListener::bind("/tmp/acs.sock").unwrap();
-
-        // Spawn a new thread to listen for commands
-        thread::spawn(move || {
-            for stream in listener.incoming() {
-                match stream {
-                    Ok(mut stream) => {
-                        /* connection succeeded */
-                        thread::spawn(move || {
-                            stream.write_all(b"Hello world from auto clock speed!").unwrap();
-                            thread::sleep(time::Duration::from_secs(5));
-                        });
-                    }
-                    Err(err) => {
-                        /* connection failed */
-                        break;
-                    }
-                }
-            }
-        });
 
         self.timeout_battery = time::Duration::from_millis(self.settings.delay_battery);
         self.timeout = time::Duration::from_millis(self.settings.delay);
@@ -267,12 +213,6 @@ impl Checker for Daemon {
         // Print the each cpu, each iteration
         if self.settings.verbose {
             self.print();
-        }
-
-        if self.charging {
-            thread::sleep(self.timeout);
-        } else {
-            thread::sleep(self.timeout_battery);
         }
     }
 
@@ -479,7 +419,7 @@ fn format_message(
     )
 }
 
-pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> {
+pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemon>>, Error> {
     let started_as_edit: bool = settings.edit;
     let mut edit = settings.edit;
     let mut forced_reason: String = String::new();
@@ -565,7 +505,98 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         daemon.cpus.push(cpu);
     }
 
-    Ok(daemon)
+    let daemon_mutex = Arc::new(Mutex::new(daemon));
+    let c_daemon_mutex = Arc::clone(&daemon_mutex);
+
+    thread::spawn(move || {
+        println!("Handling connections");
+        // Try to handle sock connections then
+        let listener = UnixListener::bind("/tmp/acs.sock").unwrap();
+
+        // Spawn a new thread to listen for commands
+        thread::spawn(move || {
+            for stream in listener.incoming() {
+                match stream {
+                    Ok(mut stream) => {
+                        /* connection succeeded */
+                        let mut daemon = c_daemon_mutex.lock().unwrap();
+                        daemon.logger.log(
+                            "Received connection from socket",
+                            logger::Severity::Log,
+                        );
+                        stream.write_all(format!("{:?}", daemon.charge).as_bytes()).unwrap();
+
+                    },
+                    Err(err) => {
+                        /* connection failed */
+                        let mut daemon = c_daemon_mutex.lock().unwrap();
+                        daemon.logger.log(
+                            "Failed to connect from socket",
+                            logger::Severity::Error,
+                        );
+                        break;
+                    }
+                }
+            }
+        });
+    });
+
+    Ok(daemon_mutex)
+}
+
+pub fn run(mut daemon_mutex: Arc<Mutex<Daemon>>) -> Result<(), Error> {
+
+    // Aquire the lock for a bit
+    let mut daemon = daemon_mutex.lock().unwrap();
+    
+    daemon.init();
+
+    if daemon.settings.testing {
+        // Choose which mode acs runs in
+        if daemon.settings.edit {
+            let mut reps = 4;
+            while reps > 0 {
+                daemon.single_edit()?;
+                reps -= 1;
+            }
+        } else {
+            let mut reps = 4;
+            while reps > 0 {
+                daemon.single_monit()?;
+                reps -= 1;
+            }
+        }
+    } else {
+        // Before runnig the loop drop the lock and aquire it again later within the loop
+        let mode = daemon.settings.edit.clone();
+
+        let effective_timeout = if daemon.charging {
+            daemon.timeout.clone()
+        } else {
+            daemon.timeout_battery.clone()
+        };
+
+        drop(daemon);
+
+        // Choose which mode acs runs in
+        if mode {
+            loop {
+                let mut daemon = daemon_mutex.lock().unwrap();
+                daemon.single_edit()?;
+                drop(daemon);
+                thread::sleep(effective_timeout);
+            }
+        } else {
+            loop {
+                let mut daemon = daemon_mutex.lock().unwrap();
+                daemon.single_monit()?;
+                drop(daemon);
+                thread::sleep(effective_timeout);
+            }
+        }
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]

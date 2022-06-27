@@ -518,7 +518,6 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
             for stream in listener.incoming() {
                 match stream {
                     Ok(mut stream) => {
-                        /* connection succeeded */
                         let mut daemon = c_daemon_mutex.lock().unwrap();
                         daemon.logger.log(
                             &format!(
@@ -535,7 +534,6 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
                             .unwrap();
                     }
                     Err(err) => {
-                        /* connection failed */
                         let mut daemon = c_daemon_mutex.lock().unwrap();
                         daemon
                             .logger

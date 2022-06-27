@@ -120,7 +120,7 @@ impl Setter for Set {
     fn gov(&self, value: String, config: Config, settings: Settings) {
         // Create the daemon to set the gov
         match daemon_init(settings, config) {
-            Ok(mut d) => match d.lock().unwrap().set_govs(value.clone()) {
+            Ok(d) => match d.lock().unwrap().set_govs(value.clone()) {
                 Ok(_) => {}
                 Err(e) => eprint!("Could not set gov, {:?}", e),
             },

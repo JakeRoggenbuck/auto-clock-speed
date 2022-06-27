@@ -27,7 +27,7 @@ use std::{thread, time};
 use structopt::StructOpt;
 
 use config::{config_dir_exists, get_config, init_config};
-use daemon::{daemon_init, Checker};
+use daemon::daemon_init;
 use display::show_config;
 use error::Error;
 use interactive::interactive;

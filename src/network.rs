@@ -1,7 +1,8 @@
 use super::error::Error;
 use std::fmt;
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::fmt::{Display, Formatter};
 
+#[derive(PartialEq)]
 pub enum Packet {
     Hello(String),
     HelloResponse(String, u32),
@@ -27,5 +28,14 @@ impl Display for Packet {
             Packet::Hello(data) => write!(f, "0|{}", data),
             Packet::HelloResponse(data, id) => write!(f, "1|{}|{}", data, id),
         }
+    }
+}
+
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_packet_test() {
+        assert!(parse_packet("0|test".to_string()).unwrap() == Packet::Hello("test".to_string()));
     }
 }

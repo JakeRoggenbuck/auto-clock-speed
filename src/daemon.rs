@@ -1,7 +1,7 @@
 use std::convert::TryInto;
 use std::io::Write;
-use std::os::unix::net::{UnixListener, UnixStream};
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::os::unix::net::{UnixListener};
+use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
 use std::{thread, time};
 
@@ -539,7 +539,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
                         let mut daemon = c_daemon_mutex.lock().unwrap();
                         daemon
                             .logger
-                            .log("Failed to connect from socket", logger::Severity::Error);
+                            .log(&format!("Failed to connect from socket with error: {}", err), logger::Severity::Error);
                         break;
                     }
                 }
@@ -550,7 +550,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
     Ok(daemon_mutex)
 }
 
-pub fn run(mut daemon_mutex: Arc<Mutex<Daemon>>) -> Result<(), Error> {
+pub fn run(daemon_mutex: Arc<Mutex<Daemon>>) -> Result<(), Error> {
     // Aquire the lock for a bit
     let mut daemon = daemon_mutex.lock().unwrap();
 
@@ -624,7 +624,9 @@ mod tests {
 
         let config = default_config();
 
-        let daemon = daemon_init(settings, config).unwrap();
+        let daemon_mutex = daemon_init(settings, config).unwrap();
+        let daemon = daemon_mutex.lock().unwrap();
+
 
         if Uid::effective().is_root() {
             assert_eq!(daemon.settings.edit, true);
@@ -650,8 +652,9 @@ mod tests {
 
         let config = default_config();
 
-        let mut daemon = daemon_init(settings, config).unwrap();
-        let preprint = Checker::preprint_render(&mut daemon);
+        let daemon_mutex = daemon_init(settings, config).unwrap();
+        let mut daemon = daemon_mutex.lock().unwrap();
+        let preprint = daemon.preprint_render();
         if Uid::effective().is_root() {
             assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[31medit\u{1b}[0m mode with a delay of 1ms normally and 2ms when on battery"));
         } else {
@@ -679,8 +682,9 @@ mod tests {
 
         let config = default_config();
 
-        let mut daemon = daemon_init(settings, config).unwrap();
-        let preprint = Checker::preprint_render(&mut daemon);
+        let daemon_mutex = daemon_init(settings, config).unwrap();
+        let mut daemon = daemon_mutex.lock().unwrap();
+        let preprint = daemon.preprint_render();
         assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[33mmonitor\u{1b}[0m mode with a delay of 1ms normally and 2ms when on battery\n"));
         assert!(preprint.contains("Name  Max\tMin\tFreq\tTemp\tUsage\tGovernor\n"));
         assert!(preprint.contains("Hz"));

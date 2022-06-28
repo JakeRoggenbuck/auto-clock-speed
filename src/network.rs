@@ -42,28 +42,34 @@ impl Display for Packet {
     }
 }
 
+fn log_to_daemon(daemon: &Arc<Mutex<Daemon>>, message: &str, severity: logger::Severity) {
+    let mut daemon = daemon.lock().unwrap();
+    daemon.logger.log(
+        message,
+        severity,
+    );
+}
+
 pub fn listen(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
     thread::spawn(move || {
         // Get rid of the old sock
         std::fs::remove_file(path).ok();
 
         // Try to handle sock connections then
-        let listener = UnixListener::bind(path).unwrap();
+        let listener = match UnixListener::bind(path) {
+            Ok(listener) => listener,
+            Err(e) => {
+                log_to_daemon(&c_daemon_mutex, &format!("Failed to bind to {}: {}", path, e), logger::Severity::Error);
+                return;
+            }
+        };
 
         // Spawn a new thread to listen for commands
         thread::spawn(move || {
             for stream in listener.incoming() {
                 match stream {
                     Ok(mut stream) => {
-                        let mut daemon = c_daemon_mutex.lock().unwrap();
-                        daemon.logger.log(
-                            &format!(
-                                "Received connection from socket on {:?}",
-                                stream.peer_addr().expect("Couldn't get local addr")
-                            ),
-                            logger::Severity::Log,
-                        );
-                        drop(daemon);
+                        log_to_daemon(&c_daemon_mutex, "Received connection", logger::Severity::Log);
 
                         let stream_clone = stream.try_clone().unwrap();
                         let reader = BufReader::new(stream_clone);
@@ -84,11 +90,7 @@ pub fn listen(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
                         });
                     }
                     Err(err) => {
-                        let mut daemon = c_daemon_mutex.lock().unwrap();
-                        daemon.logger.log(
-                            &format!("Failed to connect from socket with error: {}", err),
-                            logger::Severity::Error,
-                        );
+                        log_to_daemon(&c_daemon_mutex, &format!("Failed to accept connection: {}", err), logger::Severity::Error);
                         break;
                     }
                 }

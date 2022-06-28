@@ -38,13 +38,13 @@ mod tests {
 
     #[test]
     fn parse_packet_test() {
-        assert!(parse_packet("0|test".to_string()).unwrap() == Packet::Hello("test".to_string()));
+        assert!(parse_packet(&"0|test".to_string()).unwrap() == Packet::Hello("test".to_string()));
         assert!(
-            parse_packet("1|test|5".to_string()).unwrap()
+            parse_packet(&"1|test|5".to_string()).unwrap()
                 == Packet::HelloResponse("test".to_string(), 5)
         );
         assert!(
-            parse_packet("0|test".to_string()).unwrap()
+            parse_packet(&"0|test".to_string()).unwrap()
                 != Packet::HelloResponse("test".to_string(), 5)
         );
     }

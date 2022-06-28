@@ -1,5 +1,5 @@
 use std::convert::TryInto;
-use std::io::Write;
+use std::io::{Write, Read, BufReader, BufRead};
 use std::os::unix::net::{UnixListener};
 use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
@@ -14,7 +14,7 @@ use super::cpu::{Speed, CPU};
 use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
-use super::network::Packet;
+use super::network::{Packet, parse_packet};
 use super::power::{
     get_battery_status, has_battery, read_battery_charge, read_lid_state, read_power_source,
     LidState,
@@ -509,7 +509,10 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
     let c_daemon_mutex = Arc::clone(&daemon_mutex);
 
     thread::spawn(move || {
-        println!("Handling connections");
+
+        // Get rid of the old ugly sock
+        std::fs::remove_file("/tmp/acs.sock").ok();
+
         // Try to handle sock connections then
         let listener = UnixListener::bind("/tmp/acs.sock").unwrap();
 
@@ -526,12 +529,23 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
                             ),
                             logger::Severity::Log,
                         );
+                        drop(daemon);
 
-                        // Broadcast hello packet
-                        let hello_packet = Packet::HelloResponse("Hello from acs".to_string(), 0);
-                        stream
-                            .write_all(format!("{}", hello_packet).as_bytes())
-                            .unwrap();
+                        let stream_clone = stream.try_clone().unwrap();
+                        let reader = BufReader::new(stream_clone);
+
+                        for line in reader.lines() {
+                            match parse_packet(&line.unwrap()).unwrap_or(Packet::Unknown) {
+                                Packet::Hello(_) => {
+                                    let hello_packet = Packet::HelloResponse("Hello from acs daemon".to_string(), 0);
+                                    stream
+                                        .write_all(format!("{}", hello_packet).as_bytes())
+                                        .unwrap();
+                                },
+                                Packet::HelloResponse(_, _) => todo!(),
+                                Packet::Unknown => {}
+                            };
+                        }
                     }
                     Err(err) => {
                         let mut daemon = c_daemon_mutex.lock().unwrap();

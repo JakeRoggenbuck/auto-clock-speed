@@ -2,23 +2,24 @@ use super::error::Error;
 use std::fmt;
 use std::fmt::{Display, Formatter};
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum Packet {
     Hello(String),
     HelloResponse(String, u32),
+    Unknown,
 }
 
-pub fn parse_packet(packet: String) -> Result<Packet, Error> {
+pub fn parse_packet(packet: &String) -> Result<Packet, Error> {
     let mut packet_split = packet.split("|");
-    let packet_type = packet_split.next().unwrap();
-    let packet_data = packet_split.next().unwrap();
+    let packet_type = packet_split.next().unwrap_or("?");
+    let packet_data = packet_split.next().unwrap_or("?");
     match packet_type {
         "0" => Ok(Packet::Hello(packet_data.to_string())),
         "1" => Ok(Packet::HelloResponse(
             packet_data.to_string(),
             packet_split.next().unwrap().parse::<u32>().unwrap_or(0),
         )),
-        _ => Err(Error::Unknown),
+        _ => Ok(Packet::Unknown),
     }
 }
 
@@ -27,6 +28,7 @@ impl Display for Packet {
         match self {
             Packet::Hello(data) => write!(f, "0|{}", data),
             Packet::HelloResponse(data, version) => write!(f, "1|{}|{}", data, version),
+            Packet::Unknown => write!(f, "")
         }
     }
 }

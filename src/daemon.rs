@@ -510,7 +510,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
 
     thread::spawn(move || {
 
-        // Get rid of the old ugly sock
+        // Get rid of the old sock
         std::fs::remove_file("/tmp/acs.sock").ok();
 
         // Try to handle sock connections then
@@ -536,13 +536,13 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
 
                         for line in reader.lines() {
                             match parse_packet(&line.unwrap()).unwrap_or(Packet::Unknown) {
-                                Packet::Hello(_) => {
-                                    let hello_packet = Packet::HelloResponse("Hello from acs daemon".to_string(), 0);
+                                Packet::Hello(hi) => {
+                                    let hello_packet = Packet::HelloResponse(hi, 0);
                                     stream
                                         .write_all(format!("{}", hello_packet).as_bytes())
                                         .unwrap();
                                 },
-                                Packet::HelloResponse(_, _) => todo!(),
+                                Packet::HelloResponse(_, _) => {},
                                 Packet::Unknown => {}
                             };
                         }

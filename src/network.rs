@@ -1,6 +1,15 @@
+use super::daemon::Daemon;
 use super::error::Error;
+use super::logger;
+use super::logger::Interface;
 use std::fmt;
 use std::fmt::{Display, Formatter};
+use std::io::Write;
+use std::io::{BufRead, BufReader};
+use std::os::unix::net::UnixListener;
+use std::sync::Arc;
+use std::sync::Mutex;
+use std::thread;
 
 #[derive(PartialEq, Debug)]
 pub enum Packet {
@@ -31,6 +40,59 @@ impl Display for Packet {
             Packet::Unknown => write!(f, ""),
         }
     }
+}
+
+pub fn listen(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
+    thread::spawn(move || {
+        // Get rid of the old sock
+        std::fs::remove_file(path).ok();
+
+        // Try to handle sock connections then
+        let listener = UnixListener::bind(path).unwrap();
+
+        // Spawn a new thread to listen for commands
+        thread::spawn(move || {
+            for stream in listener.incoming() {
+                match stream {
+                    Ok(mut stream) => {
+                        let mut daemon = c_daemon_mutex.lock().unwrap();
+                        daemon.logger.log(
+                            &format!(
+                                "Received connection from socket on {:?}",
+                                stream.peer_addr().expect("Couldn't get local addr")
+                            ),
+                            logger::Severity::Log,
+                        );
+                        drop(daemon);
+
+                        let stream_clone = stream.try_clone().unwrap();
+                        let reader = BufReader::new(stream_clone);
+
+                        for line in reader.lines() {
+                            match parse_packet(&line.unwrap()).unwrap_or(Packet::Unknown) {
+                                Packet::Hello(hi) => {
+                                    let hello_packet = Packet::HelloResponse(hi, 0);
+                                    stream
+                                        .write_all(format!("{}", hello_packet).as_bytes())
+                                        .unwrap();
+                                }
+                                Packet::HelloResponse(_, _) => {}
+                                Packet::Unknown => {}
+                            };
+                        }
+                    }
+                    Err(err) => {
+                        let mut daemon = c_daemon_mutex.lock().unwrap();
+                        daemon.logger.log(
+                            &format!("Failed to connect from socket with error: {}", err),
+                            logger::Severity::Error,
+                        );
+                        break;
+                    }
+                }
+            }
+        });
+    });
 }
 
 mod tests {

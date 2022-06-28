@@ -1,6 +1,4 @@
 use std::convert::TryInto;
-use std::io::{BufRead, BufReader, Read, Write};
-use std::os::unix::net::UnixListener;
 use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
 use std::{thread, time};
@@ -14,7 +12,7 @@ use super::cpu::{Speed, CPU};
 use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
-use super::network::{parse_packet, Packet};
+use super::network::listen;
 use super::power::{
     get_battery_status, has_battery, read_battery_charge, read_lid_state, read_power_source,
     LidState,
@@ -508,56 +506,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
     let daemon_mutex = Arc::new(Mutex::new(daemon));
     let c_daemon_mutex = Arc::clone(&daemon_mutex);
 
-    thread::spawn(move || {
-        // Get rid of the old sock
-        std::fs::remove_file("/tmp/acs.sock").ok();
-
-        // Try to handle sock connections then
-        let listener = UnixListener::bind("/tmp/acs.sock").unwrap();
-
-        // Spawn a new thread to listen for commands
-        thread::spawn(move || {
-            for stream in listener.incoming() {
-                match stream {
-                    Ok(mut stream) => {
-                        let mut daemon = c_daemon_mutex.lock().unwrap();
-                        daemon.logger.log(
-                            &format!(
-                                "Received connection from socket on {:?}",
-                                stream.peer_addr().expect("Couldn't get local addr")
-                            ),
-                            logger::Severity::Log,
-                        );
-                        drop(daemon);
-
-                        let stream_clone = stream.try_clone().unwrap();
-                        let reader = BufReader::new(stream_clone);
-
-                        for line in reader.lines() {
-                            match parse_packet(&line.unwrap()).unwrap_or(Packet::Unknown) {
-                                Packet::Hello(hi) => {
-                                    let hello_packet = Packet::HelloResponse(hi, 0);
-                                    stream
-                                        .write_all(format!("{}", hello_packet).as_bytes())
-                                        .unwrap();
-                                }
-                                Packet::HelloResponse(_, _) => {}
-                                Packet::Unknown => {}
-                            };
-                        }
-                    }
-                    Err(err) => {
-                        let mut daemon = c_daemon_mutex.lock().unwrap();
-                        daemon.logger.log(
-                            &format!("Failed to connect from socket with error: {}", err),
-                            logger::Severity::Error,
-                        );
-                        break;
-                    }
-                }
-            }
-        });
-    });
+    listen("/tmp/acs.sock", c_daemon_mutex);
 
     Ok(daemon_mutex)
 }

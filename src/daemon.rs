@@ -1,6 +1,6 @@
 use std::convert::TryInto;
-use std::io::{Write, Read, BufReader, BufRead};
-use std::os::unix::net::{UnixListener};
+use std::io::{BufRead, BufReader, Read, Write};
+use std::os::unix::net::UnixListener;
 use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
 use std::{thread, time};
@@ -14,7 +14,7 @@ use super::cpu::{Speed, CPU};
 use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
-use super::network::{Packet, parse_packet};
+use super::network::{parse_packet, Packet};
 use super::power::{
     get_battery_status, has_battery, read_battery_charge, read_lid_state, read_power_source,
     LidState,
@@ -509,7 +509,6 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
     let c_daemon_mutex = Arc::clone(&daemon_mutex);
 
     thread::spawn(move || {
-
         // Get rid of the old sock
         std::fs::remove_file("/tmp/acs.sock").ok();
 
@@ -541,17 +540,18 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
                                     stream
                                         .write_all(format!("{}", hello_packet).as_bytes())
                                         .unwrap();
-                                },
-                                Packet::HelloResponse(_, _) => {},
+                                }
+                                Packet::HelloResponse(_, _) => {}
                                 Packet::Unknown => {}
                             };
                         }
                     }
                     Err(err) => {
                         let mut daemon = c_daemon_mutex.lock().unwrap();
-                        daemon
-                            .logger
-                            .log(&format!("Failed to connect from socket with error: {}", err), logger::Severity::Error);
+                        daemon.logger.log(
+                            &format!("Failed to connect from socket with error: {}", err),
+                            logger::Severity::Error,
+                        );
                         break;
                     }
                 }
@@ -638,7 +638,6 @@ mod tests {
 
         let daemon_mutex = daemon_init(settings, config).unwrap();
         let daemon = daemon_mutex.lock().unwrap();
-
 
         if Uid::effective().is_root() {
             assert_eq!(daemon.settings.edit, true);

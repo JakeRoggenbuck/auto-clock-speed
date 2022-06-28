@@ -28,7 +28,7 @@ impl Display for Packet {
         match self {
             Packet::Hello(data) => write!(f, "0|{}", data),
             Packet::HelloResponse(data, version) => write!(f, "1|{}|{}", data, version),
-            Packet::Unknown => write!(f, "")
+            Packet::Unknown => write!(f, ""),
         }
     }
 }
@@ -39,7 +39,13 @@ mod tests {
     #[test]
     fn parse_packet_test() {
         assert!(parse_packet("0|test".to_string()).unwrap() == Packet::Hello("test".to_string()));
-        assert!(parse_packet("1|test|5".to_string()).unwrap() == Packet::HelloResponse("test".to_string(), 5));
-        assert!(parse_packet("0|test".to_string()).unwrap() != Packet::HelloResponse("test".to_string(), 5));
+        assert!(
+            parse_packet("1|test|5".to_string()).unwrap()
+                == Packet::HelloResponse("test".to_string(), 5)
+        );
+        assert!(
+            parse_packet("0|test".to_string()).unwrap()
+                != Packet::HelloResponse("test".to_string(), 5)
+        );
     }
 }

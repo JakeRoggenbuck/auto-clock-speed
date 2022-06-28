@@ -68,18 +68,20 @@ pub fn listen(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
                         let stream_clone = stream.try_clone().unwrap();
                         let reader = BufReader::new(stream_clone);
 
-                        for line in reader.lines() {
-                            match parse_packet(&line.unwrap()).unwrap_or(Packet::Unknown) {
-                                Packet::Hello(hi) => {
-                                    let hello_packet = Packet::HelloResponse(hi, 0);
-                                    stream
-                                        .write_all(format!("{}", hello_packet).as_bytes())
-                                        .unwrap();
-                                }
-                                Packet::HelloResponse(_, _) => {}
-                                Packet::Unknown => {}
-                            };
-                        }
+                        thread::spawn(move || {
+                            for line in reader.lines() {
+                                match parse_packet(&line.unwrap()).unwrap_or(Packet::Unknown) {
+                                    Packet::Hello(hi) => {
+                                        let hello_packet = Packet::HelloResponse(hi, 0);
+                                        stream
+                                            .write_all(format!("{}", hello_packet).as_bytes())
+                                            .unwrap();
+                                    }
+                                    Packet::HelloResponse(_, _) => {}
+                                    Packet::Unknown => {}
+                                };
+                            }
+                        });
                     }
                     Err(err) => {
                         let mut daemon = c_daemon_mutex.lock().unwrap();

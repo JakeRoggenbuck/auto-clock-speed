@@ -4,9 +4,10 @@ use super::logger;
 use super::logger::Interface;
 use std::fmt;
 use std::fmt::{Display, Formatter};
-use std::io::Write;
-use std::io::{BufRead, BufReader};
-use std::os::unix::net::UnixListener;
+use std::io::{BufRead, BufReader, BufWriter};
+use std::io::{Read, Write};
+use std::os::unix::fs::PermissionsExt;
+use std::os::unix::net::{UnixListener, UnixStream};
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::thread;
@@ -44,10 +45,7 @@ impl Display for Packet {
 
 fn log_to_daemon(daemon: &Arc<Mutex<Daemon>>, message: &str, severity: logger::Severity) {
     let mut daemon = daemon.lock().unwrap();
-    daemon.logger.log(
-        message,
-        severity,
-    );
+    daemon.logger.log(message, severity);
 }
 
 pub fn listen(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
@@ -59,26 +57,59 @@ pub fn listen(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
         let listener = match UnixListener::bind(path) {
             Ok(listener) => listener,
             Err(e) => {
-                log_to_daemon(&c_daemon_mutex, &format!("Failed to bind to {}: {}", path, e), logger::Severity::Error);
+                log_to_daemon(
+                    &c_daemon_mutex,
+                    &format!("Failed to bind to {}: {}", path, e),
+                    logger::Severity::Error,
+                );
                 return;
             }
         };
+
+        // Set the permissions on the sock
+        std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o777)).ok();
 
         // Spawn a new thread to listen for commands
         thread::spawn(move || {
             for stream in listener.incoming() {
                 match stream {
                     Ok(mut stream) => {
-                        log_to_daemon(&c_daemon_mutex, "Received connection", logger::Severity::Log);
+                        log_to_daemon(
+                            &c_daemon_mutex,
+                            "Received connection",
+                            logger::Severity::Log,
+                        );
 
                         let stream_clone = stream.try_clone().unwrap();
                         let reader = BufReader::new(stream_clone);
+                        let inner_daemon_mutex = c_daemon_mutex.clone();
 
                         thread::spawn(move || {
                             for line in reader.lines() {
-                                match parse_packet(&line.unwrap()).unwrap_or(Packet::Unknown) {
+                                let actual_line = match line {
+                                    Ok(line) => line,
+                                    Err(e) => match e.kind() {
+                                        std::io::ErrorKind::BrokenPipe => {
+                                            return;
+                                        }
+                                        _ => {
+                                            log_to_daemon(
+                                                &inner_daemon_mutex.clone(),
+                                                &format!("Failed to read line: {}", e),
+                                                logger::Severity::Error,
+                                            );
+                                            return;
+                                        }
+                                    },
+                                };
+                                match parse_packet(&actual_line).unwrap_or(Packet::Unknown) {
                                     Packet::Hello(hi) => {
-                                        let hello_packet = Packet::HelloResponse(hi, 0);
+                                        let hello_packet = Packet::HelloResponse(hi.clone(), 0);
+                                        log_to_daemon(
+                                            &inner_daemon_mutex.clone(),
+                                            &format!("Received hello packet: {}", hi),
+                                            logger::Severity::Log,
+                                        );
                                         stream
                                             .write_all(format!("{}", hello_packet).as_bytes())
                                             .unwrap();
@@ -90,12 +121,27 @@ pub fn listen(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
                         });
                     }
                     Err(err) => {
-                        log_to_daemon(&c_daemon_mutex, &format!("Failed to accept connection: {}", err), logger::Severity::Error);
+                        log_to_daemon(
+                            &c_daemon_mutex,
+                            &format!("Failed to accept connection: {}", err),
+                            logger::Severity::Error,
+                        );
                         break;
                     }
                 }
             }
         });
+    });
+}
+
+pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
+    thread::spawn(move || {
+        let mut stream = UnixStream::connect(path).unwrap();
+        let mut writer = BufWriter::new(&stream);
+        writer
+            .write_all(format!("{}", Packet::Hello("sup!".to_string())).as_bytes())
+            .unwrap();
+        writer.flush().unwrap();
     });
 }
 

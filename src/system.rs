@@ -353,6 +353,35 @@ mod tests {
     }
 
     #[test]
+    fn check_cpu_usage_unit_test() {
+        let usages = Vec::<CPU>::from([
+            CPU {
+                cur_freq: -1,
+                cur_usage: 345.0,
+                cur_temp: 453,
+                gov: "gov".to_string(),
+                max_freq: -1,
+                min_freq: -1,
+                name: "dsf".to_string(),
+                number: 0,
+            },
+            CPU {
+                cur_freq: -1,
+                cur_usage: 456.0,
+                cur_temp: 345,
+                gov: "gov".to_string(),
+                max_freq: -1,
+                min_freq: -1,
+                name: "dsf".to_string(),
+                number: 0,
+            },
+        ]);
+
+        let usage = check_cpu_usage(&usages);
+        assert_eq!(usage, 40050.0);
+    }
+
+    #[test]
     fn check_cpu_freq_acs_test() {
         assert!(check_cpu_freq(&list_cpus()) > 0.0);
     }

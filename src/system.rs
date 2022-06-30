@@ -208,14 +208,15 @@ pub fn check_bat_cond() -> Result<f32, Error> {
     Ok(bat_cond_calc)
 }
 
-pub fn get_battery_condition(check_bat_cond: f32) -> Result<f32, Error> {
+pub fn get_battery_condition(check_bat_cond: f32) -> f32 {
     let mut bat_cond = check_bat_cond * 100.0;
     if bat_cond >= 100.0 {
         bat_cond = 100.00;
     } else if bat_cond <= 0.0 {
         bat_cond = 0.0;
     }
-    Ok(bat_cond.round())
+
+    bat_cond.round()
 }
 
 fn read_govs_file() -> Result<String, Error> {
@@ -355,6 +356,133 @@ mod tests {
     #[test]
     fn check_cpu_freq_acs_test() {
         assert!(check_cpu_freq(&list_cpus()) > 0.0);
+    }
+
+    #[test]
+    fn check_cpu_usage_unit_test() {
+        let usages = Vec::<CPU>::from([
+            CPU {
+                cur_freq: -1,
+                cur_usage: 345.0,
+                cur_temp: 453,
+                gov: "gov".to_string(),
+                max_freq: -1,
+                min_freq: -1,
+                name: "dsf".to_string(),
+                number: 0,
+            },
+            CPU {
+                cur_freq: -1,
+                cur_usage: 456.0,
+                cur_temp: 345,
+                gov: "gov".to_string(),
+                max_freq: -1,
+                min_freq: -1,
+                name: "dsf".to_string(),
+                number: 0,
+            },
+        ]);
+
+        let usage = check_cpu_usage(&usages);
+        assert_eq!(usage, 40050.0);
+    }
+
+    #[test]
+    fn check_cpu_temperature_unit_test() {
+        let temps = Vec::<CPU>::from([
+            CPU {
+                cur_freq: -1,
+                cur_usage: -1.0,
+                cur_temp: 453,
+                gov: "gov".to_string(),
+                max_freq: -1,
+                min_freq: -1,
+                name: "dsf".to_string(),
+                number: 0,
+            },
+            CPU {
+                cur_freq: -1,
+                cur_usage: -1.0,
+                cur_temp: 345,
+                gov: "gov".to_string(),
+                max_freq: -1,
+                min_freq: -1,
+                name: "dsf".to_string(),
+                number: 0,
+            },
+            CPU {
+                cur_freq: -1,
+                cur_usage: -1.0,
+                cur_temp: 645,
+                gov: "gov".to_string(),
+                max_freq: -1,
+                min_freq: -1,
+                name: "dsf".to_string(),
+                number: 0,
+            },
+            CPU {
+                cur_freq: -1,
+                cur_usage: -1.0,
+                cur_temp: 234,
+                gov: "gov".to_string(),
+                max_freq: -1,
+                min_freq: -1,
+                name: "dsf".to_string(),
+                number: 0,
+            },
+        ]);
+
+        let high = check_cpu_temperature(&temps);
+        assert_eq!(high, 419.25);
+    }
+
+    #[test]
+    fn get_highest_temp_unit_test() {
+        let temps = Vec::<CPU>::from([
+            CPU {
+                cur_freq: -1,
+                cur_usage: -1.0,
+                cur_temp: 453,
+                gov: "gov".to_string(),
+                max_freq: -1,
+                min_freq: -1,
+                name: "dsf".to_string(),
+                number: 0,
+            },
+            CPU {
+                cur_freq: -1,
+                cur_usage: -1.0,
+                cur_temp: 345,
+                gov: "gov".to_string(),
+                max_freq: -1,
+                min_freq: -1,
+                name: "dsf".to_string(),
+                number: 0,
+            },
+            CPU {
+                cur_freq: -1,
+                cur_usage: -1.0,
+                cur_temp: 645,
+                gov: "gov".to_string(),
+                max_freq: -1,
+                min_freq: -1,
+                name: "dsf".to_string(),
+                number: 0,
+            },
+            CPU {
+                cur_freq: -1,
+                cur_usage: -1.0,
+                cur_temp: 234,
+                gov: "gov".to_string(),
+                max_freq: -1,
+                min_freq: -1,
+                name: "dsf".to_string(),
+                number: 0,
+            },
+        ]);
+
+        let high = get_highest_temp(&temps);
+        assert_eq!(high, 645);
     }
 
     #[test]

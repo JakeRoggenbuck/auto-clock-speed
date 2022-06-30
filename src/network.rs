@@ -5,7 +5,7 @@ use super::logger::Interface;
 use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::io::{BufRead, BufReader, BufWriter};
-use std::io::{Read, Write};
+use std::io::Write;
 use std::os::unix::fs::PermissionsExt;
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::sync::Arc;
@@ -134,9 +134,9 @@ pub fn listen(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
     });
 }
 
-pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
+pub fn hook(path: &'static str, _c_daemon_mutex: Arc<Mutex<Daemon>>) {
     thread::spawn(move || {
-        let mut stream = UnixStream::connect(path).unwrap();
+        let stream = UnixStream::connect(path).unwrap();
         let mut writer = BufWriter::new(&stream);
         writer
             .write_all(format!("{}", Packet::Hello("sup!".to_string())).as_bytes())
@@ -146,8 +146,6 @@ pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
 }
 
 mod tests {
-    use super::*;
-
     #[test]
     fn parse_packet_test() {
         assert!(parse_packet(&"0|test".to_string()).unwrap() == Packet::Hello("test".to_string()));

@@ -1,6 +1,4 @@
 use std::convert::TryInto;
-use std::io::Write;
-use std::os::unix::net::UnixStream;
 use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
 use std::{thread, time};
@@ -14,7 +12,7 @@ use super::cpu::{Speed, CPU};
 use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
-use super::network::{hook, listen, Packet};
+use super::network::{hook, listen};
 use super::power::{
     get_battery_status, has_battery, read_battery_charge, read_lid_state, read_power_source,
     LidState,

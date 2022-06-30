@@ -146,6 +146,8 @@ pub fn hook(path: &'static str, _c_daemon_mutex: Arc<Mutex<Daemon>>) {
 }
 
 mod tests {
+    use crate::network::{Packet, parse_packet};
+
     #[test]
     fn parse_packet_test() {
         assert!(parse_packet(&"0|test".to_string()).unwrap() == Packet::Hello("test".to_string()));

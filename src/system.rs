@@ -404,6 +404,55 @@ microcode	: 0xea
     }
 
     #[test]
+    fn get_highest_temp_unit_test() {
+        let temps = Vec::<CPU>::from([
+            CPU {
+                cur_freq: -1,
+                cur_usage: -1.0,
+                cur_temp: 453,
+                gov: "gov".to_string(),
+                max_freq: -1,
+                min_freq: -1,
+                name: "dsf".to_string(),
+                number: 0,
+            },
+            CPU {
+                cur_freq: -1,
+                cur_usage: -1.0,
+                cur_temp: 345,
+                gov: "gov".to_string(),
+                max_freq: -1,
+                min_freq: -1,
+                name: "dsf".to_string(),
+                number: 0,
+            },
+            CPU {
+                cur_freq: -1,
+                cur_usage: -1.0,
+                cur_temp: 645,
+                gov: "gov".to_string(),
+                max_freq: -1,
+                min_freq: -1,
+                name: "dsf".to_string(),
+                number: 0,
+            },
+            CPU {
+                cur_freq: -1,
+                cur_usage: -1.0,
+                cur_temp: 234,
+                gov: "gov".to_string(),
+                max_freq: -1,
+                min_freq: -1,
+                name: "dsf".to_string(),
+                number: 0,
+            },
+        ]);
+
+        let high = get_highest_temp(&temps);
+        assert_eq!(high, 645);
+    }
+
+    #[test]
     fn check_cpu_name_unit_test() -> Result<(), Error> {
         assert_eq!(type_of(check_cpu_name()?), type_of(String::new()));
         assert!(check_cpu_name()?.len() > 0);

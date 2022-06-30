@@ -353,6 +353,11 @@ mod tests {
     }
 
     #[test]
+    fn check_cpu_freq_acs_test() {
+        assert!(check_cpu_freq(&list_cpus()) > 0.0);
+    }
+
+    #[test]
     fn check_cpu_usage_unit_test() {
         let usages = Vec::<CPU>::from([
             CPU {
@@ -382,54 +387,52 @@ mod tests {
     }
 
     #[test]
-    fn check_cpu_freq_acs_test() {
-        assert!(check_cpu_freq(&list_cpus()) > 0.0);
-    }
+    fn check_cpu_temperature_unit_test() {
+        let temps = Vec::<CPU>::from([
+            CPU {
+                cur_freq: -1,
+                cur_usage: -1.0,
+                cur_temp: 453,
+                gov: "gov".to_string(),
+                max_freq: -1,
+                min_freq: -1,
+                name: "dsf".to_string(),
+                number: 0,
+            },
+            CPU {
+                cur_freq: -1,
+                cur_usage: -1.0,
+                cur_temp: 345,
+                gov: "gov".to_string(),
+                max_freq: -1,
+                min_freq: -1,
+                name: "dsf".to_string(),
+                number: 0,
+            },
+            CPU {
+                cur_freq: -1,
+                cur_usage: -1.0,
+                cur_temp: 645,
+                gov: "gov".to_string(),
+                max_freq: -1,
+                min_freq: -1,
+                name: "dsf".to_string(),
+                number: 0,
+            },
+            CPU {
+                cur_freq: -1,
+                cur_usage: -1.0,
+                cur_temp: 234,
+                gov: "gov".to_string(),
+                max_freq: -1,
+                min_freq: -1,
+                name: "dsf".to_string(),
+                number: 0,
+            },
+        ]);
 
-    #[test]
-    fn test_parse_proc_stat_file() {
-        let cpu_percent = get_cpu_percent().parse::<f32>().unwrap();
-        assert_eq!(type_of(cpu_percent), type_of(0.0_f32));
-        assert!(cpu_percent > 0.0 && cpu_percent < 100.0);
-    }
-
-    #[test]
-    fn get_name_from_cpu_info_unit_test() -> Result<(), Error> {
-        let cpu_info = String::from(
-            "
-processor	: 0
-vendor_id	: GenuineIntel
-cpu family	: 6
-model		: 158
-model name	: Intel(R) Core(TM) i5-7600K CPU @ 3.80GHz
-stepping	: 9
-microcode	: 0xea
-processor	: 1
-vendor_id	: GenuineIntel
-cpu family	: 6
-model		: 158
-model name	: Intel(R) Core(TM) i5-7600K CPU @ 3.80GHz
-stepping	: 9
-microcode	: 0xea
-processor	: 2
-vendor_id	: GenuineIntel
-cpu family	: 6
-model		: 158
-model name	: Intel(R) Core(TM) i5-7600K CPU @ 3.80GHz
-stepping	: 9
-microcode	: 0xea
-processor	: 3
-vendor_id	: GenuineIntel
-cpu family	: 6
-model		: 158
-model name	: Intel(R) Core(TM) i5-7600K CPU @ 3.80GHz
-stepping	: 9
-microcode	: 0xea
-            ",
-        );
-        let name = get_name_from_cpu_info(cpu_info)?;
-        assert_eq!(name, "Intel(R) Core(TM) i5-7600K CPU @ 3.80GHz");
-        Ok(())
+        let high = check_cpu_temperature(&temps);
+        assert_eq!(high, 419.25);
     }
 
     #[test]
@@ -479,6 +482,52 @@ microcode	: 0xea
 
         let high = get_highest_temp(&temps);
         assert_eq!(high, 645);
+    }
+
+    #[test]
+    fn test_parse_proc_stat_file() {
+        let cpu_percent = get_cpu_percent().parse::<f32>().unwrap();
+        assert_eq!(type_of(cpu_percent), type_of(0.0_f32));
+        assert!(cpu_percent > 0.0 && cpu_percent < 100.0);
+    }
+
+    #[test]
+    fn get_name_from_cpu_info_unit_test() -> Result<(), Error> {
+        let cpu_info = String::from(
+            "
+processor	: 0
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i5-7600K CPU @ 3.80GHz
+stepping	: 9
+microcode	: 0xea
+processor	: 1
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i5-7600K CPU @ 3.80GHz
+stepping	: 9
+microcode	: 0xea
+processor	: 2
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i5-7600K CPU @ 3.80GHz
+stepping	: 9
+microcode	: 0xea
+processor	: 3
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i5-7600K CPU @ 3.80GHz
+stepping	: 9
+microcode	: 0xea
+            ",
+        );
+        let name = get_name_from_cpu_info(cpu_info)?;
+        assert_eq!(name, "Intel(R) Core(TM) i5-7600K CPU @ 3.80GHz");
+        Ok(())
     }
 
     #[test]

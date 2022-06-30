@@ -4,8 +4,8 @@ use super::logger;
 use super::logger::Interface;
 use std::fmt;
 use std::fmt::{Display, Formatter};
-use std::io::{BufRead, BufReader, BufWriter};
 use std::io::Write;
+use std::io::{BufRead, BufReader, BufWriter};
 use std::os::unix::fs::PermissionsExt;
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::sync::Arc;
@@ -146,7 +146,7 @@ pub fn hook(path: &'static str, _c_daemon_mutex: Arc<Mutex<Daemon>>) {
 }
 
 mod tests {
-    use crate::network::{Packet, parse_packet};
+    use crate::network::{parse_packet, Packet};
 
     #[test]
     fn parse_packet_test() {

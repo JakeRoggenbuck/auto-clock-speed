@@ -80,8 +80,6 @@ pub fn listen(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
                             logger::Severity::Log,
                         );
 
-                        //let stream_clone = stream.try_clone().unwrap();
-                        //let reader = BufReader::new(stream_clone);
                         let inner_daemon_mutex = c_daemon_mutex.clone();
 
                         thread::spawn(move || {

@@ -60,11 +60,6 @@ pub fn handle_stream(stream: UnixStream, c_daemon_mutex: &Arc<Mutex<Daemon>>) {
     thread::spawn(move || {
         let reader = BufReader::new(&stream);
         for line in reader.lines() {
-            log_to_daemon(
-                &inner_daemon_mutex.clone(),
-                &format!("Before line read"),
-                logger::Severity::Error,
-            );
             let actual_line = match line {
                 Ok(line) => line,
                 Err(e) => match e.kind() {
@@ -81,11 +76,6 @@ pub fn handle_stream(stream: UnixStream, c_daemon_mutex: &Arc<Mutex<Daemon>>) {
                     }
                 },
             };
-            log_to_daemon(
-                &inner_daemon_mutex.clone(),
-                &format!("After line read"),
-                logger::Severity::Error,
-            );
             match parse_packet(&actual_line).unwrap_or(Packet::Unknown) {
                 Packet::Hello(hi) => {
                     let hello_packet = Packet::HelloResponse(hi.clone(), 0);

@@ -48,6 +48,65 @@ fn log_to_daemon(daemon: &Arc<Mutex<Daemon>>, message: &str, severity: logger::S
     daemon.logger.log(message, severity);
 }
 
+pub fn handle_stream(stream: UnixStream, c_daemon_mutex: &Arc<Mutex<Daemon>>) {
+    log_to_daemon(
+        &c_daemon_mutex,
+        "Received connection",
+        logger::Severity::Log,
+    );
+
+    let inner_daemon_mutex = c_daemon_mutex.clone();
+
+    thread::spawn(move || {
+        let reader = BufReader::new(&stream);
+        for line in reader.lines() {
+            log_to_daemon(
+                &inner_daemon_mutex.clone(),
+                &format!("Before line read"),
+                logger::Severity::Error,
+            );
+            let actual_line = match line {
+                Ok(line) => line,
+                Err(e) => match e.kind() {
+                    std::io::ErrorKind::BrokenPipe => {
+                        return;
+                    }
+                    _ => {
+                        log_to_daemon(
+                            &inner_daemon_mutex.clone(),
+                            &format!("Failed to read line: {}", e),
+                            logger::Severity::Error,
+                        );
+                        return;
+                    }
+                },
+            };
+            log_to_daemon(
+                &inner_daemon_mutex.clone(),
+                &format!("After line read"),
+                logger::Severity::Error,
+            );
+            match parse_packet(&actual_line).unwrap_or(Packet::Unknown) {
+                Packet::Hello(hi) => {
+                    let hello_packet = Packet::HelloResponse(hi.clone(), 0);
+                    log_to_daemon(
+                        &inner_daemon_mutex.clone(),
+                        &format!("Received hello packet: {}", hi),
+                        logger::Severity::Log,
+                    );
+                    let mut writer = BufWriter::new(&stream);
+                    writer
+                        .write_all(format!("{}", hello_packet).as_bytes())
+                        .unwrap();
+                    writer.flush().unwrap();
+                }
+                Packet::HelloResponse(_, _) => {}
+                Packet::Unknown => {}
+            };
+        }
+    });
+}
+
 pub fn listen(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
     thread::spawn(move || {
         // Get rid of the old sock
@@ -74,62 +133,7 @@ pub fn listen(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
             for stream in listener.incoming() {
                 match stream {
                     Ok(stream) => {
-                        log_to_daemon(
-                            &c_daemon_mutex,
-                            "Received connection",
-                            logger::Severity::Log,
-                        );
-
-                        let inner_daemon_mutex = c_daemon_mutex.clone();
-
-                        thread::spawn(move || {
-                            let reader = BufReader::new(&stream);
-                            for line in reader.lines() {
-                                log_to_daemon(
-                                    &inner_daemon_mutex.clone(),
-                                    &format!("Before line read"),
-                                    logger::Severity::Error,
-                                );
-                                let actual_line = match line {
-                                    Ok(line) => line,
-                                    Err(e) => match e.kind() {
-                                        std::io::ErrorKind::BrokenPipe => {
-                                            return;
-                                        }
-                                        _ => {
-                                            log_to_daemon(
-                                                &inner_daemon_mutex.clone(),
-                                                &format!("Failed to read line: {}", e),
-                                                logger::Severity::Error,
-                                            );
-                                            return;
-                                        }
-                                    },
-                                };
-                                log_to_daemon(
-                                    &inner_daemon_mutex.clone(),
-                                    &format!("After line read"),
-                                    logger::Severity::Error,
-                                );
-                                match parse_packet(&actual_line).unwrap_or(Packet::Unknown) {
-                                    Packet::Hello(hi) => {
-                                        let hello_packet = Packet::HelloResponse(hi.clone(), 0);
-                                        log_to_daemon(
-                                            &inner_daemon_mutex.clone(),
-                                            &format!("Received hello packet: {}", hi),
-                                            logger::Severity::Log,
-                                        );
-                                        let mut writer = BufWriter::new(&stream);
-                                        writer
-                                            .write_all(format!("{}", hello_packet).as_bytes())
-                                            .unwrap();
-                                        writer.flush().unwrap();
-                                    }
-                                    Packet::HelloResponse(_, _) => {}
-                                    Packet::Unknown => {}
-                                };
-                            }
-                        });
+                        handle_stream(stream, &c_daemon_mutex);
                     }
                     Err(err) => {
                         log_to_daemon(

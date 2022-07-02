@@ -153,7 +153,6 @@ pub fn hook(path: &'static str, _c_daemon_mutex: Arc<Mutex<Daemon>>) {
         stream
             .write_all((format!("{}", packet)).as_bytes())
             .unwrap();
-        // Sleep a bit to give the daemon time to process the packet
         stream.flush().unwrap();
         // Read the response
         let mut reader = BufReader::new(&stream);

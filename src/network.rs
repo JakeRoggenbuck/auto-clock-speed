@@ -1,6 +1,5 @@
 use super::daemon::Daemon;
 use super::error::Error;
-use super:warn_user;
 use super::logger::Interface;
 use std::fmt;
 use std::fmt::{Display, Formatter};
@@ -150,7 +149,10 @@ pub fn hook(path: &'static str, _c_daemon_mutex: Arc<Mutex<Daemon>>) {
         let mut stream = match UnixStream::connect(path) {
             Ok(stream) => stream,
             Err(e) => {
-                println!("Failed to hook into daemon at {} (is the daemon running?): {}", path, e);
+                println!(
+                    "Failed to hook into daemon at {} (is the daemon running?): {}",
+                    path, e
+                );
                 return;
             }
         };

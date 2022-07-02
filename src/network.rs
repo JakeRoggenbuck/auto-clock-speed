@@ -73,7 +73,7 @@ pub fn listen(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
         thread::spawn(move || {
             for stream in listener.incoming() {
                 match stream {
-                    Ok(mut stream) => {
+                    Ok(stream) => {
                         log_to_daemon(
                             &c_daemon_mutex,
                             "Received connection",
@@ -147,7 +147,7 @@ pub fn listen(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
     });
 }
 
-pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
+pub fn hook(path: &'static str, _c_daemon_mutex: Arc<Mutex<Daemon>>) {
     thread::spawn(move || {
         let mut stream = UnixStream::connect(path).unwrap();
         let packet = Packet::Hello("sup!".to_string());

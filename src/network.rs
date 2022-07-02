@@ -36,9 +36,9 @@ pub fn parse_packet(packet: &String) -> Result<Packet, Error> {
 impl Display for Packet {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
-            Packet::Hello(data) => write!(f, "0|{}", data),
-            Packet::HelloResponse(data, version) => write!(f, "1|{}|{}", data, version),
-            Packet::Unknown => write!(f, ""),
+            Packet::Hello(data) => write!(f, "0|{}\n", data),
+            Packet::HelloResponse(data, version) => write!(f, "1|{}|{}\n", data, version),
+            Packet::Unknown => write!(f, "\n"),
         }
     }
 }
@@ -80,12 +80,18 @@ pub fn listen(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
                             logger::Severity::Log,
                         );
 
-                        let stream_clone = stream.try_clone().unwrap();
-                        let reader = BufReader::new(stream_clone);
+                        //let stream_clone = stream.try_clone().unwrap();
+                        //let reader = BufReader::new(stream_clone);
                         let inner_daemon_mutex = c_daemon_mutex.clone();
 
                         thread::spawn(move || {
+                            let reader = BufReader::new(&stream);
                             for line in reader.lines() {
+                                log_to_daemon(
+                                    &inner_daemon_mutex.clone(),
+                                    &format!("Before line read"),
+                                    logger::Severity::Error,
+                                );
                                 let actual_line = match line {
                                     Ok(line) => line,
                                     Err(e) => match e.kind() {
@@ -102,6 +108,11 @@ pub fn listen(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
                                         }
                                     },
                                 };
+                                log_to_daemon(
+                                    &inner_daemon_mutex.clone(),
+                                    &format!("After line read"),
+                                    logger::Severity::Error,
+                                );
                                 match parse_packet(&actual_line).unwrap_or(Packet::Unknown) {
                                     Packet::Hello(hi) => {
                                         let hello_packet = Packet::HelloResponse(hi.clone(), 0);
@@ -110,9 +121,11 @@ pub fn listen(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
                                             &format!("Received hello packet: {}", hi),
                                             logger::Severity::Log,
                                         );
-                                        stream
+                                        let mut writer = BufWriter::new(&stream);
+                                        writer
                                             .write_all(format!("{}", hello_packet).as_bytes())
                                             .unwrap();
+                                        writer.flush().unwrap();
                                     }
                                     Packet::HelloResponse(_, _) => {}
                                     Packet::Unknown => {}
@@ -134,14 +147,23 @@ pub fn listen(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
     });
 }
 
-pub fn hook(path: &'static str, _c_daemon_mutex: Arc<Mutex<Daemon>>) {
+pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
     thread::spawn(move || {
-        let stream = UnixStream::connect(path).unwrap();
-        let mut writer = BufWriter::new(&stream);
-        writer
-            .write_all(format!("{}", Packet::Hello("sup!".to_string())).as_bytes())
+        let mut stream = UnixStream::connect(path).unwrap();
+        let packet = Packet::Hello("sup!".to_string());
+        println!("{}", packet);
+        stream 
+            .write_all((format!("{}", packet)).as_bytes())
             .unwrap();
-        writer.flush().unwrap();
+        // Sleep a bit to give the daemon time to process the packet
+        stream.flush().unwrap();
+        // Read the response
+        let mut reader = BufReader::new(&stream);
+        let mut line = String::new();
+        reader.read_line(&mut line).unwrap();
+        println!("Response: {}", line);
+        stream.shutdown(std::net::Shutdown::Both).unwrap();
+
     });
 }
 

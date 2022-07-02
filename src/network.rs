@@ -1,6 +1,6 @@
 use super::daemon::Daemon;
 use super::error::Error;
-use super::logger;
+use super:warn_user;
 use super::logger::Interface;
 use std::fmt;
 use std::fmt::{Display, Formatter};
@@ -147,9 +147,15 @@ pub fn listen(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
 
 pub fn hook(path: &'static str, _c_daemon_mutex: Arc<Mutex<Daemon>>) {
     thread::spawn(move || {
-        let mut stream = UnixStream::connect(path).unwrap();
+        let mut stream = match UnixStream::connect(path) {
+            Ok(stream) => stream,
+            Err(e) => {
+                println!("Failed to hook into daemon at {} (is the daemon running?): {}", path, e);
+                return;
+            }
+        };
         let packet = Packet::Hello("sup!".to_string());
-        println!("{}", packet);
+        println!("(debug not for production) Sending out: {}", packet);
         stream
             .write_all((format!("{}", packet)).as_bytes())
             .unwrap();
@@ -158,7 +164,7 @@ pub fn hook(path: &'static str, _c_daemon_mutex: Arc<Mutex<Daemon>>) {
         let mut reader = BufReader::new(&stream);
         let mut line = String::new();
         reader.read_line(&mut line).unwrap();
-        println!("Response: {}", line);
+        println!("(debug not for production) Response: {}", line);
         stream.shutdown(std::net::Shutdown::Both).unwrap();
     });
 }

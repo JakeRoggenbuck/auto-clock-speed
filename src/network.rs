@@ -152,7 +152,7 @@ pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
         let mut stream = UnixStream::connect(path).unwrap();
         let packet = Packet::Hello("sup!".to_string());
         println!("{}", packet);
-        stream 
+        stream
             .write_all((format!("{}", packet)).as_bytes())
             .unwrap();
         // Sleep a bit to give the daemon time to process the packet
@@ -163,7 +163,6 @@ pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
         reader.read_line(&mut line).unwrap();
         println!("Response: {}", line);
         stream.shutdown(std::net::Shutdown::Both).unwrap();
-
     });
 }
 

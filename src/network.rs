@@ -1,5 +1,6 @@
 use super::daemon::Daemon;
 use super::error::Error;
+use super::logger;
 use super::logger::Interface;
 use std::fmt;
 use std::fmt::{Display, Formatter};
@@ -171,6 +172,7 @@ pub fn hook(path: &'static str, _c_daemon_mutex: Arc<Mutex<Daemon>>) {
     });
 }
 
+#[cfg(test)]
 mod tests {
     use crate::network::{parse_packet, Packet};
 

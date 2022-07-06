@@ -27,7 +27,7 @@ use std::{thread, time};
 use structopt::StructOpt;
 
 use config::{config_dir_exists, get_config, init_config};
-use daemon::{daemon_init, Checker};
+use daemon::daemon_init;
 use display::show_config;
 use error::Error;
 use interactive::interactive;
@@ -43,6 +43,7 @@ pub mod graph;
 pub mod interactive;
 pub mod interface;
 pub mod logger;
+pub mod network;
 pub mod power;
 pub mod settings;
 pub mod system;
@@ -238,8 +239,6 @@ enum ACSCommand {
 }
 
 fn parse_args(config: config::Config) {
-    let mut daemon: daemon::Daemon;
-
     let set_settings = Settings {
         verbose: true,
         delay_battery: 0,
@@ -362,8 +361,7 @@ fn parse_args(config: config::Config) {
 
             match daemon_init(settings, config) {
                 Ok(d) => {
-                    daemon = d;
-                    daemon.run().unwrap_err();
+                    daemon::run(d).unwrap_err();
                 }
                 Err(_) => eprint!("Could not run daemon in edit mode"),
             }
@@ -419,8 +417,7 @@ fn parse_args(config: config::Config) {
 
             match daemon_init(settings, config) {
                 Ok(d) => {
-                    daemon = d;
-                    daemon.run().unwrap_err();
+                    daemon::run(d).unwrap_err();
                 }
                 Err(_) => eprint!("Could not run daemon in monitor mode"),
             }

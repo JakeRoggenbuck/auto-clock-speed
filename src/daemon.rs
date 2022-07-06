@@ -1,4 +1,5 @@
 use std::convert::TryInto;
+use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
 use std::{thread, time};
 
@@ -11,6 +12,7 @@ use super::cpu::{Speed, CPU};
 use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
+use super::network::{hook, listen};
 use super::power::{
     get_battery_status, has_battery, read_battery_charge, read_lid_state, read_power_source,
     LidState,
@@ -59,7 +61,6 @@ pub trait Checker {
         operation: &dyn Fn(&mut CPU) -> Result<(), Error>,
     ) -> Result<(), Error>;
 
-    fn run(&mut self) -> Result<(), Error>;
     fn init(&mut self);
 
     fn start_loop(&mut self) -> Result<(), Error>;
@@ -185,40 +186,6 @@ impl Checker for Daemon {
         state
     }
 
-    fn run(&mut self) -> Result<(), Error> {
-        self.init();
-
-        if self.settings.testing {
-            // Choose which mode acs runs in
-            if self.settings.edit {
-                let mut reps = 4;
-                while reps > 0 {
-                    self.single_edit()?;
-                    reps -= 1;
-                }
-            } else {
-                let mut reps = 4;
-                while reps > 0 {
-                    self.single_monit()?;
-                    reps -= 1;
-                }
-            }
-        } else {
-            // Choose which mode acs runs in
-            if self.settings.edit {
-                loop {
-                    self.single_edit()?;
-                }
-            } else {
-                loop {
-                    self.single_monit()?;
-                }
-            }
-        }
-
-        Ok(())
-    }
-
     fn init(&mut self) {
         // Get the commit hash from the compile time env variable
         if self.settings.commit {
@@ -246,12 +213,6 @@ impl Checker for Daemon {
         // Print the each cpu, each iteration
         if self.settings.verbose {
             self.print();
-        }
-
-        if self.charging {
-            thread::sleep(self.timeout);
-        } else {
-            thread::sleep(self.timeout_battery);
         }
     }
 
@@ -471,7 +432,7 @@ fn format_message(
     )
 }
 
-pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> {
+pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemon>>, Error> {
     let started_as_edit: bool = settings.edit;
     let mut edit = settings.edit;
     let mut forced_reason: String = String::new();
@@ -557,7 +518,72 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Daemon, Error> 
         daemon.cpus.push(cpu);
     }
 
-    Ok(daemon)
+    let daemon_mutex = Arc::new(Mutex::new(daemon));
+
+    let c_daemon_mutex = Arc::clone(&daemon_mutex);
+    if settings.edit {
+        // Listen for acs clients
+        listen("/tmp/acs.sock", c_daemon_mutex);
+    } else {
+        // Broadcast hello message
+        hook("/tmp/acs.sock", c_daemon_mutex);
+    }
+
+    Ok(daemon_mutex)
+}
+
+pub fn run(daemon_mutex: Arc<Mutex<Daemon>>) -> Result<(), Error> {
+    // Aquire the lock for a bit
+    let mut daemon = daemon_mutex.lock().unwrap();
+
+    daemon.init();
+
+    if daemon.settings.testing {
+        // Choose which mode acs runs in
+        if daemon.settings.edit {
+            let mut reps = 4;
+            while reps > 0 {
+                daemon.single_edit()?;
+                reps -= 1;
+            }
+        } else {
+            let mut reps = 4;
+            while reps > 0 {
+                daemon.single_monit()?;
+                reps -= 1;
+            }
+        }
+    } else {
+        // Before runnig the loop drop the lock and aquire it again later within the loop
+        let mode = daemon.settings.edit.clone();
+
+        let effective_timeout = if daemon.charging {
+            daemon.timeout.clone()
+        } else {
+            daemon.timeout_battery.clone()
+        };
+
+        drop(daemon);
+
+        // Choose which mode acs runs in
+        if mode {
+            loop {
+                let mut daemon = daemon_mutex.lock().unwrap();
+                daemon.single_edit()?;
+                drop(daemon);
+                thread::sleep(effective_timeout);
+            }
+        } else {
+            loop {
+                let mut daemon = daemon_mutex.lock().unwrap();
+                daemon.single_monit()?;
+                drop(daemon);
+                thread::sleep(effective_timeout);
+            }
+        }
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]
@@ -580,7 +606,8 @@ mod tests {
 
         let config = default_config();
 
-        let daemon = daemon_init(settings, config).unwrap();
+        let daemon_mutex = daemon_init(settings, config).unwrap();
+        let daemon = daemon_mutex.lock().unwrap();
 
         if Uid::effective().is_root() {
             assert_eq!(daemon.settings.edit, true);
@@ -606,8 +633,9 @@ mod tests {
 
         let config = default_config();
 
-        let mut daemon = daemon_init(settings, config).unwrap();
-        let preprint = Checker::preprint_render(&mut daemon);
+        let daemon_mutex = daemon_init(settings, config).unwrap();
+        let mut daemon = daemon_mutex.lock().unwrap();
+        let preprint = daemon.preprint_render();
         if Uid::effective().is_root() {
             assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[31medit\u{1b}[0m mode with a delay of 1ms normally and 2ms when on battery"));
         } else {
@@ -635,8 +663,9 @@ mod tests {
 
         let config = default_config();
 
-        let mut daemon = daemon_init(settings, config).unwrap();
-        let preprint = Checker::preprint_render(&mut daemon);
+        let daemon_mutex = daemon_init(settings, config).unwrap();
+        let mut daemon = daemon_mutex.lock().unwrap();
+        let preprint = daemon.preprint_render();
         assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[33mmonitor\u{1b}[0m mode with a delay of 1ms normally and 2ms when on battery\n"));
         assert!(preprint.contains("Name  Max\tMin\tFreq\tTemp\tUsage\tGovernor\n"));
         assert!(preprint.contains("Hz"));

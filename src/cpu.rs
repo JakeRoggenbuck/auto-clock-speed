@@ -1,3 +1,4 @@
+use rand::Rng;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
@@ -22,6 +23,7 @@ pub trait Speed {
     fn set_gov(&mut self, gov: String) -> Result<(), Error>;
     fn print(&self);
     fn render(&self) -> String;
+    fn random() -> CPU;
 }
 
 #[derive(Debug, Clone)]
@@ -177,5 +179,37 @@ impl Speed for CPU {
 
     fn render(&self) -> String {
         render_cpu(self)
+    }
+
+    fn random() -> CPU {
+        let mut rng = rand::thread_rng();
+        CPU {
+            name: "TEST__0".to_string(),
+            number: rng.gen_range(0..100),
+            max_freq: rng.gen_range(0..100000),
+            min_freq: rng.gen_range(0..10000),
+            cur_freq: rng.gen_range(0..100000),
+            cur_temp: rng.gen_range(0..100000),
+            cur_usage: rng.gen::<f32>(),
+            gov: if rng.gen_bool(0.5) {
+                "powersave".to_string()
+            } else {
+                "performance".to_string()
+            },
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cpu_random_unit_test() {
+        let cpu_1 = CPU::random();
+        let cpu_2 = CPU::random();
+
+        assert_ne!(cpu_1.cur_temp, cpu_2.cur_temp);
+        assert_ne!(cpu_1.max_freq, cpu_2.max_freq);
     }
 }

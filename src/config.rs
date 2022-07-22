@@ -52,10 +52,7 @@ pub fn init_config() {
                         return;
                     }
                     _ => {
-                        print_error!(format!(
-                            "Failed to create config directory: {}",
-                            error
-                        ));
+                        print_error!(format!("Failed to create config directory: {}", error));
                         return;
                     }
                 },

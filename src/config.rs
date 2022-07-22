@@ -51,10 +51,10 @@ pub fn init_config() {
                         print_error!("Could not create config directory '/etc/acs/'. Permission denied. Try running as root or use sudo.");
                         return;
                     }
-                    other_error => {
+                    _ => {
                         print_error!(format!(
                             "Failed to create config directory: {}",
-                            other_error
+                            error
                         ));
                         return;
                     }
@@ -69,8 +69,8 @@ pub fn init_config() {
                     print_error!("Looks like you don't have permission to write to /etc/acs/acs.toml. Try running this program as root or using sudo.");
                     return;
                 }
-                other_error => {
-                    print_error!(format!("Failed to create config file: {}", other_error));
+                _ => {
+                    print_error!(format!("Failed to create config file: {}", error));
                     return;
                 }
             },

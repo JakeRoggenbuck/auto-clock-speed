@@ -157,7 +157,7 @@ impl fmt::Display for Config {
         // config iterable. This would also make safe_fill_config a lot easier as well.
         write!(
             f,
-            "powersave_under = {}\noverheat_threshold = {}\nhigh_cpu_threshold = {}\nacive_rules = {:?}",
+            "powersave_under = {}\noverheat_threshold = {}\nhigh_cpu_threshold = {}\nactive_rules = {:?}",
             self.powersave_under, self.overheat_threshold, self.high_cpu_threshold, self.active_rules,
         )
     }

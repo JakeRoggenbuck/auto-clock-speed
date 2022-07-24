@@ -23,6 +23,7 @@ serde = { version = "1.0", features = ["derive"] }
 rasciigraph = "0.1.1"
 colored = "2"
 cached = "0.30.0"
+rand = "0.8.5"
 
 [[bin]]
 name = "acs"

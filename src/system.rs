@@ -200,8 +200,8 @@ pub fn check_turbo_enabled() -> Result<bool, Error> {
 }
 
 pub fn check_bat_cond() -> Result<f32, Error> {
-    let bat_cond_calc: f32 =
-        read_bat_energy_full(false).unwrap_or(0) as f32 / read_bat_energy_full(true).unwrap_or(0) as f32;
+    let bat_cond_calc: f32 = read_bat_energy_full(false).unwrap_or(0) as f32
+        / read_bat_energy_full(true).unwrap_or(0) as f32;
     Ok(bat_cond_calc)
 }
 

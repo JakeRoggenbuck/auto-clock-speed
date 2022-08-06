@@ -227,7 +227,7 @@ enum ACSCommand {
         /// No animations, for systemctl updating issue
         #[structopt(short, long)]
         no_animation: bool,
-        
+
         /// Hook
         #[structopt(short = "h", long = "--hook")]
         hook: bool,

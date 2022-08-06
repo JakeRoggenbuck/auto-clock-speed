@@ -142,7 +142,10 @@ pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
             Err(e) => {
                 log_to_daemon(
                     &c_daemon_mutex,
-                    &format!("Failed to connect to {} (is the daemon running?): {}", path, e),
+                    &format!(
+                        "Failed to connect to {} (is the daemon running?): {}",
+                        path, e
+                    ),
                     logger::Severity::Error,
                 );
                 return;

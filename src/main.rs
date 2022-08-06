@@ -336,14 +336,8 @@ fn parse_args(config: config::Config) {
                 None => {}
             }
 
-            let mut effective_delay_battery = match delay_battery {
-                Some(s) => s,
-                None => 5000,
-            };
-            let regular_delay = match delay {
-                Some(s) => s,
-                None => 1000,
-            };
+            let mut effective_delay_battery = delay_battery.unwrap_or(5000);
+            let regular_delay = delay.unwrap_or(1000);
             if parsed_graph_type != GraphType::Hidden {
                 effective_delay_battery = regular_delay;
             }
@@ -392,14 +386,8 @@ fn parse_args(config: config::Config) {
                 None => {}
             }
 
-            let mut effective_delay_battery = match delay_battery {
-                Some(s) => s,
-                None => 5000,
-            };
-            let regular_delay = match delay {
-                Some(s) => s,
-                None => 1000,
-            };
+            let mut effective_delay_battery = delay_battery.unwrap_or(5000);
+            let regular_delay = delay.unwrap_or(1000);
             if parsed_graph_type != GraphType::Hidden {
                 effective_delay_battery = regular_delay;
             }

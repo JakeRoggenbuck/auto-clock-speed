@@ -38,7 +38,7 @@ pub struct CPU {
     pub gov: String,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum WritableValue {
     Min,
     Max,
@@ -89,7 +89,7 @@ impl Speed for CPU {
 
         let path: String = format!("/sys/devices/system/cpu/{}/{}", self.name, sub_path);
         let mut buffer = File::create(path)?;
-        buffer.write(&to_write.as_bytes())?;
+        buffer.write(to_write.as_bytes())?;
 
         Ok(())
     }
@@ -168,7 +168,7 @@ impl Speed for CPU {
     }
 
     fn set_gov(&mut self, gov: String) -> Result<(), Error> {
-        self.gov = gov.clone();
+        self.gov = gov;
         self.write_value(WritableValue::Gov)?;
         Ok(())
     }

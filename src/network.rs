@@ -12,7 +12,7 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::thread;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Eq, Debug)]
 pub enum Packet {
     Hello(String),
     HelloResponse(String, u32),
@@ -20,7 +20,7 @@ pub enum Packet {
 }
 
 pub fn parse_packet(packet: &String) -> Result<Packet, Error> {
-    let mut packet_split = packet.split("|");
+    let mut packet_split = packet.split('|');
     let packet_type = packet_split.next().unwrap_or("?");
     let packet_data = packet_split.next().unwrap_or("?");
     match packet_type {
@@ -36,9 +36,9 @@ pub fn parse_packet(packet: &String) -> Result<Packet, Error> {
 impl Display for Packet {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
-            Packet::Hello(data) => write!(f, "0|{}\n", data),
-            Packet::HelloResponse(data, version) => write!(f, "1|{}|{}\n", data, version),
-            Packet::Unknown => write!(f, "\n"),
+            Packet::Hello(data) => writeln!(f, "0|{}", data),
+            Packet::HelloResponse(data, version) => writeln!(f, "1|{}|{}", data, version),
+            Packet::Unknown => writeln!(f),
         }
     }
 }
@@ -49,11 +49,7 @@ fn log_to_daemon(daemon: &Arc<Mutex<Daemon>>, message: &str, severity: logger::S
 }
 
 pub fn handle_stream(stream: UnixStream, c_daemon_mutex: &Arc<Mutex<Daemon>>) {
-    log_to_daemon(
-        &c_daemon_mutex,
-        "Received connection",
-        logger::Severity::Log,
-    );
+    log_to_daemon(c_daemon_mutex, "Received connection", logger::Severity::Log);
 
     let inner_daemon_mutex = c_daemon_mutex.clone();
 

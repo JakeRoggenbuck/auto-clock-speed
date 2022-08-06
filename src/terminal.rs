@@ -9,7 +9,7 @@ pub struct TermSize {
 pub fn terminal_width() -> usize {
     unsafe {
         let mut size: TermSize = mem::zeroed();
-        ioctl(STDOUT_FILENO, TIOCGWINSZ.into(), &mut size as *mut _);
-        return size.col as usize;
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &mut size as *mut _);
+        size.col as usize
     }
 }

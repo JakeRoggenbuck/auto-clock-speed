@@ -29,7 +29,7 @@ use crate::display::print_turbo_status;
 use crate::system::check_bat_cond;
 use crate::warn_user;
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub enum State {
     Normal,
     #[serde(rename = "battery_percent_rule")]
@@ -165,22 +165,20 @@ impl Checker for Daemon {
             }
         }
 
-        if self.config.active_rules.contains(&State::LidClosed) {
-            if self.lid_state == LidState::Closed {
-                state = State::LidClosed;
-            }
+        if self.config.active_rules.contains(&State::LidClosed)
+            && self.lid_state == LidState::Closed
+        {
+            state = State::LidClosed;
         }
 
-        if self.config.active_rules.contains(&State::Charging) {
-            if self.charging {
-                state = State::Charging;
-            }
+        if self.config.active_rules.contains(&State::Charging) && self.charging {
+            state = State::Charging;
         }
 
-        if self.config.active_rules.contains(&State::BatteryLow) {
-            if self.charge < self.config.powersave_under {
-                state = State::BatteryLow;
-            }
+        if self.config.active_rules.contains(&State::BatteryLow)
+            && self.charge < self.config.powersave_under
+        {
+            state = State::BatteryLow;
         }
 
         state
@@ -288,10 +286,7 @@ impl Checker for Daemon {
 
         let mut battery_condition: String = "N/A".to_string();
         if let Ok(check_bat_cond) = check_bat_cond() {
-            battery_condition = format!(
-                "Condition: {}%",
-                get_battery_condition(check_bat_cond).to_string()
-            );
+            battery_condition = format!("Condition: {}%", get_battery_condition(check_bat_cond));
         } else {
             println!("Failed to get battery condition");
         }
@@ -389,15 +384,15 @@ impl Checker for Daemon {
     }
 
     fn set_govs(&mut self, gov: String) -> Result<(), Error> {
-        if gov == "performance".to_string() {
+        if gov == *"performance" {
             return self.apply_to_cpus(&make_gov_performance);
-        } else if gov == "powersave".to_string() {
+        } else if gov == *"powersave" {
             return self.apply_to_cpus(&make_gov_powersave);
-        } else if gov == "schedutil".to_string() {
+        } else if gov == *"schedutil" {
             warn_user!("schedutil governor not officially supported");
             return self.apply_to_cpus(&make_gov_schedutil);
         } else if check_available_governors().is_ok() {
-            if check_available_governors().unwrap().contains(&gov.into()) {
+            if check_available_governors().unwrap().contains(&gov) {
                 self.logger
                     .log("Other governors not supported yet", logger::Severity::Log);
             } else {
@@ -449,8 +444,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         if !Uid::effective().is_root() {
             if !settings.testing {
                 println!(
-                "{}{}",
-                "In order to properly run the daemon in edit mode you must give the executable root privileges.\n",
+                "In order to properly run the daemon in edit mode you must give the executable root privileges.\n{}",
                 "Continuing anyway in 5 seconds...".red()
             );
 
@@ -555,12 +549,12 @@ pub fn run(daemon_mutex: Arc<Mutex<Daemon>>) -> Result<(), Error> {
         }
     } else {
         // Before runnig the loop drop the lock and aquire it again later within the loop
-        let mode = daemon.settings.edit.clone();
+        let mode = daemon.settings.edit;
 
         let effective_timeout = if daemon.charging {
-            daemon.timeout.clone()
+            daemon.timeout
         } else {
-            daemon.timeout_battery.clone()
+            daemon.timeout_battery
         };
 
         drop(daemon);
@@ -644,7 +638,7 @@ mod tests {
         assert!(preprint.contains("Name  Max\tMin\tFreq\tTemp\tUsage\tGovernor\n"));
         assert!(preprint.contains("Hz"));
         assert!(preprint.contains("cpu"));
-        assert!(preprint.contains("C"));
+        assert!(preprint.contains('C'));
         assert!(preprint.contains("Battery: "));
     }
 
@@ -670,7 +664,7 @@ mod tests {
         assert!(preprint.contains("Name  Max\tMin\tFreq\tTemp\tUsage\tGovernor\n"));
         assert!(preprint.contains("Hz"));
         assert!(preprint.contains("cpu"));
-        assert!(preprint.contains("C"));
+        assert!(preprint.contains('C'));
         assert!(preprint.contains("Battery: "));
     }
 }

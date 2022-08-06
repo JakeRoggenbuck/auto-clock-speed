@@ -521,7 +521,9 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         listen("/tmp/acs.sock", c_daemon_mutex);
     } else {
         // Broadcast hello message
-        hook("/tmp/acs.sock", c_daemon_mutex);
+        if settings.hook {
+            hook("/tmp/acs.sock", c_daemon_mutex);
+        }
     }
 
     Ok(daemon_mutex)

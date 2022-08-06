@@ -135,14 +135,15 @@ pub fn listen(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
     });
 }
 
-pub fn hook(path: &'static str, _c_daemon_mutex: Arc<Mutex<Daemon>>) {
+pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
     thread::spawn(move || {
         let mut stream = match UnixStream::connect(path) {
             Ok(stream) => stream,
             Err(e) => {
-                println!(
-                    "Failed to hook into daemon at {} (is the daemon running?): {}",
-                    path, e
+                log_to_daemon(
+                    &c_daemon_mutex,
+                    &format!("Failed to connect to {} (is the daemon running?): {}", path, e),
+                    logger::Severity::Error,
                 );
                 return;
             }

@@ -60,7 +60,8 @@ impl fmt::Display for GovGetError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "Could not get the governor, possibly incompatible cpu.\n{}", BUG_REPORT
+            "Could not get the governor, possibly incompatible cpu.\n{}",
+            BUG_REPORT
         )
     }
 }
@@ -69,7 +70,8 @@ impl fmt::Display for SpeedGetError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "Could not get the speed, possibly incompatible cpu.{}", BUG_REPORT
+            "Could not get the speed, possibly incompatible cpu.{}",
+            BUG_REPORT
         )
     }
 }
@@ -78,7 +80,8 @@ impl fmt::Display for TempGetError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "Could not get the temperature, possibly incompatible cpu or system.{}", BUG_REPORT
+            "Could not get the temperature, possibly incompatible cpu or system.{}",
+            BUG_REPORT
         )
     }
 }

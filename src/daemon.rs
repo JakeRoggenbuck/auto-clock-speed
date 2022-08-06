@@ -165,7 +165,9 @@ impl Checker for Daemon {
             }
         }
 
-        if self.config.active_rules.contains(&State::LidClosed) && self.lid_state == LidState::Closed {
+        if self.config.active_rules.contains(&State::LidClosed)
+            && self.lid_state == LidState::Closed
+        {
             state = State::LidClosed;
         }
 
@@ -173,7 +175,9 @@ impl Checker for Daemon {
             state = State::Charging;
         }
 
-        if self.config.active_rules.contains(&State::BatteryLow) && self.charge < self.config.powersave_under {
+        if self.config.active_rules.contains(&State::BatteryLow)
+            && self.charge < self.config.powersave_under
+        {
             state = State::BatteryLow;
         }
 
@@ -282,10 +286,7 @@ impl Checker for Daemon {
 
         let mut battery_condition: String = "N/A".to_string();
         if let Ok(check_bat_cond) = check_bat_cond() {
-            battery_condition = format!(
-                "Condition: {}%",
-                get_battery_condition(check_bat_cond)
-            );
+            battery_condition = format!("Condition: {}%", get_battery_condition(check_bat_cond));
         } else {
             println!("Failed to get battery condition");
         }

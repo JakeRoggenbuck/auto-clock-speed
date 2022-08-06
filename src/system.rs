@@ -19,10 +19,7 @@ pub fn check_cpu_freq(cpus: &Vec<CPU>) -> f32 {
 
 /// Find the average usage of all cores
 pub fn check_cpu_usage(cpus: &Vec<CPU>) -> f32 {
-    let usage: Vec<i32> = cpus
-        .iter()
-        .map(|x| (x.cur_usage * 100.0) as i32)
-        .collect();
+    let usage: Vec<i32> = cpus.iter().map(|x| (x.cur_usage * 100.0) as i32).collect();
     let sum: i32 = Iterator::sum(usage.iter());
     sum as f32 / usage.len() as f32
 }

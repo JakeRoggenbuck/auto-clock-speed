@@ -78,7 +78,6 @@ pub fn init_config() {
         println!("Created config file at '/etc/acs/acs.toml'");
     } else {
         warn_user!("Config file already exists at '/etc/acs/acs.toml'. No changes made.");
-        
     }
 }
 

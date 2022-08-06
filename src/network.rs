@@ -49,11 +49,7 @@ fn log_to_daemon(daemon: &Arc<Mutex<Daemon>>, message: &str, severity: logger::S
 }
 
 pub fn handle_stream(stream: UnixStream, c_daemon_mutex: &Arc<Mutex<Daemon>>) {
-    log_to_daemon(
-        c_daemon_mutex,
-        "Received connection",
-        logger::Severity::Log,
-    );
+    log_to_daemon(c_daemon_mutex, "Received connection", logger::Severity::Log);
 
     let inner_daemon_mutex = c_daemon_mutex.clone();
 

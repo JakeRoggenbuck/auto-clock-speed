@@ -470,6 +470,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         delay_battery: settings.delay_battery,
         edit, // Use new edit for new settings
         no_animation: settings.no_animation,
+        hook: settings.hook,
         graph: settings.graph,
         commit: settings.commit,
         testing: settings.testing,
@@ -520,7 +521,9 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         listen("/tmp/acs.sock", c_daemon_mutex);
     } else {
         // Broadcast hello message
-        hook("/tmp/acs.sock", c_daemon_mutex);
+        if settings.hook {
+            hook("/tmp/acs.sock", c_daemon_mutex);
+        }
     }
 
     Ok(daemon_mutex)
@@ -591,6 +594,7 @@ mod tests {
             verbose: true,
             delay: 1,
             delay_battery: 2,
+            hook: false,
             edit: true,
             no_animation: false,
             graph: GraphType::Hidden,
@@ -618,6 +622,7 @@ mod tests {
             verbose: true,
             delay: 1,
             delay_battery: 2,
+            hook: false,
             edit: true,
             no_animation: false,
             graph: GraphType::Hidden,
@@ -648,6 +653,7 @@ mod tests {
             verbose: true,
             delay: 1,
             delay_battery: 2,
+            hook: false,
             edit: false,
             no_animation: false,
             graph: GraphType::Hidden,

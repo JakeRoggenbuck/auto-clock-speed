@@ -42,6 +42,7 @@ pub fn interactive() {
         delay_battery: 0,
         delay: 0,
         edit: false,
+        hook: false,
         no_animation: false,
         graph: GraphType::Hidden,
         commit: false,

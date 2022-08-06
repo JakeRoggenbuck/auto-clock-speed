@@ -108,7 +108,7 @@ pub fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize, d
         Ok(turbo) => {
             let enabled_message = if turbo { "yes" } else { "no" };
 
-            println!("{} {}", "  Turbo:", enabled_message.bold(),);
+            println!("  Turbo: {}", enabled_message.bold(),);
 
             if !no_animation {
                 print_turbo_animation(cores, turbo_y_pos, delay);
@@ -127,7 +127,7 @@ fn print_vec<T: Display>(t: Vec<T>, raw: bool) {
         for x in t {
             print!("{} ", x);
         }
-        print!("\n")
+        println!()
     }
 }
 

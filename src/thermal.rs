@@ -60,14 +60,8 @@ pub fn read_thermal_zones() -> Vec<ThermalZone> {
 
         zone.temp = read_int(&[&path_string, "/temp"].concat()).unwrap_or(0);
         zone.name = read_str(&[&path_string, "/type"].concat()).unwrap_or("unknown".to_string());
-        zone.enabled = if read_str(&[&path_string, "/mode"].concat())
-            .unwrap_or("disable".to_string())
-            == "enabled"
-        {
-            true
-        } else {
-            false
-        };
+        zone.enabled = read_str(&[&path_string, "/mode"].concat())
+            .unwrap_or("disable".to_string()) == "enabled";
         zone.path = path_string;
 
         zones.push(zone);

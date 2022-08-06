@@ -78,7 +78,7 @@ pub fn init_config() {
         println!("Created config file at '/etc/acs/acs.toml'");
     } else {
         warn_user!("Config file already exists at '/etc/acs/acs.toml'. No changes made.");
-        return;
+        
     }
 }
 
@@ -144,7 +144,7 @@ impl SafeFillConfig for SafeConfig {
             }
         }
 
-        return base;
+        base
     }
 }
 
@@ -164,14 +164,14 @@ fn read_as_string(config_file: &mut File) -> String {
     // Read it to new string
     let mut config: String = String::new();
     config_file.read_to_string(&mut config).unwrap();
-    return config;
+    config
 }
 
 fn parse_as_toml(config: String) -> Config {
     let mut safe_config: SafeConfig =
         // Read the config from config string and if it fails, give the base config with undefined
         // variables so that the defined variables can be swapped in
-        toml::from_str(config.as_str()).unwrap_or_else(|_| SafeConfig {
+        toml::from_str(config.as_str()).unwrap_or(SafeConfig {
             powersave_under: None,
             overheat_threshold: None,
             high_cpu_threshold: None,

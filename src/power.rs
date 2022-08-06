@@ -9,28 +9,28 @@ use std::path::Path;
 use super::create_issue;
 use super::Error;
 
-const LID_STATUS_PATH: [&'static str; 4] = [
+const LID_STATUS_PATH: [&str; 4] = [
     "/proc/acpi/button/lid/LID/state",
     "/proc/acpi/button/lid/LID0/state",
     "/proc/acpi/button/lid/LID1/state",
     "/proc/acpi/button/lid/LID2/state",
 ];
 
-const BATTERY_CHARGE_PATH: [&'static str; 4] = [
+const BATTERY_CHARGE_PATH: [&str; 4] = [
     "/sys/class/power_supply/BAT/capacity",
     "/sys/class/power_supply/BAT0/capacity",
     "/sys/class/power_supply/BAT1/capacity",
     "/sys/class/power_supply/BAT2/capacity",
 ];
 
-const POWER_SOURCE_PATH: [&'static str; 4] = [
+const POWER_SOURCE_PATH: [&str; 4] = [
     "/sys/class/power_supply/AC/online",
     "/sys/class/power_supply/AC0/online",
     "/sys/class/power_supply/AC1/online",
     "/sys/class/power_supply/ACAD/online",
 ];
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum LidState {
     Open,
     Closed,
@@ -62,7 +62,7 @@ pub fn get_best_path(paths: [&'static str; 4]) -> Result<&str, Error> {
         }
     }
 
-    return Err(Error::Unknown);
+    Err(Error::Unknown)
 }
 
 pub fn read_lid_state() -> Result<LidState, Error> {
@@ -157,5 +157,5 @@ pub fn read_power_source() -> Result<bool, Error> {
     // Remove the \n char
     pwr_str.pop();
 
-    return Ok(pwr_str == "1");
+    Ok(pwr_str == "1")
 }

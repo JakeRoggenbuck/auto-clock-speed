@@ -12,7 +12,7 @@ use super::Error;
 
 /// Find the average frequency of all cores
 pub fn check_cpu_freq(cpus: &Vec<CPU>) -> f32 {
-    let freqs: Vec<i32> = cpus.into_iter().map(|x| x.cur_freq).collect();
+    let freqs: Vec<i32> = cpus.iter().map(|x| x.cur_freq).collect();
     let sum: i32 = Iterator::sum(freqs.iter());
     sum as f32 / freqs.len() as f32
 }
@@ -20,7 +20,7 @@ pub fn check_cpu_freq(cpus: &Vec<CPU>) -> f32 {
 /// Find the average usage of all cores
 pub fn check_cpu_usage(cpus: &Vec<CPU>) -> f32 {
     let usage: Vec<i32> = cpus
-        .into_iter()
+        .iter()
         .map(|x| (x.cur_usage * 100.0) as i32)
         .collect();
     let sum: i32 = Iterator::sum(usage.iter());
@@ -29,7 +29,7 @@ pub fn check_cpu_usage(cpus: &Vec<CPU>) -> f32 {
 
 /// Find the average temperature of all cores
 pub fn check_cpu_temperature(cpus: &Vec<CPU>) -> f32 {
-    let usage: Vec<i32> = cpus.into_iter().map(|x| x.cur_temp).collect();
+    let usage: Vec<i32> = cpus.iter().map(|x| x.cur_temp).collect();
     let sum: i32 = Iterator::sum(usage.iter());
     sum as f32 / usage.len() as f32
 }
@@ -104,7 +104,7 @@ pub fn parse_proc_file(proc: String) -> Result<Vec<ProcStat>, Error> {
     let mut procs: Vec<ProcStat> = Vec::<ProcStat>::new();
     for l in lines {
         if l.starts_with("cpu") {
-            let mut columns: Vec<_> = l.split(" ").collect();
+            let mut columns: Vec<_> = l.split(' ').collect();
 
             // Remove first index if cpu starts with "cpu  " because the two spaces count as a
             // column
@@ -146,7 +146,7 @@ pub fn get_cpu_percent() -> String {
 
     format!(
         "{}",
-        calculate_cpu_percent(&avg_timing, &avg_timing_2) * 100.0
+        calculate_cpu_percent(avg_timing, avg_timing_2) * 100.0
     )
 }
 
@@ -184,7 +184,7 @@ fn interpret_turbo(is_turbo: &mut String) -> Result<bool, Error> {
 fn read_bat_energy_full(design: bool) -> Result<i32, Error> {
     let mut capacity_readings: String = String::new();
     let bat_energy_full_path: &str = "/sys/class/power_supply/BAT0/";
-    if design == true {
+    if design {
         File::open(bat_energy_full_path.to_string() + "energy_full_design")?
             .read_to_string(&mut capacity_readings)?;
     } else {
@@ -231,7 +231,7 @@ fn interpret_govs(governors_string: &mut String) -> Result<Vec<String>, Error> {
     governors_string.pop();
     let governors: Vec<String> = governors_string
         // Governors are in the file separated by a space
-        .split(" ")
+        .split(' ')
         .into_iter()
         .map(|x| x.to_owned())
         .collect();
@@ -270,17 +270,14 @@ pub fn list_cpus() -> Vec<CPU> {
         .iter()
         // Check if the file is actually a cpu, meaning it matches both having 'cpu' and a
         // character of index 3 is a number
-        .filter(|x| x.find(r"cpu").is_some() && x.chars().nth(3).unwrap().is_numeric())
+        .filter(|x| x.contains(r"cpu") && x.chars().nth(3).unwrap().is_numeric())
         .map(|x| x.to_owned())
         .collect();
 
     let mut to_return: Vec<CPU> = Vec::<CPU>::new();
 
     for cpu in cpus {
-        let num: i8 = match cpu[3..].parse::<i8>() {
-            Ok(a) => a,
-            Err(_) => 0,
-        };
+        let num: i8 = cpu[3..].parse::<i8>().unwrap_or(0);
 
         // Make a new cpu
         let mut new = CPU {
@@ -534,7 +531,7 @@ microcode	: 0xea
     #[test]
     fn check_cpu_name_unit_test() -> Result<(), Error> {
         assert_eq!(type_of(check_cpu_name()?), type_of(String::new()));
-        assert!(check_cpu_name()?.len() > 0);
+        assert!(!check_cpu_name()?.is_empty());
         Ok(())
     }
 
@@ -590,7 +587,7 @@ microcode	: 0xea
         assert_eq!(type_of(list_cpus()), type_of(Vec::<CPU>::new()));
 
         for x in list_cpus() {
-            assert!(x.name.len() > 0);
+            assert!(!x.name.is_empty());
             assert!(x.max_freq > 0);
             assert!(x.min_freq > 0);
 

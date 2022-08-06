@@ -37,6 +37,7 @@ pub struct Settings {
     pub delay: u64,
     pub delay_battery: u64,
     pub edit: bool,
+    pub hook: bool,
     pub no_animation: bool,
     pub graph: GraphType,
     pub commit: bool,

@@ -227,6 +227,10 @@ enum ACSCommand {
         /// No animations, for systemctl updating issue
         #[structopt(short, long)]
         no_animation: bool,
+        
+        /// Hook
+        #[structopt(short = "h", long = "--hook")]
+        hook: bool,
 
         /// Graph
         #[structopt(short = "g", long = "--graph")]
@@ -244,6 +248,7 @@ fn parse_args(config: config::Config) {
         delay_battery: 0,
         delay: 0,
         edit: false,
+        hook: false,
         no_animation: false,
         graph: GraphType::Hidden,
         commit: false,
@@ -348,6 +353,7 @@ fn parse_args(config: config::Config) {
                 delay: regular_delay,
                 edit: true,
                 no_animation,
+                hook: false,
                 graph: parsed_graph_type,
                 commit,
                 testing: false,
@@ -367,6 +373,7 @@ fn parse_args(config: config::Config) {
             delay_battery,
             no_animation,
             graph_type,
+            hook,
             commit,
         } => {
             if !config_dir_exists() {
@@ -397,6 +404,7 @@ fn parse_args(config: config::Config) {
                 delay: regular_delay,
                 delay_battery: effective_delay_battery,
                 edit: false,
+                hook: hook,
                 no_animation,
                 graph: parsed_graph_type,
                 commit,

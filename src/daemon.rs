@@ -470,6 +470,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         delay_battery: settings.delay_battery,
         edit, // Use new edit for new settings
         no_animation: settings.no_animation,
+        hook: settings.hook,
         graph: settings.graph,
         commit: settings.commit,
         testing: settings.testing,

@@ -168,7 +168,9 @@ impl fmt::Display for Config {
 fn read_as_string(config_file: &mut File) -> String {
     // Read it to new string
     let mut config: String = String::new();
-    config_file.read_to_string(&mut config).unwrap();
+    config_file
+        .read_to_string(&mut config)
+        .expect("Could not read config from file");
     config
 }
 

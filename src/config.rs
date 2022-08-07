@@ -1,7 +1,6 @@
-use crate::print_error;
-
 use super::daemon::State;
 use super::warn_user;
+use crate::print_error;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::fs::File;
@@ -58,6 +57,7 @@ pub fn init_config() {
                 },
             }
         }
+
         let config_file = File::create(&config_path());
         let mut config = match config_file {
             Ok(file) => file,
@@ -72,9 +72,15 @@ pub fn init_config() {
                 }
             },
         };
+
         let default_config = default_config();
-        let serialized = toml::to_string(&default_config).unwrap();
-        config.write_all(serialized.as_bytes()).unwrap();
+        let serialized =
+            toml::to_string(&default_config).expect("Could not serialize default config");
+
+        config.write_all(serialized.as_bytes()).expect(&format!(
+            "Could not write serialized output to file {}",
+            &config_path()
+        ));
         println!("Created config file at '/etc/acs/acs.toml'");
     } else {
         warn_user!("Config file already exists at '/etc/acs/acs.toml'. No changes made.");
@@ -118,21 +124,21 @@ impl SafeFillConfig for SafeConfig {
         // will be done to modify base.
         let mut base = default_config();
 
-        if self.powersave_under.is_some() {
-            base.powersave_under = self.powersave_under.unwrap();
+        if let Some(pu) = self.powersave_under {
+            base.powersave_under = pu;
         }
 
-        if self.overheat_threshold.is_some() {
-            base.overheat_threshold = self.overheat_threshold.unwrap();
+        if let Some(ot) = self.overheat_threshold {
+            base.overheat_threshold = ot;
         }
 
-        if self.high_cpu_threshold.is_some() {
-            base.high_cpu_threshold = self.high_cpu_threshold.unwrap();
+        if let Some(hc) = self.high_cpu_threshold {
+            base.high_cpu_threshold = hc;
         }
 
-        if self.active_rules.is_some() {
+        if let Some(ars) = &self.active_rules {
             base.active_rules.clear();
-            for rule in self.active_rules.clone().unwrap() {
+            for rule in ars {
                 base.active_rules.push(match rule.as_str() {
                     "battery_percent_rule" => State::BatteryLow,
                     "lid_open_rule" => State::LidClosed,

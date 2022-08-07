@@ -1,7 +1,6 @@
 use std::{thread, time};
 use structopt::StructOpt;
 
-use super::warn_user;
 use super::config;
 use super::config::{config_dir_exists, init_config};
 use super::daemon;
@@ -10,6 +9,7 @@ use super::display::show_config;
 use super::interactive::interactive;
 use super::interface::{Get, Getter, Interface, Set, Setter};
 use super::settings::{get_graph_type, GraphType, Settings};
+use super::warn_user;
 
 #[derive(StructOpt)]
 enum GetType {

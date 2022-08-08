@@ -165,7 +165,7 @@ pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
         println!("(debug not for production) Response: {}", line);
         stream
             .shutdown(std::net::Shutdown::Both)
-            .expect("Coult not shutdown stream");
+            .expect("Could not shutdown stream");
     });
 }
 

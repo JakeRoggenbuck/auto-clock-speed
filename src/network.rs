@@ -155,14 +155,17 @@ pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
         println!("(debug not for production) Sending out: {}", packet);
         stream
             .write_all((format!("{}", packet)).as_bytes())
-            .unwrap();
-        stream.flush().unwrap();
+            .expect("Could not write packet to stream");
+
+        stream.flush().expect("Could not flush stream");
         // Read the response
         let mut reader = BufReader::new(&stream);
         let mut line = String::new();
-        reader.read_line(&mut line).unwrap();
+        reader.read_line(&mut line).expect("Could not read line");
         println!("(debug not for production) Response: {}", line);
-        stream.shutdown(std::net::Shutdown::Both).unwrap();
+        stream
+            .shutdown(std::net::Shutdown::Both)
+            .expect("Could not shutdown stream");
     });
 }
 

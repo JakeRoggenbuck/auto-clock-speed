@@ -51,7 +51,7 @@ pub fn interactive() {
 
     loop {
         print!("{}", "\n> ".bold().green());
-        stdout().flush().unwrap();
+        stdout().flush().expect("Failed to flush stdout");
 
         input = String::new();
 

@@ -1,6 +1,6 @@
 use rand::Rng;
-use std::fs::File;
-use std::io::{Read, Write};
+use std::fs::{self, File};
+use std::io::Write;
 use std::path::Path;
 
 use super::display::{print_cpu, render_cpu};
@@ -47,7 +47,6 @@ pub enum WritableValue {
 
 impl Speed for CPU {
     fn read_temp(&mut self, sub_path: &str) -> Result<i32, Error> {
-        let mut info: String = String::new();
         let cpu_info_path: String = format!(
             "/sys/class/thermal/{}/{}",
             self.name.replace("cpu", "thermal_zone"),
@@ -58,7 +57,7 @@ impl Speed for CPU {
             return Ok(-1);
         }
 
-        File::open(cpu_info_path)?.read_to_string(&mut info)?;
+        let mut info = fs::read_to_string(cpu_info_path)?;
 
         // Remove the last character (the newline)
         info.pop();

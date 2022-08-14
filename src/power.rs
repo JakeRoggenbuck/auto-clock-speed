@@ -2,8 +2,7 @@ use colored::Colorize;
 use std::any::Any;
 use std::cmp::PartialEq;
 use std::fmt;
-use std::fs::{read_dir, File};
-use std::io::Read;
+use std::fs::{self, read_dir};
 use std::path::Path;
 
 use super::create_issue;
@@ -79,8 +78,7 @@ pub fn read_lid_state() -> Result<LidState, Error> {
         }
     };
 
-    let mut lid_str: String = String::new();
-    File::open(path)?.read_to_string(&mut lid_str)?;
+    let lid_str = fs::read_to_string(path)?;
 
     let state = if lid_str.contains("open") {
         LidState::Open
@@ -128,8 +126,7 @@ pub fn read_battery_charge() -> Result<i8, Error> {
         }
     };
 
-    let mut cap_str: String = String::new();
-    File::open(path)?.read_to_string(&mut cap_str)?;
+    let mut cap_str = fs::read_to_string(path)?;
 
     // Remove the \n char
     cap_str.pop();
@@ -151,8 +148,7 @@ pub fn read_power_source() -> Result<bool, Error> {
         }
     };
 
-    let mut pwr_str: String = String::new();
-    File::open(path)?.read_to_string(&mut pwr_str)?;
+    let mut pwr_str = fs::read_to_string(path)?;
 
     // Remove the \n char
     pwr_str.pop();

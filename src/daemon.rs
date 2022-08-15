@@ -13,20 +13,15 @@ use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
 use super::network::{hook, listen};
-use super::power::{
-    get_battery_status, has_battery, read_battery_charge, read_lid_state, read_power_source,
-    LidState,
-};
+use super::power::{has_battery, read_lid_state, read_power_source, Battery, LidState};
 use super::settings::{GraphType, Settings};
 use super::system::{
     check_available_governors, check_cpu_freq, check_cpu_temperature, check_cpu_usage,
-    get_battery_condition, get_highest_temp, list_cpus, parse_proc_file, read_proc_stat_file,
-    ProcStat,
+    get_highest_temp, list_cpus, parse_proc_file, read_proc_stat_file, ProcStat,
 };
 use super::terminal::terminal_width;
 use super::Error;
 use crate::display::print_turbo_status;
-use crate::system::check_bat_cond;
 use crate::warn_user;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
@@ -81,6 +76,7 @@ pub trait Checker {
 }
 
 pub struct Daemon {
+    pub battery: Battery,
     pub cpus: Vec<CPU>,
     pub last_proc: Vec<ProcStat>,
     pub message: String,
@@ -200,7 +196,7 @@ impl Checker for Daemon {
 
         // Update current states
         self.charging = read_power_source()?;
-        self.charge = read_battery_charge()?;
+        self.charge = self.battery.read_charge()?;
         self.lid_state = read_lid_state()?;
         self.usage = calculate_average_usage(&self.cpus) * 100.0;
 
@@ -282,13 +278,14 @@ impl Checker for Daemon {
         let cpus = &self.cpus.iter().map(|c| c.render()).collect::<String>();
 
         // Prints battery percent or N/A if not
-        let battery_status = get_battery_status(self.charging);
+        let battery_status = self.battery.print_status(self.charging);
 
-        let mut battery_condition: String = "N/A".to_string();
-        if let Ok(check_bat_cond) = check_bat_cond() {
-            battery_condition = format!("Condition: {}%", get_battery_condition(check_bat_cond));
-        } else {
-            println!("Failed to get battery condition");
+        let battery_condition: String;
+        match self.battery.get_condition() {
+            Ok(condition) => {
+                battery_condition = format!("Condition: {}%", condition);
+            }
+            Err(_) => battery_condition = "Condition: N/A".to_string(),
         }
 
         format!(
@@ -478,6 +475,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
 
     // Create a new Daemon
     let mut daemon: Daemon = Daemon {
+        battery: Battery::new(),
         cpus: Vec::<CPU>::new(),
         last_proc: Vec::<ProcStat>::new(),
         message,

@@ -78,7 +78,18 @@ pub fn handle_stream(stream: UnixStream, c_daemon_mutex: &Arc<Mutex<Daemon>>) {
                     }
                 },
             };
-            match parse_packet(&actual_line).unwrap_or(Packet::Unknown) {
+            let packet = match parse_packet(&actual_line) {
+                Ok(p) => p,
+                Err(e) => {
+                    log_to_daemon(
+                        &inner_daemon_mutex.clone(),
+                        &format!("Received malfomed packet: {}", e),
+                        logger::Severity::Error,
+                    );
+                    Packet::Unknown
+                }
+            };
+            match packet {
                 Packet::Hello(hi) => {
                     let hello_packet = Packet::HelloResponse(hi.clone(), 0);
                     log_to_daemon(

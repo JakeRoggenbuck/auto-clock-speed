@@ -1,10 +1,10 @@
 use super::daemon::Daemon;
-use super::error::Error;
 use super::logger;
 use super::logger::Interface;
 use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::io::BufWriter;
+use std::num::ParseIntError;
 use std::os::unix::net::UnixListener;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -19,17 +19,32 @@ pub enum Packet {
     Unknown,
 }
 
-pub fn parse_packet(packet: &str) -> Result<Packet, Error> {
+#[derive(Debug)]
+pub struct PacketParseError;
+
+impl Display for PacketParseError {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
+        write!(f, "Packet parse error occured")
+    }
+}
+
+impl From<ParseIntError> for PacketParseError {
+    fn from(_err: ParseIntError) -> Self {
+        PacketParseError
+    }
+}
+
+pub fn parse_packet(packet: &str) -> Result<Packet, PacketParseError> {
     let mut packet_split = packet.split('|');
-    let packet_type = packet_split.next().unwrap_or("?");
-    let packet_data = packet_split.next().unwrap_or("?");
+    let packet_type = packet_split.next().ok_or(PacketParseError)?;
+    let packet_data = packet_split.next().ok_or(PacketParseError)?;
     match packet_type {
         "0" => Ok(Packet::Hello(packet_data.to_string())),
         "1" => Ok(Packet::HelloResponse(
             packet_data.to_string(),
-            packet_split.next().unwrap().parse::<u32>().unwrap_or(0),
+            packet_split.next().unwrap().parse::<u32>()?,
         )),
-        _ => Ok(Packet::Unknown),
+        _ => Err(PacketParseError),
     }
 }
 

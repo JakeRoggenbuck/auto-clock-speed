@@ -91,8 +91,6 @@ pub fn read_lid_state() -> Result<LidState, Error> {
     Ok(state)
 }
 
-
-
 pub fn read_power_source() -> Result<bool, Error> {
     let path: &str = match get_best_path(POWER_SOURCE_PATH) {
         Ok(path) => path,
@@ -118,7 +116,7 @@ pub fn read_power_source() -> Result<bool, Error> {
 enum BatteryConditionType {
     Energy,
     Charge,
-    None
+    None,
 }
 pub struct Battery {
     sys_parent_path: String,
@@ -142,11 +140,10 @@ impl Battery {
             charge_full_design: 0 as i32,
             energy_full: 0 as i32,
             energy_full_design: 0 as i32,
-            };
+        };
         obj.check_condition_type();
         obj
-        }
-
+    }
 
     pub fn read_charge(&mut self) -> Result<i8, Error> {
         let path: &str = match get_best_path(BATTERY_CHARGE_PATH) {
@@ -195,23 +192,23 @@ impl Battery {
         let path = self.sys_parent_path.to_string() + "charge_full";
         if Path::new(&path).is_file() {
             self.condition_type = BatteryConditionType::Charge
-        } 
+        }
         let path = self.sys_parent_path.to_string() + "energy_full";
         if Path::new(&path).is_file() {
             self.condition_type = BatteryConditionType::Energy
         }
     }
 
-    pub fn get_condition(&mut self) -> Result<f32, Error>  {
+    pub fn get_condition(&mut self) -> Result<f32, Error> {
         match self.condition_type {
             BatteryConditionType::Energy => {
                 self.read_energy_full()?;
                 self.condition = self.energy_full as f32 / self.energy_full_design as f32
-                    },
+            }
             BatteryConditionType::Charge => {
                 self.read_charge_full()?;
                 self.condition = self.charge_full as f32 / self.charge_full_design as f32
-                    }
+            }
             BatteryConditionType::None => {
                 return Err(Error::Unknown);
             }
@@ -256,5 +253,5 @@ impl Battery {
         value.pop();
         self.charge_full = value.parse::<i32>().unwrap();
         Ok(())
-        }
+    }
 }

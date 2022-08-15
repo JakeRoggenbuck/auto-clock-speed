@@ -9,7 +9,6 @@ use crate::debug;
 use super::cpu::CPU;
 use super::Error;
 
-
 /// Find the average frequency of all cores
 pub fn check_cpu_freq(cpus: &Vec<CPU>) -> f32 {
     let freqs: Vec<i32> = cpus.iter().map(|x| x.cur_freq).collect();
@@ -172,14 +171,12 @@ fn interpret_turbo(is_turbo: &mut String) -> Result<bool, Error> {
     }
 }
 
-
 /// Check if turbo is enabled for the machine, (enabled in bios)
 pub fn check_turbo_enabled() -> Result<bool, Error> {
     let mut turbo_string = read_turbo_file()?;
     let is_turbo = interpret_turbo(&mut turbo_string)?;
     Ok(is_turbo)
 }
-
 
 fn read_govs_file() -> Result<String, Error> {
     let governors_path: &str = "/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors";
@@ -296,7 +293,6 @@ pub fn read_str(path: &str) -> Result<String, Error> {
     value.pop();
     Ok(value)
 }
-
 
 #[cfg(test)]
 mod tests {

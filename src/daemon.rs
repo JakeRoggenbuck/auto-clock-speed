@@ -13,15 +13,11 @@ use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
 use super::network::{hook, listen};
-use super::power::{
-    has_battery, read_lid_state, read_power_source,
-    LidState,Battery
-};
+use super::power::{has_battery, read_lid_state, read_power_source, Battery, LidState};
 use super::settings::{GraphType, Settings};
 use super::system::{
     check_available_governors, check_cpu_freq, check_cpu_temperature, check_cpu_usage,
-    get_highest_temp, list_cpus, parse_proc_file, read_proc_stat_file,
-    ProcStat,
+    get_highest_temp, list_cpus, parse_proc_file, read_proc_stat_file, ProcStat,
 };
 use super::terminal::terminal_width;
 use super::Error;
@@ -289,10 +285,8 @@ impl Checker for Daemon {
             Ok(condition) => {
                 battery_condition = format!("Condition: {}%", condition);
             }
-            Err(_) => {
-                battery_condition = "Condition: N/A".to_string()
-                }
-            }
+            Err(_) => battery_condition = "Condition: N/A".to_string(),
+        }
 
         format!(
             "{}{}{}\n{}\n{}\n",

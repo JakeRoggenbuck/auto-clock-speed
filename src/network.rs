@@ -20,7 +20,7 @@ pub enum Packet {
     Unknown,
 }
 
-pub fn parse_packet(packet: &String) -> Result<Packet, Error> {
+pub fn parse_packet(packet: &str) -> Result<Packet, Error> {
     let mut packet_split = packet.split('|');
     let packet_type = packet_split.next().unwrap_or("?");
     let packet_data = packet_split.next().unwrap_or("?");
@@ -47,51 +47,6 @@ impl Display for Packet {
 fn log_to_daemon(daemon: &Arc<Mutex<Daemon>>, message: &str, severity: logger::Severity) {
     let mut daemon = daemon.lock().unwrap();
     daemon.logger.log(message, severity);
-}
-
-pub fn handle_stream(stream: UnixStream, c_daemon_mutex: &Arc<Mutex<Daemon>>) {
-    log_to_daemon(c_daemon_mutex, "Received connection", logger::Severity::Log);
-
-    let inner_daemon_mutex = c_daemon_mutex.clone();
-
-    thread::spawn(move || {
-        let reader = BufReader::new(&stream);
-        for line in reader.lines() {
-            let actual_line = match line {
-                Ok(line) => line,
-                Err(e) => match e.kind() {
-                    std::io::ErrorKind::BrokenPipe => {
-                        return;
-                    }
-                    _ => {
-                        log_to_daemon(
-                            &inner_daemon_mutex.clone(),
-                            &format!("Failed to read line: {}", e),
-                            logger::Severity::Error,
-                        );
-                        return;
-                    }
-                },
-            };
-            match parse_packet(&actual_line).unwrap_or(Packet::Unknown) {
-                Packet::Hello(hi) => {
-                    let hello_packet = Packet::HelloResponse(hi.clone(), 0);
-                    log_to_daemon(
-                        &inner_daemon_mutex.clone(),
-                        &format!("Received hello packet: {}", hi),
-                        logger::Severity::Log,
-                    );
-                    let mut writer = BufWriter::new(&stream);
-                    writer
-                        .write_all(format!("{}", hello_packet).as_bytes())
-                        .unwrap();
-                    writer.flush().unwrap();
-                }
-                Packet::HelloResponse(_, _) => {}
-                Packet::Unknown => {}
-            };
-        }
-    });
 }
 
 pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
@@ -131,14 +86,8 @@ mod tests {
 
     #[test]
     fn parse_packet_test() {
-        assert!(parse_packet(&"0|test".to_string()).unwrap() == Packet::Hello("test".to_string()));
-        assert!(
-            parse_packet(&"1|test|5".to_string()).unwrap()
-                == Packet::HelloResponse("test".to_string(), 5)
-        );
-        assert!(
-            parse_packet(&"0|test".to_string()).unwrap()
-                != Packet::HelloResponse("test".to_string(), 5)
-        );
+        assert!(parse_packet("0|test").unwrap() == Packet::Hello("test".to_string()));
+        assert!(parse_packet("1|test|5").unwrap() == Packet::HelloResponse("test".to_string(), 5));
+        assert!(parse_packet("0|test").unwrap() != Packet::HelloResponse("test".to_string(), 5));
     }
 }

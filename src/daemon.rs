@@ -518,7 +518,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
     let c_daemon_mutex = Arc::clone(&daemon_mutex);
     if settings.edit {
         // Listen for acs clients
-        listen("/tmp/acs.sock", c_daemon_mutex);
+        listen::listen("/tmp/acs.sock", c_daemon_mutex);
     } else {
         // Broadcast hello message
         if settings.hook {

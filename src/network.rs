@@ -6,11 +6,12 @@ use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::io::Write;
 use std::io::{BufRead, BufReader, BufWriter};
-use std::os::unix::fs::PermissionsExt;
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::thread;
+
+pub mod listen;
 
 #[derive(PartialEq, Eq, Debug)]
 pub enum Packet {
@@ -93,48 +94,6 @@ pub fn handle_stream(stream: UnixStream, c_daemon_mutex: &Arc<Mutex<Daemon>>) {
     });
 }
 
-pub fn listen(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
-    thread::spawn(move || {
-        // Get rid of the old sock
-        std::fs::remove_file(path).ok();
-
-        // Try to handle sock connections then
-        let listener = match UnixListener::bind(path) {
-            Ok(listener) => listener,
-            Err(e) => {
-                log_to_daemon(
-                    &c_daemon_mutex,
-                    &format!("Failed to bind to {}: {}", path, e),
-                    logger::Severity::Error,
-                );
-                return;
-            }
-        };
-
-        // Set the permissions on the sock
-        std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o777)).ok();
-
-        // Spawn a new thread to listen for commands
-        thread::spawn(move || {
-            for stream in listener.incoming() {
-                match stream {
-                    Ok(stream) => {
-                        handle_stream(stream, &c_daemon_mutex);
-                    }
-                    Err(err) => {
-                        log_to_daemon(
-                            &c_daemon_mutex,
-                            &format!("Failed to accept connection: {}", err),
-                            logger::Severity::Error,
-                        );
-                        break;
-                    }
-                }
-            }
-        });
-    });
-}
-
 pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
     thread::spawn(move || {
         let mut stream = match UnixStream::connect(path) {
@@ -155,17 +114,14 @@ pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
         println!("(debug not for production) Sending out: {}", packet);
         stream
             .write_all((format!("{}", packet)).as_bytes())
-            .expect("Could not write packet to stream");
-
-        stream.flush().expect("Could not flush stream");
+            .unwrap();
+        stream.flush().unwrap();
         // Read the response
         let mut reader = BufReader::new(&stream);
         let mut line = String::new();
-        reader.read_line(&mut line).expect("Could not read line");
+        reader.read_line(&mut line).unwrap();
         println!("(debug not for production) Response: {}", line);
-        stream
-            .shutdown(std::net::Shutdown::Both)
-            .expect("Could not shutdown stream");
+        stream.shutdown(std::net::Shutdown::Both).unwrap();
     });
 }
 

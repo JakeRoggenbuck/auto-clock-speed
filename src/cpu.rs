@@ -88,7 +88,7 @@ impl Speed for CPU {
 
         let path: String = format!("/sys/devices/system/cpu/{}/{}", self.name, sub_path);
         let mut buffer = File::create(path)?;
-        buffer.write(to_write.as_bytes())?;
+        buffer.write_all(to_write.as_bytes())?;
 
         Ok(())
     }

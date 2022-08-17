@@ -35,7 +35,13 @@ impl Getter for Get {
     }
 
     fn power(&self, raw: bool) {
-        let mut battery = Battery::new();
+        let mut battery = match Battery::new() {
+            Ok(plugged) => plugged,
+            Err(_) => {
+                eprintln!("Failed to get battery");
+                return;
+            }
+        };
         let plugged = match read_power_source() {
             Ok(plugged) => plugged,
             Err(_) => {
@@ -125,7 +131,13 @@ impl Getter for Get {
     }
 
     fn bat_cond(&self, raw: bool) {
-        let mut battery = Battery::new();
+        let mut battery = match Battery::new() {
+            Ok(plugged) => plugged,
+            Err(_) => {
+                eprintln!("Failed to get battery");
+                return;
+            }
+        };
         match battery.get_condition() {
             Ok(bat_cond) => print_bat_cond(bat_cond, raw),
             Err(_) => println!("Failed to get battery condition"),

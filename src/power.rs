@@ -16,10 +16,10 @@ const LID_STATUS_PATH: [&str; 4] = [
 ];
 
 const BATTERY_CHARGE_PATH: [&str; 4] = [
-    "/sys/class/power_supply/BAT/capacity",
-    "/sys/class/power_supply/BAT0/capacity",
-    "/sys/class/power_supply/BAT1/capacity",
-    "/sys/class/power_supply/BAT2/capacity",
+    "/sys/class/power_supply/BAT/",
+    "/sys/class/power_supply/BAT0/",
+    "/sys/class/power_supply/BAT1/",
+    "/sys/class/power_supply/BAT2/",
 ];
 
 const POWER_SOURCE_PATH: [&str; 4] = [
@@ -130,22 +130,17 @@ pub struct Battery {
 }
 
 impl Battery {
-    pub fn new() -> Battery {
+    pub fn new() -> Result<Battery, Error> {
         let mut obj = Battery {
-            sys_parent_path: "/sys/class/power_supply/BAT0/".to_string(),
-            capacity: 0 as i8,
+            sys_parent_path: "unknown".to_string(),
+            capacity: 0_i8,
             condition_type: BatteryConditionType::None,
-            condition: 0 as f32,
-            charge_full: 0 as i32,
-            charge_full_design: 0 as i32,
-            energy_full: 0 as i32,
-            energy_full_design: 0 as i32,
+            condition: 0_f32,
+            charge_full: 0_i32,
+            charge_full_design: 0_i32,
+            energy_full: 0_i32,
+            energy_full_design: 0_i32,
         };
-        obj.check_condition_type();
-        obj
-    }
-
-    pub fn read_charge(&mut self) -> Result<i8, Error> {
         let path: &str = match get_best_path(BATTERY_CHARGE_PATH) {
             Ok(path) => path,
             Err(error) => {
@@ -156,16 +151,25 @@ impl Battery {
                 // If it doesn't exist then it is plugged in so make it 100% percent capacity
                 eprintln!("We could not detect your battery.");
                 create_issue!("If you are on a laptop");
-                return Ok(100);
+                return Err(Error::Unknown);
             }
         };
+        obj.sys_parent_path = path.to_string();
+        obj.check_condition_type();
+        Ok(obj)
+    }
 
-        let mut cap_str = fs::read_to_string(path)?;
+    pub fn read_charge(&mut self) -> Result<i8, Error> {
+        let charge_path = self.sys_parent_path.to_string() + "capacity";
+        let mut cap_str = fs::read_to_string(charge_path)?;
 
         // Remove the \n char
         cap_str.pop();
 
-        Ok(cap_str.parse::<i8>().unwrap())
+        let charge = cap_str.parse::<i8>().unwrap();
+        self.capacity = charge;
+
+        Ok(charge)
     }
 
     pub fn print_status(&mut self, charging: bool) -> String {

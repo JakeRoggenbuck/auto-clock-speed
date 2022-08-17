@@ -475,7 +475,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
 
     // Create a new Daemon
     let mut daemon: Daemon = Daemon {
-        battery: Battery::new(),
+        battery: Battery::new()?,
         cpus: Vec::<CPU>::new(),
         last_proc: Vec::<ProcStat>::new(),
         message,

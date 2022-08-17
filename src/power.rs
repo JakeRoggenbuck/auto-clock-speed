@@ -258,4 +258,14 @@ impl Battery {
         self.charge_full = value.parse::<i32>().unwrap();
         Ok(())
     }
+
+    pub fn update(&mut self) -> Result<(), Error> {
+        self.check_condition_type();
+        self.get_condition()?;
+        self.read_charge_full()?;
+        self.read_energy_full()?;
+        self.read_charge()?;
+
+        Ok(())
+    }
 }

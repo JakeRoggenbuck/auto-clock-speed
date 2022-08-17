@@ -113,20 +113,29 @@ pub fn read_power_source() -> Result<bool, Error> {
     Ok(pwr_str == "1")
 }
 
-enum BatteryConditionType {
+pub enum BatteryConditionType {
     Energy,
     Charge,
     None,
 }
+
+pub enum BatteryStatus {
+    Charging,
+    Discharging,
+    Full,
+    Unknown,
+}
+
 pub struct Battery {
-    sys_parent_path: String,
-    capacity: i8,
-    condition_type: BatteryConditionType,
-    condition: f32,
-    charge_full: i32,
-    charge_full_design: i32,
-    energy_full: i32,
-    energy_full_design: i32,
+    pub sys_parent_path: String,
+    pub capacity: i8,
+    pub condition_type: BatteryConditionType,
+    pub condition: f32,
+    pub charge_full: i32,
+    pub charge_full_design: i32,
+    pub energy_full: i32,
+    pub energy_full_design: i32,
+    pub status: BatteryStatus,
 }
 
 impl Battery {
@@ -140,6 +149,7 @@ impl Battery {
             charge_full_design: 0_i32,
             energy_full: 0_i32,
             energy_full_design: 0_i32,
+            status: BatteryStatus::Unknown,
         };
         let path: &str = match get_best_path(BATTERY_CHARGE_PATH) {
             Ok(path) => path,
@@ -159,7 +169,7 @@ impl Battery {
         Ok(obj)
     }
 
-    pub fn read_charge(&mut self) -> Result<i8, Error> {
+    pub fn read_charge(&mut self) -> Result<(), Error> {
         let charge_path = self.sys_parent_path.to_string() + "capacity";
         let mut cap_str = fs::read_to_string(charge_path)?;
 
@@ -169,24 +179,20 @@ impl Battery {
         let charge = cap_str.parse::<i8>().unwrap();
         self.capacity = charge;
 
-        Ok(charge)
+        Ok(())
     }
 
+    // TODO: Move this to display.rs
     pub fn print_status(&mut self, charging: bool) -> String {
         if has_battery() {
-            match self.read_charge() {
-                Ok(bat) => {
-                    format!(
-                        "Battery: {}",
-                        if charging {
-                            format!("{}%", bat).green()
-                        } else {
-                            format!("{}%", bat).red()
-                        },
-                    )
-                }
-                Err(e) => format!("Battery charge could not be read\n{:?}", e),
-            }
+            format!(
+                "Battery: {}",
+                if charging {
+                    format!("{}%", self.capacity).green()
+                } else {
+                    format!("{}%", self.capacity).red()
+                },
+            )
         } else {
             format!("Battery: {}", "N/A".bold())
         }
@@ -203,7 +209,7 @@ impl Battery {
         }
     }
 
-    pub fn get_condition(&mut self) -> Result<f32, Error> {
+    pub fn get_condition(&mut self) -> Result<(), Error> {
         match self.condition_type {
             BatteryConditionType::Energy => {
                 self.read_energy_full()?;
@@ -217,14 +223,8 @@ impl Battery {
                 return Err(Error::Unknown);
             }
         }
-        let mut bat_cond = self.condition * 100.0;
-        if bat_cond >= 100.0 {
-            bat_cond = 100.00;
-        } else if bat_cond <= 0.0 {
-            bat_cond = 0.0;
-        }
 
-        Ok(bat_cond.round())
+        Ok(())
     }
 
     fn read_energy_full(&mut self) -> Result<(), Error> {

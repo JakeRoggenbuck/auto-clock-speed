@@ -169,7 +169,7 @@ impl Battery {
         Ok(obj)
     }
 
-    pub fn read_charge(&mut self) -> Result<(), Error> {
+    fn read_charge(&mut self) -> Result<(), Error> {
         let charge_path = self.sys_parent_path.to_string() + "capacity";
         let mut cap_str = fs::read_to_string(charge_path)?;
 
@@ -209,7 +209,7 @@ impl Battery {
         }
     }
 
-    pub fn get_condition(&mut self) -> Result<(), Error> {
+    fn get_condition(&mut self) -> Result<(), Error> {
         match self.condition_type {
             BatteryConditionType::Energy => {
                 self.read_energy_full()?;

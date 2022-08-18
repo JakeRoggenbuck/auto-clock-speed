@@ -196,7 +196,7 @@ impl Checker for Daemon {
 
         // Update current states
         self.charging = read_power_source()?;
-        self.charge = self.battery.read_charge()?;
+        self.charge = self.battery.capacity;
         self.lid_state = read_lid_state()?;
         self.usage = calculate_average_usage(&self.cpus) * 100.0;
 
@@ -240,7 +240,15 @@ impl Checker for Daemon {
     }
 
     /// Calls update on each cpu to update the state of each one
+    /// Also updates battery
     fn update_all(&mut self) -> Result<(), Error> {
+        match self.battery.update() {
+            Ok(_) => {}
+            Err(e) => self
+                .logger
+                .log(&format!("Battery error: {:?}", e), logger::Severity::Error),
+        }
+
         let cur_proc = parse_proc_file(read_proc_stat_file()?)?;
         for cpu in self.cpus.iter_mut() {
             cpu.update()?;
@@ -279,14 +287,7 @@ impl Checker for Daemon {
 
         // Prints battery percent or N/A if not
         let battery_status = self.battery.print_status(self.charging);
-
-        let battery_condition: String;
-        match self.battery.get_condition() {
-            Ok(condition) => {
-                battery_condition = format!("Condition: {}%", condition);
-            }
-            Err(_) => battery_condition = "Condition: N/A".to_string(),
-        }
+        let battery_condition = format!("Condition: {}%", self.battery.condition);
 
         format!(
             "{}{}{}\n{}\n{}\n",

@@ -50,14 +50,6 @@ impl Getter for Get {
             }
         };
 
-        let bat = match battery.read_charge() {
-            Ok(bat) => bat,
-            Err(_) => {
-                eprintln!("Failed to get read battery charger");
-                return;
-            }
-        };
-
         let lid = match read_lid_state() {
             Ok(lid) => lid,
             Err(_) => {
@@ -66,7 +58,7 @@ impl Getter for Get {
             }
         };
 
-        print_power(lid, bat, plugged, raw);
+        print_power(lid, battery.capacity, plugged, raw);
     }
 
     fn usage(&self, raw: bool) {
@@ -131,17 +123,14 @@ impl Getter for Get {
     }
 
     fn bat_cond(&self, raw: bool) {
-        let mut battery = match Battery::new() {
+        let battery = match Battery::new() {
             Ok(plugged) => plugged,
             Err(_) => {
                 eprintln!("Failed to get battery");
                 return;
             }
         };
-        match battery.get_condition() {
-            Ok(bat_cond) => print_bat_cond(bat_cond, raw),
-            Err(_) => println!("Failed to get battery condition"),
-        }
+        print_bat_cond(battery.condition, raw)
     }
 }
 

@@ -130,7 +130,7 @@ pub struct Battery {
     pub sys_parent_path: String,
     pub capacity: i8,
     pub condition_type: BatteryConditionType,
-    pub condition: f32,
+    pub condition: i8,
     pub charge_full: i32,
     pub charge_full_design: i32,
     pub energy_full: i32,
@@ -144,7 +144,7 @@ impl Battery {
             sys_parent_path: "unknown".to_string(),
             capacity: 0_i8,
             condition_type: BatteryConditionType::None,
-            condition: 0_f32,
+            condition: 0_i8,
             charge_full: 0_i32,
             charge_full_design: 0_i32,
             energy_full: 0_i32,
@@ -213,11 +213,13 @@ impl Battery {
         match self.condition_type {
             BatteryConditionType::Energy => {
                 self.read_energy_full()?;
-                self.condition = self.energy_full as f32 / self.energy_full_design as f32
+                self.condition =
+                    ((self.energy_full as f32 / self.energy_full_design as f32) * 100_f32) as i8
             }
             BatteryConditionType::Charge => {
                 self.read_charge_full()?;
-                self.condition = self.charge_full as f32 / self.charge_full_design as f32
+                self.condition =
+                    ((self.charge_full as f32 / self.charge_full_design as f32) * 100_f32) as i8
             }
             BatteryConditionType::None => {
                 return Err(Error::Unknown);

@@ -240,7 +240,15 @@ impl Checker for Daemon {
     }
 
     /// Calls update on each cpu to update the state of each one
+    /// Also updates battery
     fn update_all(&mut self) -> Result<(), Error> {
+        match self.battery.update() {
+            Ok(_) => {}
+            Err(e) => self
+                .logger
+                .log(&format!("Battery error: {:?}", e), logger::Severity::Error),
+        }
+
         let cur_proc = parse_proc_file(read_proc_stat_file()?)?;
         for cpu in self.cpus.iter_mut() {
             cpu.update()?;

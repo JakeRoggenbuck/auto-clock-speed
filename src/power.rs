@@ -261,8 +261,6 @@ impl Battery {
 
     pub fn update(&mut self) -> Result<(), Error> {
         self.get_condition()?;
-        self.read_charge_full()?;
-        self.read_energy_full()?;
         self.read_charge()?;
 
         Ok(())

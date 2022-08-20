@@ -4,7 +4,8 @@ use super::display::{
     print_available_governors, print_bat_cond, print_cpu_governors, print_cpu_speeds,
     print_cpu_temp, print_cpus, print_freq, print_power, print_turbo,
 };
-use super::power::{read_lid_state, read_power_source, Battery};
+use super::power::battery::Battery;
+use super::power::{read_lid_state, read_power_source};
 use super::settings::Settings;
 use super::system::{
     check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
@@ -35,7 +36,7 @@ impl Getter for Get {
     }
 
     fn power(&self, raw: bool) {
-        let mut battery = match Battery::new() {
+        let battery = match Battery::new() {
             Ok(plugged) => plugged,
             Err(_) => {
                 eprintln!("Failed to get battery");

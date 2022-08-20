@@ -1,3 +1,4 @@
+use crate::power::battery::{has_battery, Battery};
 use std::convert::TryInto;
 use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
@@ -13,7 +14,7 @@ use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
 use super::network::{hook, listen};
-use super::power::{has_battery, read_lid_state, read_power_source, Battery, LidState};
+use super::power::{read_lid_state, read_power_source, LidState};
 use super::settings::{GraphType, Settings};
 use super::system::{
     check_available_governors, check_cpu_freq, check_cpu_temperature, check_cpu_usage,

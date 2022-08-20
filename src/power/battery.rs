@@ -7,6 +7,7 @@ use std::fs;
 use std::fs::read_dir;
 use std::path::Path;
 
+/// A list containing each potential path used for gathering battery status from the kernel
 const BATTERY_CHARGE_PATH: [&str; 4] = [
     "/sys/class/power_supply/BAT/",
     "/sys/class/power_supply/BAT0/",
@@ -14,18 +15,21 @@ const BATTERY_CHARGE_PATH: [&str; 4] = [
     "/sys/class/power_supply/BAT2/",
 ];
 
+/// Returns if this system has a battery or not
 pub fn has_battery() -> bool {
     let power_dir = Path::new("/sys/class/power_supply/");
     let dir_count = read_dir(power_dir).into_iter().len();
     dir_count > 0
 }
 
+/// Describes how the battery condition was obtained
 pub enum BatteryConditionType {
     Energy,
     Charge,
     None,
 }
 
+/// Describes the current status of the battery
 pub enum BatteryStatus {
     Charging,
     Discharging,
@@ -33,6 +37,9 @@ pub enum BatteryStatus {
     Unknown,
 }
 
+/// A structure for holding information about a battery
+/// This structure follows an update model where information within the structure gets updated upon
+/// calling the update method
 pub struct Battery {
     pub sys_parent_path: String,
     pub capacity: i8,

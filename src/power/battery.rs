@@ -132,7 +132,8 @@ impl Battery {
         }
     }
 
-    /// Updates the current battery condition of this device
+    /// Gets the current battery condition of this device based on condition_type and updates the
+    /// struct
     fn get_condition(&mut self) -> Result<(), Error> {
         match self.condition_type {
             BatteryConditionType::Energy => {
@@ -153,6 +154,7 @@ impl Battery {
         Ok(())
     }
 
+    /// Reads the energy_full and energy_full_design values and saves them to the struct
     fn read_energy_full(&mut self) -> Result<(), Error> {
         let mut energy_path: String;
         let mut value: String;
@@ -169,6 +171,7 @@ impl Battery {
         Ok(())
     }
 
+    /// Reads that charge_full and charge_full_design values and saves them to the struct
     fn read_charge_full(&mut self) -> Result<(), Error> {
         let mut charge_path: String;
         let mut value: String;
@@ -185,6 +188,7 @@ impl Battery {
         Ok(())
     }
 
+    /// Updates all values in this struct from the battery drivers
     pub fn update(&mut self) -> Result<(), Error> {
         self.get_condition()?;
         self.read_charge()?;

@@ -30,6 +30,7 @@ pub enum BatteryConditionType {
 }
 
 /// Describes the current status of the battery
+#[derive(PartialEq)]
 pub enum BatteryStatus {
     Charging,
     Discharging,
@@ -99,22 +100,6 @@ impl Battery {
         self.capacity = charge;
 
         Ok(())
-    }
-
-    // TODO: Move this to display.rs
-    pub fn print_status(&mut self, charging: bool) -> String {
-        if has_battery() {
-            format!(
-                "Battery: {}",
-                if charging {
-                    format!("{}%", self.capacity).green()
-                } else {
-                    format!("{}%", self.capacity).red()
-                },
-            )
-        } else {
-            format!("Battery: {}", "N/A".bold())
-        }
     }
 
     /// Checks the file system for the proper battery condition type for this system then updates

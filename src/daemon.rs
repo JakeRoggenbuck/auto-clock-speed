@@ -22,7 +22,7 @@ use super::system::{
 };
 use super::terminal::terminal_width;
 use super::Error;
-use crate::display::print_turbo_status;
+use crate::display::{print_battery_status, print_turbo_status};
 use crate::warn_user;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
@@ -287,7 +287,7 @@ impl Checker for Daemon {
         let cpus = &self.cpus.iter().map(|c| c.render()).collect::<String>();
 
         // Prints battery percent or N/A if not
-        let battery_status = self.battery.print_status(self.charging);
+        let battery_status = print_battery_status(&self.battery);
         let battery_condition = format!("Condition: {}%", self.battery.condition);
 
         format!(

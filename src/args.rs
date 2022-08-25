@@ -57,7 +57,7 @@ enum GetType {
 
     /// The names of the core
     #[structopt(name = "cpus")]
-    CPUS {
+    CPUs {
         #[structopt(short, long)]
         raw: bool,
     },
@@ -245,7 +245,7 @@ pub fn parse_args(config: config::Config) {
             GetType::AvailableGovs { raw } => {
                 int.get.available_govs(raw);
             }
-            GetType::CPUS { raw } => {
+            GetType::CPUs { raw } => {
                 int.get.cpus(raw);
             }
 

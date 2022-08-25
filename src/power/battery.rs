@@ -7,6 +7,7 @@ use std::fs;
 use std::fs::read_dir;
 use std::path::Path;
 
+/// A list containing each potential path used for gathering battery status from the kernel
 const BATTERY_CHARGE_PATH: [&str; 4] = [
     "/sys/class/power_supply/BAT/",
     "/sys/class/power_supply/BAT0/",
@@ -14,18 +15,21 @@ const BATTERY_CHARGE_PATH: [&str; 4] = [
     "/sys/class/power_supply/BAT2/",
 ];
 
+/// Returns if this system has a battery or not
 pub fn has_battery() -> bool {
     let power_dir = Path::new("/sys/class/power_supply/");
     let dir_count = read_dir(power_dir).into_iter().len();
     dir_count > 0
 }
 
+/// Describes how the battery condition was obtained
 pub enum BatteryConditionType {
     Energy,
     Charge,
     None,
 }
 
+/// Describes the current status of the battery
 pub enum BatteryStatus {
     Charging,
     Discharging,
@@ -33,6 +37,9 @@ pub enum BatteryStatus {
     Unknown,
 }
 
+/// A structure for holding information about a battery
+/// This structure follows an update model where information within the structure gets updated upon
+/// calling the update method
 pub struct Battery {
     pub sys_parent_path: String,
     pub capacity: i8,
@@ -46,6 +53,10 @@ pub struct Battery {
 }
 
 impl Battery {
+    /// Creates a new instance of a battery
+    /// This method also initialises the sys_parent_path variable with the correct path for the
+    /// current system. It will also initialize the condition_type variable by checking in the file
+    /// system.
     pub fn new() -> Result<Battery, Error> {
         let mut obj = Battery {
             sys_parent_path: "unknown".to_string(),
@@ -76,6 +87,7 @@ impl Battery {
         Ok(obj)
     }
 
+    /// Get the battery charge on this device then updates the struct
     fn read_charge(&mut self) -> Result<(), Error> {
         let charge_path = self.sys_parent_path.to_string() + "capacity";
         let mut cap_str = fs::read_to_string(charge_path)?;
@@ -105,6 +117,10 @@ impl Battery {
         }
     }
 
+    /// Checks the file system for the proper battery condition type for this system then updates
+    /// the struct
+    /// BatteryConditionType::Charge = charge_full
+    /// BatteryConditionType::Energy = energy_full
     fn check_condition_type(&mut self) {
         let path = self.sys_parent_path.to_string() + "charge_full";
         if Path::new(&path).is_file() {
@@ -116,6 +132,8 @@ impl Battery {
         }
     }
 
+    /// Gets the current battery condition of this device based on condition_type and updates the
+    /// struct
     fn get_condition(&mut self) -> Result<(), Error> {
         match self.condition_type {
             BatteryConditionType::Energy => {
@@ -136,6 +154,7 @@ impl Battery {
         Ok(())
     }
 
+    /// Reads the energy_full and energy_full_design values and saves them to the struct
     fn read_energy_full(&mut self) -> Result<(), Error> {
         let mut energy_path: String;
         let mut value: String;
@@ -152,6 +171,7 @@ impl Battery {
         Ok(())
     }
 
+    /// Reads that charge_full and charge_full_design values and saves them to the struct
     fn read_charge_full(&mut self) -> Result<(), Error> {
         let mut charge_path: String;
         let mut value: String;
@@ -168,6 +188,7 @@ impl Battery {
         Ok(())
     }
 
+    /// Updates all values in this struct from the battery drivers
     pub fn update(&mut self) -> Result<(), Error> {
         self.get_condition()?;
         self.read_charge()?;

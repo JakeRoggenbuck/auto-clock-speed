@@ -101,7 +101,8 @@ pub fn print_turbo_animation(cpu: usize, y_pos: usize, delay: u64) {
 
     thread::spawn(move || {
         for _ in 0..count {
-            termion::cursor::Goto(3, 7);
+            // Why is this here?
+            //termion::cursor::Goto(3, 7);
             println!("{}[{};1H{}", 27 as char, y_pos, frames[current]);
             current += 1;
             if current == 4 {

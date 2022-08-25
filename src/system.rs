@@ -10,27 +10,27 @@ use super::cpu::CPU;
 use super::Error;
 
 /// Find the average frequency of all cores
-pub fn check_cpu_freq(cpus: &Vec<CPU>) -> f32 {
+pub fn check_cpu_freq(cpus: &[CPU]) -> f32 {
     let freqs: Vec<i32> = cpus.iter().map(|x| x.cur_freq).collect();
     let sum: i32 = Iterator::sum(freqs.iter());
     sum as f32 / freqs.len() as f32
 }
 
 /// Find the average usage of all cores
-pub fn check_cpu_usage(cpus: &Vec<CPU>) -> f32 {
+pub fn check_cpu_usage(cpus: &[CPU]) -> f32 {
     let usage: Vec<i32> = cpus.iter().map(|x| (x.cur_usage * 100.0) as i32).collect();
     let sum: i32 = Iterator::sum(usage.iter());
     sum as f32 / usage.len() as f32
 }
 
 /// Find the average temperature of all cores
-pub fn check_cpu_temperature(cpus: &Vec<CPU>) -> f32 {
+pub fn check_cpu_temperature(cpus: &[CPU]) -> f32 {
     let usage: Vec<i32> = cpus.iter().map(|x| x.cur_temp).collect();
     let sum: i32 = Iterator::sum(usage.iter());
     sum as f32 / usage.len() as f32
 }
 
-pub fn get_highest_temp(cpus: &Vec<CPU>) -> i32 {
+pub fn get_highest_temp(cpus: &[CPU]) -> i32 {
     let mut temp_max: i32 = 0;
     for cpu in cpus {
         if cpu.cur_temp > temp_max {
@@ -41,10 +41,9 @@ pub fn get_highest_temp(cpus: &Vec<CPU>) -> i32 {
 }
 
 fn open_cpu_info() -> String {
-    let cpu_info = fs::read_to_string("/proc/cpuinfo").unwrap_or_else(|_| {
+    fs::read_to_string("/proc/cpuinfo").unwrap_or_else(|_| {
         panic!("Could not read /proc/cpuinfo");
-    });
-    cpu_info
+    })
 }
 
 fn get_name_from_cpu_info(cpu_info: String) -> Result<String, Error> {

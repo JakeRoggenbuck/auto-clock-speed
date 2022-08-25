@@ -5,6 +5,7 @@ use super::config::get_config;
 use super::cpu::CPU;
 use super::power::LidState;
 use super::system::check_turbo_enabled;
+use crate::power::battery::{has_battery, Battery, BatteryStatus};
 use colored::*;
 
 #[macro_export]
@@ -74,6 +75,21 @@ pub fn print_turbo(t: bool, raw: bool) {
                 "Turbo is not enabled"
             }
         )
+    }
+}
+
+pub fn print_battery_status(battery: &Battery) -> String {
+    if has_battery() {
+        format!(
+            "Battery: {}",
+            if battery.status == BatteryStatus::Charging {
+                format!("{}%", battery.capacity).green()
+            } else {
+                format!("{}%", battery.capacity).red()
+            },
+        )
+    } else {
+        format!("Battery: {}", "N/A".bold())
     }
 }
 

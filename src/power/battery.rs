@@ -1,7 +1,6 @@
 use crate::create_issue;
 use crate::power::get_best_path;
 use crate::Error;
-use colored::Colorize;
 use std::any::Any;
 use std::fs;
 use std::fs::read_dir;
@@ -30,7 +29,7 @@ pub enum BatteryConditionType {
 }
 
 /// Describes the current status of the battery
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum BatteryStatus {
     Charging,
     Discharging,

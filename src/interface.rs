@@ -5,7 +5,8 @@ use super::display::{
     print_cpu_temp, print_cpus, print_freq, print_power, print_turbo,
 };
 use super::power::battery::Battery;
-use super::power::{read_lid_state, read_power_source};
+use super::power::lid::read_lid_state;
+use super::power::read_power_source;
 use super::settings::Settings;
 use super::system::{
     check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,

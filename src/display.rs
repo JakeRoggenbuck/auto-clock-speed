@@ -3,7 +3,7 @@ use std::thread;
 
 use super::config::get_config;
 use super::cpu::CPU;
-use super::power::LidState;
+use super::power::lid::LidState;
 use super::system::check_turbo_enabled;
 use crate::power::battery::{has_battery, Battery, BatteryStatus};
 use colored::*;

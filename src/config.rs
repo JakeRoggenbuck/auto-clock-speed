@@ -77,10 +77,12 @@ pub fn init_config() {
         let serialized =
             toml::to_string(&default_config).expect("Could not serialize default config");
 
-        config.write_all(serialized.as_bytes()).expect(&format!(
-            "Could not write serialized output to file {}",
-            &config_path()
-        ));
+        config.write_all(serialized.as_bytes()).unwrap_or_else(|_| {
+            panic!(
+                "Could not write serialized output to file {}",
+                &config_path()
+            )
+        });
         println!("Created config file at '/etc/acs/acs.toml'");
     } else {
         warn_user!("Config file already exists at '/etc/acs/acs.toml'. No changes made.");

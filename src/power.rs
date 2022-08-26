@@ -1,7 +1,7 @@
+use globset::Glob;
 use std::any::Any;
 use std::fs;
-use std::path::{Path,PathBuf};
-use globset::Glob;
+use std::path::{Path, PathBuf};
 
 use super::create_issue;
 use super::Error;
@@ -28,7 +28,7 @@ pub fn get_sysfs_path_by_glob(sysfs_parent_path: &str, hdw_glob: &str) -> Result
         let entry = entry.unwrap();
         let pathbuf = entry.path();
         if glob.is_match(&pathbuf) {
-            return Ok(pathbuf)
+            return Ok(pathbuf);
         }
     }
     Err(Error::HdwNotFound)

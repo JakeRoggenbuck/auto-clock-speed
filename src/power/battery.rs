@@ -4,7 +4,7 @@ use crate::Error;
 use std::any::Any;
 use std::fs;
 use std::fs::read_dir;
-use std::path::{Path,PathBuf};
+use std::path::{Path, PathBuf};
 
 // SYSFS root path
 const SYSFS_BATTERY_PATH: &str = "/sys/class/power_supply/";

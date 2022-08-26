@@ -1,18 +1,13 @@
 use crate::create_issue;
-use crate::power::get_best_path;
+use crate::power::get_sysfs_path_by_glob;
 use crate::Error;
 use std::any::Any;
 use std::fs;
 use std::fs::read_dir;
-use std::path::Path;
+use std::path::{Path,PathBuf};
 
-/// A list containing each potential path used for gathering battery status from the kernel
-const BATTERY_CHARGE_PATH: [&str; 4] = [
-    "/sys/class/power_supply/BAT/",
-    "/sys/class/power_supply/BAT0/",
-    "/sys/class/power_supply/BAT1/",
-    "/sys/class/power_supply/BAT2/",
-];
+// SYSFS root path
+const SYSFS_BATTERY_PATH: &str = "/sys/class/power_supply/";
 
 /// Returns if this system has a battery or not
 pub fn has_battery() -> bool {
@@ -41,7 +36,7 @@ pub enum BatteryStatus {
 /// This structure follows an update model where information within the structure gets updated upon
 /// calling the update method
 pub struct Battery {
-    pub sys_parent_path: String,
+    pub sys_parent_path: PathBuf,
     pub capacity: i8,
     pub condition_type: BatteryConditionType,
     pub condition: i8,
@@ -59,7 +54,7 @@ impl Battery {
     /// system.
     pub fn new() -> Result<Battery, Error> {
         let mut obj = Battery {
-            sys_parent_path: "unknown".to_string(),
+            sys_parent_path: PathBuf::new(),
             capacity: 0_i8,
             condition_type: BatteryConditionType::None,
             condition: 0_i8,
@@ -69,7 +64,7 @@ impl Battery {
             energy_full_design: 0_i32,
             status: BatteryStatus::Unknown,
         };
-        let path: &str = match get_best_path(BATTERY_CHARGE_PATH) {
+        let path: PathBuf = match get_sysfs_path_by_glob(SYSFS_BATTERY_PATH, "BAT*") {
             Ok(path) => path,
             Err(error) => {
                 if error.type_id() == Error::IO.type_id() {
@@ -79,17 +74,18 @@ impl Battery {
                 // If it doesn't exist then it is plugged in so make it 100% percent capacity
                 eprintln!("We could not detect your battery.");
                 create_issue!("If you are on a laptop");
-                return Err(Error::Unknown);
+                return Err(Error::HdwNotFound);
             }
         };
-        obj.sys_parent_path = path.to_string();
+        obj.sys_parent_path = path;
         obj.check_condition_type();
         Ok(obj)
     }
 
     /// Get the battery charge on this device then updates the struct
     fn read_charge(&mut self) -> Result<(), Error> {
-        let charge_path = self.sys_parent_path.to_string() + "capacity";
+        let mut charge_path: PathBuf = self.sys_parent_path.clone();
+        charge_path.push("capacity");
         let mut cap_str = fs::read_to_string(charge_path)?;
 
         // Remove the \n char
@@ -106,12 +102,14 @@ impl Battery {
     /// BatteryConditionType::Charge = charge_full
     /// BatteryConditionType::Energy = energy_full
     fn check_condition_type(&mut self) {
-        let path = self.sys_parent_path.to_string() + "charge_full";
-        if Path::new(&path).is_file() {
+        let mut path = self.sys_parent_path.clone();
+        path.push("charge_full");
+        if path.is_file() {
             self.condition_type = BatteryConditionType::Charge
         }
-        let path = self.sys_parent_path.to_string() + "energy_full";
-        if Path::new(&path).is_file() {
+        let mut path = self.sys_parent_path.clone();
+        path.push("energy_full");
+        if path.is_file() {
             self.condition_type = BatteryConditionType::Energy
         }
     }
@@ -140,15 +138,17 @@ impl Battery {
 
     /// Reads the energy_full and energy_full_design values and saves them to the struct
     fn read_energy_full(&mut self) -> Result<(), Error> {
-        let mut energy_path: String;
+        let mut energy_path: PathBuf;
         let mut value: String;
 
-        energy_path = self.sys_parent_path.to_string() + "energy_full_design";
+        energy_path = self.sys_parent_path.clone();
+        energy_path.push("energy_full_design");
         value = fs::read_to_string(energy_path)?;
         value.pop();
         self.energy_full_design = value.parse::<i32>().unwrap();
 
-        energy_path = self.sys_parent_path.to_string() + "energy_full";
+        energy_path = self.sys_parent_path.clone();
+        energy_path.push("energy_full");
         value = fs::read_to_string(energy_path)?;
         value.pop();
         self.energy_full = value.parse::<i32>().unwrap();
@@ -157,15 +157,17 @@ impl Battery {
 
     /// Reads that charge_full and charge_full_design values and saves them to the struct
     fn read_charge_full(&mut self) -> Result<(), Error> {
-        let mut charge_path: String;
+        let mut charge_path: PathBuf;
         let mut value: String;
 
-        charge_path = self.sys_parent_path.to_string() + "charge_full_design";
+        charge_path = self.sys_parent_path.clone();
+        charge_path.push("charge_full_design");
         value = fs::read_to_string(charge_path)?;
         value.pop();
         self.charge_full_design = value.parse::<i32>().unwrap();
 
-        charge_path = self.sys_parent_path.to_string() + "charge_full";
+        charge_path = self.sys_parent_path.clone();
+        charge_path.push("charge_full");
         value = fs::read_to_string(charge_path)?;
         value.pop();
         self.charge_full = value.parse::<i32>().unwrap();

@@ -6,6 +6,7 @@ https://github.com/JakeRoggenbuck/auto-clock-speed/issues/new/choose";
 pub enum Error {
     IO(std::io::Error),
     TimeError(std::time::SystemTimeError),
+    HdwNotFound,
     Unknown,
     DivisionByZero,
 }

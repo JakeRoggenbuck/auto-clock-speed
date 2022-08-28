@@ -84,8 +84,7 @@ impl Battery {
 
     /// Get the battery charge on this device then updates the struct
     fn read_charge(&mut self) -> Result<(), Error> {
-        let mut charge_path: PathBuf = self.sys_parent_path.clone();
-        charge_path.push("capacity");
+        let charge_path: PathBuf = self.sys_parent_path.clone().join("capacity");
         let mut cap_str = fs::read_to_string(charge_path)?;
 
         // Remove the \n char
@@ -102,13 +101,11 @@ impl Battery {
     /// BatteryConditionType::Charge = charge_full
     /// BatteryConditionType::Energy = energy_full
     fn check_condition_type(&mut self) {
-        let mut path = self.sys_parent_path.clone();
-        path.push("charge_full");
+        let path = self.sys_parent_path.clone().join("charge_full");
         if path.is_file() {
             self.condition_type = BatteryConditionType::Charge
         }
-        let mut path = self.sys_parent_path.clone();
-        path.push("energy_full");
+        let path = self.sys_parent_path.clone().join("energy_full");
         if path.is_file() {
             self.condition_type = BatteryConditionType::Energy
         }
@@ -141,14 +138,12 @@ impl Battery {
         let mut energy_path: PathBuf;
         let mut value: String;
 
-        energy_path = self.sys_parent_path.clone();
-        energy_path.push("energy_full_design");
+        energy_path = self.sys_parent_path.clone().join("energy_full_design");
         value = fs::read_to_string(energy_path)?;
         value.pop();
         self.energy_full_design = value.parse::<i32>().unwrap();
 
-        energy_path = self.sys_parent_path.clone();
-        energy_path.push("energy_full");
+        energy_path = self.sys_parent_path.clone().join("energy_full");
         value = fs::read_to_string(energy_path)?;
         value.pop();
         self.energy_full = value.parse::<i32>().unwrap();
@@ -160,14 +155,12 @@ impl Battery {
         let mut charge_path: PathBuf;
         let mut value: String;
 
-        charge_path = self.sys_parent_path.clone();
-        charge_path.push("charge_full_design");
+        charge_path = self.sys_parent_path.clone().join("charge_full_design");
         value = fs::read_to_string(charge_path)?;
         value.pop();
         self.charge_full_design = value.parse::<i32>().unwrap();
 
-        charge_path = self.sys_parent_path.clone();
-        charge_path.push("charge_full");
+        charge_path = self.sys_parent_path.clone().join("charge_full");
         value = fs::read_to_string(charge_path)?;
         value.pop();
         self.charge_full = value.parse::<i32>().unwrap();

@@ -1,8 +1,8 @@
 use crate::Error;
-use std::fs;
-use std::path::{Path,PathBuf};
-use std::str::FromStr;
 use globset::Glob;
+use std::fs;
+use std::path::{Path, PathBuf};
+use std::str::FromStr;
 
 pub fn read<T>(val: &mut T, path: &Path) -> Result<(), Error>
 where

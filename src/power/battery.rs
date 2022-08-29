@@ -1,8 +1,7 @@
 use crate::create_issue;
-use crate::power::get_sysfs_path_by_glob;
+use crate::sysfs;
 use crate::Error;
 use std::any::Any;
-use std::fs;
 use std::fs::read_dir;
 use std::path::{Path, PathBuf};
 
@@ -64,7 +63,7 @@ impl Battery {
             energy_full_design: 0_i32,
             status: BatteryStatus::Unknown,
         };
-        let path: PathBuf = match get_sysfs_path_by_glob(SYSFS_BATTERY_PATH, "BAT*") {
+        let path: PathBuf = match sysfs::get_path_by_glob(SYSFS_BATTERY_PATH, "BAT*") {
             Ok(path) => path,
             Err(error) => {
                 if error.type_id() == Error::IO.type_id() {
@@ -84,14 +83,11 @@ impl Battery {
 
     /// Get the battery charge on this device then updates the struct
     fn read_charge(&mut self) -> Result<(), Error> {
-        let charge_path: PathBuf = self.sys_parent_path.clone().join("capacity");
-        let mut cap_str = fs::read_to_string(charge_path)?;
-
-        // Remove the \n char
-        cap_str.pop();
-
-        let charge = cap_str.parse::<i8>().unwrap();
-        self.capacity = charge;
+        sysfs::read(
+            &mut self.capacity,
+            &self.sys_parent_path.clone().join("capacity"),
+        )
+        .unwrap();
 
         Ok(())
     }
@@ -135,35 +131,29 @@ impl Battery {
 
     /// Reads the energy_full and energy_full_design values and saves them to the struct
     fn read_energy_full(&mut self) -> Result<(), Error> {
-        let mut energy_path: PathBuf;
-        let mut value: String;
+        sysfs::read(
+            &mut self.energy_full_design,
+            &self.sys_parent_path.clone().join("energy_full_design"),
+        ).unwrap();
 
-        energy_path = self.sys_parent_path.clone().join("energy_full_design");
-        value = fs::read_to_string(energy_path)?;
-        value.pop();
-        self.energy_full_design = value.parse::<i32>().unwrap();
-
-        energy_path = self.sys_parent_path.clone().join("energy_full");
-        value = fs::read_to_string(energy_path)?;
-        value.pop();
-        self.energy_full = value.parse::<i32>().unwrap();
+        sysfs::read(
+            &mut self.energy_full,
+            &self.sys_parent_path.clone().join("energy_full"),
+        ).unwrap();
         Ok(())
     }
 
     /// Reads that charge_full and charge_full_design values and saves them to the struct
     fn read_charge_full(&mut self) -> Result<(), Error> {
-        let mut charge_path: PathBuf;
-        let mut value: String;
+        sysfs::read(
+            &mut self.charge_full_design,
+            &self.sys_parent_path.clone().join("charge_full_design"),
+        ).unwrap();
 
-        charge_path = self.sys_parent_path.clone().join("charge_full_design");
-        value = fs::read_to_string(charge_path)?;
-        value.pop();
-        self.charge_full_design = value.parse::<i32>().unwrap();
-
-        charge_path = self.sys_parent_path.clone().join("charge_full");
-        value = fs::read_to_string(charge_path)?;
-        value.pop();
-        self.charge_full = value.parse::<i32>().unwrap();
+        sysfs::read(
+            &mut self.charge_full,
+            &self.sys_parent_path.clone().join("charge_full"),
+        ).unwrap();
         Ok(())
     }
 

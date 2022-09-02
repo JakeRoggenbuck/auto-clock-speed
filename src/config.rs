@@ -39,14 +39,14 @@ pub fn default_config() -> Config {
 }
 
 pub fn init_config() {
+    if config_file_exists() {
+        warn_user!("Config file already exists at '/etc/acs/acs.toml'. No changes made.");
+    }
     init_config_dir();
     init_config_file();
 }
 
 pub fn init_config_dir() {
-    if config_file_exists() {
-        warn_user!("Config file already exists at '/etc/acs/acs.toml'. No changes made.");
-    }
     // If the config directory doesn't exist, create it
     if !config_dir_exists() {
         let acs_dir = std::fs::create_dir_all("/etc/acs/");
@@ -55,11 +55,9 @@ pub fn init_config_dir() {
             Err(error) => match error.kind() {
                 ErrorKind::PermissionDenied => {
                     print_error!("Could not create config directory '/etc/acs/'. Permission denied. Try running as root or use sudo.");
-                    return;
                 }
                 _ => {
                     print_error!(format!("Failed to create config directory: {}", error));
-                    return;
                 }
             },
         }

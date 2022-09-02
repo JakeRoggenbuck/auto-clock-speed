@@ -38,14 +38,21 @@ pub fn default_config() -> Config {
     }
 }
 
+/// Begins the config creation process
+/// This will:
+/// - Check if the config already exists
+/// - Initialize the config file directory (/etc/acs)
+/// - Initialize the default config file (/etc/acs/acs.toml)
 pub fn init_config() {
     if config_file_exists() {
         warn_user!("Config file already exists at '/etc/acs/acs.toml'. No changes made.");
+        return;
     }
     init_config_dir();
     init_config_file();
 }
 
+/// Initialize the config directory at /etc/acs/
 pub fn init_config_dir() {
     // If the config directory doesn't exist, create it
     if !config_dir_exists() {
@@ -64,6 +71,7 @@ pub fn init_config_dir() {
     }
 }
 
+/// Initialize the config file at /etc/acs/acs.toml
 pub fn init_config_file() {
     let config_file = File::create(&config_path());
     let mut config = match config_file {

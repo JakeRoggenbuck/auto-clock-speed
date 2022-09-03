@@ -609,9 +609,9 @@ mod tests {
         let daemon = daemon_mutex.lock().unwrap();
 
         if Uid::effective().is_root() {
-            assert_eq!(daemon.settings.edit, true);
+            assert!(daemon.settings.edit);
         } else {
-            assert_eq!(daemon.settings.edit, false);
+            assert!(!daemon.settings.edit);
         }
     }
 

@@ -162,7 +162,7 @@ impl Speed for CPU {
             "/sys/devices/system/cpu/{}/{}",
             self.name, "cpufreq/scaling_governor"
         ))
-        .unwrap_or("unknown".to_string());
+        .unwrap_or_else(|_| "unknown".to_string());
         Ok(())
     }
 

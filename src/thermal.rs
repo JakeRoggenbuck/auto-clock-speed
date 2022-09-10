@@ -1,9 +1,9 @@
 use super::system::{read_int, read_str};
-use super::Error;
 use colored::*;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fs::read_dir;
+use std::io::{self, Error};
 
 const THERMAL_ZONE_DIR: &str = "/sys/class/thermal/";
 
@@ -17,6 +17,18 @@ pub struct ThermalZone {
 
 pub trait Thermal {
     fn update(&mut self) -> Result<(), Error>;
+}
+
+pub struct ThermalReadError {
+    pub message: String,
+}
+
+impl From<io::Error> for ThermalReadError {
+    fn from(error: io::Error) -> Self {
+        ThermalReadError {
+            message: error.to_string(),
+        }
+    }
 }
 
 impl Default for ThermalZone {

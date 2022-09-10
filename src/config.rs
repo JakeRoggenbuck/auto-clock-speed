@@ -37,54 +37,67 @@ pub fn default_config() -> Config {
         ],
     }
 }
-/// Creates a config file at the default location if it doesn't exist
-pub fn init_config() {
-    if !config_file_exists() {
-        // If the config directory doesn't exist, create it
-        if !config_dir_exists() {
-            let acs_dir = std::fs::create_dir_all("/etc/acs/");
-            match acs_dir {
-                Ok(_) => {}
-                Err(error) => match error.kind() {
-                    ErrorKind::PermissionDenied => {
-                        print_error!("Could not create config directory '/etc/acs/'. Permission denied. Try running as root or use sudo.");
-                        return;
-                    }
-                    _ => {
-                        print_error!(format!("Failed to create config directory: {}", error));
-                        return;
-                    }
-                },
-            }
-        }
 
-        let config_file = File::create(&config_path());
-        let mut config = match config_file {
-            Ok(file) => file,
+/// Begins the config creation process
+/// This will:
+/// - Check if the config already exists
+/// - Initialize the config file directory (/etc/acs)
+/// - Initialize the default config file (/etc/acs/acs.toml)
+pub fn init_config() {
+    if config_file_exists() {
+        warn_user!("Config file already exists at '/etc/acs/acs.toml'. No changes made.");
+        return;
+    }
+    init_config_dir();
+    init_config_file();
+}
+
+/// Initialize the config directory at /etc/acs/
+pub fn init_config_dir() {
+    // If the config directory doesn't exist, create it
+    if !config_dir_exists() {
+        let acs_dir = std::fs::create_dir_all("/etc/acs/");
+        match acs_dir {
+            Ok(_) => {}
             Err(error) => match error.kind() {
                 ErrorKind::PermissionDenied => {
-                    print_error!("Looks like you don't have permission to write to /etc/acs/acs.toml. Try running this program as root or using sudo.");
-                    return;
+                    print_error!("Could not create config directory '/etc/acs/'. Permission denied. Try running as root or use sudo.");
                 }
                 _ => {
-                    print_error!(format!("Failed to create config file: {}", error));
-                    return;
+                    print_error!(format!("Failed to create config directory: {}", error));
                 }
             },
-        };
+        }
+    }
+}
 
-        let default_config = default_config();
-        let serialized =
-            toml::to_string(&default_config).expect("Could not serialize default config");
+/// Initialize the config file at /etc/acs/acs.toml
+pub fn init_config_file() {
+    let config_file = File::create(&config_path());
+    let mut config = match config_file {
+        Ok(file) => file,
+        Err(error) => match error.kind() {
+            ErrorKind::PermissionDenied => {
+                print_error!("Looks like you don't have permission to write to /etc/acs/acs.toml. Try running this program as root or using sudo.");
+                return;
+            }
+            _ => {
+                print_error!(format!("Failed to create config file: {}", error));
+                return;
+            }
+        },
+    };
 
-        config.write_all(serialized.as_bytes()).expect(&format!(
+    let default_config = default_config();
+    let serialized = toml::to_string(&default_config).expect("Could not serialize default config");
+
+    config.write_all(serialized.as_bytes()).unwrap_or_else(|_| {
+        panic!(
             "Could not write serialized output to file {}",
             &config_path()
-        ));
-        println!("Created config file at '/etc/acs/acs.toml'");
-    } else {
-        warn_user!("Config file already exists at '/etc/acs/acs.toml'. No changes made.");
-    }
+        )
+    });
+    println!("Created config file at '/etc/acs/acs.toml'");
 }
 
 #[derive(Debug, Serialize)]
@@ -168,7 +181,9 @@ impl fmt::Display for Config {
 fn read_as_string(config_file: &mut File) -> String {
     // Read it to new string
     let mut config: String = String::new();
-    config_file.read_to_string(&mut config).unwrap();
+    config_file
+        .read_to_string(&mut config)
+        .expect("Could not read config from file");
     config
 }
 

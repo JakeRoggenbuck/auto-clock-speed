@@ -4,10 +4,12 @@ use super::display::{
     print_available_governors, print_bat_cond, print_cpu_governors, print_cpu_speeds,
     print_cpu_temp, print_cpus, print_freq, print_power, print_turbo,
 };
-use super::power::{read_battery_charge, read_lid_state, read_power_source};
+use super::power::battery::Battery;
+use super::power::lid::read_lid_state;
+use super::power::read_power_source;
 use super::settings::Settings;
 use super::system::{
-    check_available_governors, check_bat_cond, check_cpu_freq, check_cpu_name, check_turbo_enabled,
+    check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
     get_cpu_percent, list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus,
 };
 use super::thermal::read_thermal_zones;
@@ -35,18 +37,17 @@ impl Getter for Get {
     }
 
     fn power(&self, raw: bool) {
+        let battery = match Battery::new() {
+            Ok(plugged) => plugged,
+            Err(_) => {
+                eprintln!("Failed to get battery");
+                return;
+            }
+        };
         let plugged = match read_power_source() {
             Ok(plugged) => plugged,
             Err(_) => {
                 eprintln!("Failed to get read power source");
-                return;
-            }
-        };
-
-        let bat = match read_battery_charge() {
-            Ok(bat) => bat,
-            Err(_) => {
-                eprintln!("Failed to get read battery charger");
                 return;
             }
         };
@@ -59,7 +60,7 @@ impl Getter for Get {
             }
         };
 
-        print_power(lid, bat, plugged, raw);
+        print_power(lid, battery.capacity, plugged, raw);
     }
 
     fn usage(&self, raw: bool) {
@@ -76,7 +77,13 @@ impl Getter for Get {
     }
 
     fn thermal(&self, raw: bool) {
-        let zones = read_thermal_zones();
+        let zones = match read_thermal_zones() {
+            Ok(zones) => zones,
+            Err(error) => {
+                println!("Error: {:?}", error);
+                return;
+            }
+        };
         if raw {
             println!("{:?}", zones)
         } else {
@@ -124,10 +131,14 @@ impl Getter for Get {
     }
 
     fn bat_cond(&self, raw: bool) {
-        match check_bat_cond() {
-            Ok(bat_cond) => print_bat_cond(bat_cond, raw),
-            Err(_) => println!("Failed to get battery condition"),
-        }
+        let battery = match Battery::new() {
+            Ok(plugged) => plugged,
+            Err(_) => {
+                eprintln!("Failed to get battery");
+                return;
+            }
+        };
+        print_bat_cond(battery.condition, raw)
     }
 }
 

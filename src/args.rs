@@ -57,7 +57,7 @@ enum GetType {
 
     /// The names of the core
     #[structopt(name = "cpus")]
-    CPUS {
+    CPUs {
         #[structopt(short, long)]
         raw: bool,
     },
@@ -245,7 +245,7 @@ pub fn parse_args(config: config::Config) {
             GetType::AvailableGovs { raw } => {
                 int.get.available_govs(raw);
             }
-            GetType::CPUS { raw } => {
+            GetType::CPUs { raw } => {
                 int.get.cpus(raw);
             }
 
@@ -322,7 +322,7 @@ pub fn parse_args(config: config::Config) {
 
             match daemon_init(settings, config) {
                 Ok(d) => {
-                    daemon::run(d).unwrap_err();
+                    daemon::run(d).unwrap();
                 }
                 Err(_) => eprint!("Could not run daemon in edit mode"),
             }
@@ -374,7 +374,7 @@ pub fn parse_args(config: config::Config) {
 
             match daemon_init(settings, config) {
                 Ok(d) => {
-                    daemon::run(d).unwrap_err();
+                    daemon::run(d).unwrap();
                 }
                 Err(_) => eprint!("Could not run daemon in monitor mode"),
             }

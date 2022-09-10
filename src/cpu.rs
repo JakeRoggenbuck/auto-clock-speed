@@ -1,8 +1,8 @@
 use colored::*;
 use rand::Rng;
 use std::fmt;
-use std::fs::File;
-use std::io::{Read, Write};
+use std::fs::{self, File};
+use std::io::Write;
 use std::path::Path;
 
 use super::system::{calculate_cpu_percent, read_int, read_str, ProcStat};
@@ -53,7 +53,6 @@ pub enum WritableValue {
 impl Speed for CPU {
     /// Read the temperature of a cpu
     fn read_temp(&mut self, sub_path: &str) -> Result<i32, Error> {
-        let mut info: String = String::new();
         let cpu_info_path: String = format!(
             "/sys/class/thermal/{}/{}",
             self.name.replace("cpu", "thermal_zone"),
@@ -64,7 +63,7 @@ impl Speed for CPU {
             return Ok(-1);
         }
 
-        File::open(cpu_info_path)?.read_to_string(&mut info)?;
+        let mut info = fs::read_to_string(cpu_info_path)?;
 
         // Remove the last character (the newline)
         info.pop();
@@ -96,7 +95,7 @@ impl Speed for CPU {
 
         let path: String = format!("/sys/devices/system/cpu/{}/{}", self.name, sub_path);
         let mut buffer = File::create(path)?;
-        buffer.write(to_write.as_bytes())?;
+        buffer.write_all(to_write.as_bytes())?;
 
         Ok(())
     }
@@ -179,7 +178,7 @@ impl Speed for CPU {
             "/sys/devices/system/cpu/{}/{}",
             self.name, "cpufreq/scaling_governor"
         ))
-        .unwrap_or("unknown".to_string());
+        .unwrap_or_else(|_| "unknown".to_string());
         Ok(())
     }
 

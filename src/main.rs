@@ -40,6 +40,7 @@ pub mod logger;
 pub mod network;
 pub mod power;
 pub mod settings;
+pub mod sysfs;
 pub mod system;
 pub mod terminal;
 pub mod thermal;

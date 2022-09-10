@@ -1,6 +1,5 @@
 use cached::proc_macro::once;
-use std::fs::{read_dir, File};
-use std::io::Read;
+use std::fs::{self, read_dir};
 use std::string::String;
 use std::{thread, time};
 
@@ -11,27 +10,27 @@ use super::cpu::CPU;
 use super::Error;
 
 /// Find the average frequency of all cores
-pub fn check_cpu_freq(cpus: &Vec<CPU>) -> f32 {
+pub fn check_cpu_freq(cpus: &[CPU]) -> f32 {
     let freqs: Vec<i32> = cpus.iter().map(|x| x.cur_freq).collect();
     let sum: i32 = Iterator::sum(freqs.iter());
     sum as f32 / freqs.len() as f32
 }
 
 /// Find the average usage of all cores
-pub fn check_cpu_usage(cpus: &Vec<CPU>) -> f32 {
+pub fn check_cpu_usage(cpus: &[CPU]) -> f32 {
     let usage: Vec<i32> = cpus.iter().map(|x| (x.cur_usage * 100.0) as i32).collect();
     let sum: i32 = Iterator::sum(usage.iter());
     sum as f32 / usage.len() as f32
 }
 
 /// Find the average temperature of all cores
-pub fn check_cpu_temperature(cpus: &Vec<CPU>) -> f32 {
+pub fn check_cpu_temperature(cpus: &[CPU]) -> f32 {
     let usage: Vec<i32> = cpus.iter().map(|x| x.cur_temp).collect();
     let sum: i32 = Iterator::sum(usage.iter());
     sum as f32 / usage.len() as f32
 }
 
-pub fn get_highest_temp(cpus: &Vec<CPU>) -> i32 {
+pub fn get_highest_temp(cpus: &[CPU]) -> i32 {
     let mut temp_max: i32 = 0;
     for cpu in cpus {
         if cpu.cur_temp > temp_max {
@@ -42,14 +41,9 @@ pub fn get_highest_temp(cpus: &Vec<CPU>) -> i32 {
 }
 
 fn open_cpu_info() -> String {
-    let mut cpu_info: String = String::new();
-    File::open("/proc/cpuinfo")
-        .unwrap()
-        .read_to_string(&mut cpu_info)
-        .unwrap_or_else(|_| {
-            panic!("Could not read /proc/cpuinfo");
-        });
-    cpu_info
+    fs::read_to_string("/proc/cpuinfo").unwrap_or_else(|_| {
+        panic!("Could not read /proc/cpuinfo");
+    })
 }
 
 fn get_name_from_cpu_info(cpu_info: String) -> Result<String, Error> {
@@ -73,10 +67,9 @@ pub fn check_cpu_name() -> Result<String, Error> {
 }
 
 pub fn read_proc_stat_file() -> Result<String, Error> {
-    let mut is_turbo: String = String::new();
-    let turbo_path: &str = "/proc/stat";
-    File::open(turbo_path)?.read_to_string(&mut is_turbo)?;
-    Ok(is_turbo)
+    let proc_stat_path: &str = "/proc/stat";
+    let proc_stat_content = fs::read_to_string(proc_stat_path)?;
+    Ok(proc_stat_content)
 }
 
 #[derive(Debug)]
@@ -161,9 +154,8 @@ pub fn calculate_cpu_percent(timing_1: &ProcStat, timing_2: &ProcStat) -> f32 {
 }
 
 fn read_turbo_file() -> Result<String, Error> {
-    let mut is_turbo: String = String::new();
     let turbo_path: &str = "/sys/devices/system/cpu/intel_pstate/no_turbo";
-    File::open(turbo_path)?.read_to_string(&mut is_turbo)?;
+    let is_turbo = fs::read_to_string(turbo_path)?;
     Ok(is_turbo)
 }
 
@@ -178,20 +170,6 @@ fn interpret_turbo(is_turbo: &mut String) -> Result<bool, Error> {
     }
 }
 
-fn read_bat_energy_full(design: bool) -> Result<i32, Error> {
-    let mut capacity_readings: String = String::new();
-    let bat_energy_full_path: &str = "/sys/class/power_supply/BAT0/";
-    if design {
-        File::open(bat_energy_full_path.to_string() + "energy_full_design")?
-            .read_to_string(&mut capacity_readings)?;
-    } else {
-        File::open(bat_energy_full_path.to_string() + "energy_full")?
-            .read_to_string(&mut capacity_readings)?;
-    }
-    capacity_readings.pop();
-    Ok(capacity_readings.parse::<i32>().unwrap())
-}
-
 /// Check if turbo is enabled for the machine, (enabled in bios)
 pub fn check_turbo_enabled() -> Result<bool, Error> {
     let mut turbo_string = read_turbo_file()?;
@@ -199,27 +177,9 @@ pub fn check_turbo_enabled() -> Result<bool, Error> {
     Ok(is_turbo)
 }
 
-pub fn check_bat_cond() -> Result<f32, Error> {
-    let bat_cond_calc: f32 = read_bat_energy_full(false).unwrap_or(0) as f32
-        / read_bat_energy_full(true).unwrap_or(0) as f32;
-    Ok(bat_cond_calc)
-}
-
-pub fn get_battery_condition(check_bat_cond: f32) -> f32 {
-    let mut bat_cond = check_bat_cond * 100.0;
-    if bat_cond >= 100.0 {
-        bat_cond = 100.00;
-    } else if bat_cond <= 0.0 {
-        bat_cond = 0.0;
-    }
-
-    bat_cond.round()
-}
-
 fn read_govs_file() -> Result<String, Error> {
-    let mut governors_string: String = String::new();
     let governors_path: &str = "/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors";
-    File::open(governors_path)?.read_to_string(&mut governors_string)?;
+    let governors_string = fs::read_to_string(governors_path)?;
     Ok(governors_string)
 }
 
@@ -316,9 +276,7 @@ pub fn list_cpu_governors() -> Vec<String> {
 }
 
 pub fn read_int(path: &str) -> Result<i32, Error> {
-    let mut value: String = String::new();
-
-    File::open(path)?.read_to_string(&mut value)?;
+    let mut value = fs::read_to_string(path)?;
 
     // Remove trailing newline
     value.pop();
@@ -328,9 +286,7 @@ pub fn read_int(path: &str) -> Result<i32, Error> {
 }
 
 pub fn read_str(path: &str) -> Result<String, Error> {
-    let mut value: String = String::new();
-
-    File::open(path)?.read_to_string(&mut value)?;
+    let mut value = fs::read_to_string(path)?;
 
     // Remove trailing newline
     value.pop();

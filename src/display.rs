@@ -3,8 +3,9 @@ use std::thread;
 
 use super::config::get_config;
 use super::cpu::CPU;
-use super::power::LidState;
+use super::power::lid::LidState;
 use super::system::check_turbo_enabled;
+use crate::power::battery::{has_battery, Battery, BatteryStatus};
 use colored::*;
 
 #[macro_export]
@@ -54,11 +55,11 @@ pub fn print_power(lid: LidState, bat: i8, plugged: bool, raw: bool) {
     }
 }
 
-pub fn print_bat_cond(c: f32, raw: bool) {
+pub fn print_bat_cond(c: i8, raw: bool) {
     if raw {
         println!("{}", c);
     } else {
-        println!("{:.2}%", c * 100.0)
+        println!("{:.2}%", c)
     }
 }
 
@@ -77,6 +78,21 @@ pub fn print_turbo(t: bool, raw: bool) {
     }
 }
 
+pub fn print_battery_status(battery: &Battery) -> String {
+    if has_battery() {
+        format!(
+            "Battery: {}",
+            if battery.status == BatteryStatus::Charging {
+                format!("{}%", battery.capacity).green()
+            } else {
+                format!("{}%", battery.capacity).red()
+            },
+        )
+    } else {
+        format!("Battery: {}", "N/A".bold())
+    }
+}
+
 pub fn print_turbo_animation(cpu: usize, y_pos: usize, delay: u64) {
     let frames = ['◷', '◶', '◵', '◴'];
     let y_pos = cpu + y_pos;
@@ -85,7 +101,6 @@ pub fn print_turbo_animation(cpu: usize, y_pos: usize, delay: u64) {
 
     thread::spawn(move || {
         for _ in 0..count {
-            termion::cursor::Goto(3, 7);
             println!("{}[{};1H{}", 27 as char, y_pos, frames[current]);
             current += 1;
             if current == 4 {

@@ -1,3 +1,4 @@
+use crate::power::battery::{has_battery, Battery};
 use std::convert::TryInto;
 use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
@@ -13,20 +14,16 @@ use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
 use super::network::{hook, listen};
-use super::power::{
-    get_battery_status, has_battery, read_battery_charge, read_lid_state, read_power_source,
-    LidState,
-};
+use super::power::lid::{read_lid_state, LidState};
+use super::power::read_power_source;
 use super::settings::{GraphType, Settings};
 use super::system::{
     check_available_governors, check_cpu_freq, check_cpu_temperature, check_cpu_usage,
-    get_battery_condition, get_highest_temp, list_cpus, parse_proc_file, read_proc_stat_file,
-    ProcStat,
+    get_highest_temp, list_cpus, parse_proc_file, read_proc_stat_file, ProcStat,
 };
 use super::terminal::terminal_width;
 use super::Error;
-use crate::display::print_turbo_status;
-use crate::system::check_bat_cond;
+use crate::display::{print_battery_status, print_turbo_status};
 use crate::warn_user;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
@@ -81,6 +78,7 @@ pub trait Checker {
 }
 
 pub struct Daemon {
+    pub battery: Battery,
     pub cpus: Vec<CPU>,
     pub last_proc: Vec<ProcStat>,
     pub message: String,
@@ -200,7 +198,7 @@ impl Checker for Daemon {
 
         // Update current states
         self.charging = read_power_source()?;
-        self.charge = read_battery_charge()?;
+        self.charge = self.battery.capacity;
         self.lid_state = read_lid_state()?;
         self.usage = calculate_average_usage(&self.cpus) * 100.0;
 
@@ -244,7 +242,15 @@ impl Checker for Daemon {
     }
 
     /// Calls update on each cpu to update the state of each one
+    /// Also updates battery
     fn update_all(&mut self) -> Result<(), Error> {
+        match self.battery.update() {
+            Ok(_) => {}
+            Err(e) => self
+                .logger
+                .log(&format!("Battery error: {:?}", e), logger::Severity::Error),
+        }
+
         let cur_proc = parse_proc_file(read_proc_stat_file()?)?;
         for cpu in self.cpus.iter_mut() {
             cpu.update()?;
@@ -282,14 +288,8 @@ impl Checker for Daemon {
         let cpus = &self.cpus.iter().map(|c| c.render()).collect::<String>();
 
         // Prints battery percent or N/A if not
-        let battery_status = get_battery_status(self.charging);
-
-        let mut battery_condition: String = "N/A".to_string();
-        if let Ok(check_bat_cond) = check_bat_cond() {
-            battery_condition = format!("Condition: {}%", get_battery_condition(check_bat_cond));
-        } else {
-            println!("Failed to get battery condition");
-        }
+        let battery_status = print_battery_status(&self.battery);
+        let battery_condition = format!("Condition: {}%", self.battery.condition);
 
         format!(
             "{}{}{}\n{}\n{}\n",
@@ -478,6 +478,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
 
     // Create a new Daemon
     let mut daemon: Daemon = Daemon {
+        battery: Battery::new()?,
         cpus: Vec::<CPU>::new(),
         last_proc: Vec::<ProcStat>::new(),
         message,
@@ -518,11 +519,11 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
     let c_daemon_mutex = Arc::clone(&daemon_mutex);
     if settings.edit {
         // Listen for acs clients
-        listen("/tmp/acs.sock", c_daemon_mutex);
+        listen::listen("/tmp/acs.sock", c_daemon_mutex);
     } else {
         // Broadcast hello message
         if settings.hook {
-            hook("/tmp/acs.sock", c_daemon_mutex);
+            hook::hook("/tmp/acs.sock", c_daemon_mutex);
         }
     }
 
@@ -554,12 +555,6 @@ pub fn run(daemon_mutex: Arc<Mutex<Daemon>>) -> Result<(), Error> {
         // Before runnig the loop drop the lock and aquire it again later within the loop
         let mode = daemon.settings.edit;
 
-        let effective_timeout = if daemon.charging {
-            daemon.timeout
-        } else {
-            daemon.timeout_battery
-        };
-
         drop(daemon);
 
         // Choose which mode acs runs in
@@ -567,6 +562,11 @@ pub fn run(daemon_mutex: Arc<Mutex<Daemon>>) -> Result<(), Error> {
             loop {
                 let mut daemon = daemon_mutex.lock().unwrap();
                 daemon.single_edit()?;
+                let effective_timeout = if daemon.charging {
+                    daemon.timeout
+                } else {
+                    daemon.timeout_battery
+                };
                 drop(daemon);
                 thread::sleep(effective_timeout);
             }
@@ -574,6 +574,11 @@ pub fn run(daemon_mutex: Arc<Mutex<Daemon>>) -> Result<(), Error> {
             loop {
                 let mut daemon = daemon_mutex.lock().unwrap();
                 daemon.single_monit()?;
+                let effective_timeout = if daemon.charging {
+                    daemon.timeout
+                } else {
+                    daemon.timeout_battery
+                };
                 drop(daemon);
                 thread::sleep(effective_timeout);
             }
@@ -608,9 +613,9 @@ mod tests {
         let daemon = daemon_mutex.lock().unwrap();
 
         if Uid::effective().is_root() {
-            assert_eq!(daemon.settings.edit, true);
+            assert!(daemon.settings.edit);
         } else {
-            assert_eq!(daemon.settings.edit, false);
+            assert!(!daemon.settings.edit);
         }
     }
 

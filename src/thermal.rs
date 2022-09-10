@@ -1,9 +1,9 @@
 use super::system::{read_int, read_str};
+use crate::error::Error;
 use colored::*;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fs::read_dir;
-use std::io::{self, Error};
 
 const THERMAL_ZONE_DIR: &str = "/sys/class/thermal/";
 
@@ -17,18 +17,6 @@ pub struct ThermalZone {
 
 pub trait Thermal {
     fn update(&mut self) -> Result<(), Error>;
-}
-
-pub struct ThermalReadError {
-    pub message: String,
-}
-
-impl From<io::Error> for ThermalReadError {
-    fn from(error: io::Error) -> Self {
-        ThermalReadError {
-            message: error.to_string(),
-        }
-    }
 }
 
 impl Default for ThermalZone {
@@ -59,24 +47,23 @@ impl Display for ThermalZone {
     }
 }
 
-pub fn read_thermal_zones() -> Vec<ThermalZone> {
+pub fn read_thermal_zones() -> Result<Vec<ThermalZone>, Error> {
     let mut zones = Vec::<ThermalZone>::new();
 
     for a in read_dir(THERMAL_ZONE_DIR).expect("Could not read thermal directory") {
-        let path_string: String = format!("{}", a.unwrap().path().to_string_lossy());
+        let path_string: String = format!("{}", a?.path().to_string_lossy());
         if !path_string.starts_with(&[THERMAL_ZONE_DIR, "thermal_zone"].concat()) {
             continue;
         }
 
         let mut zone = ThermalZone::default();
 
-        zone.temp = read_int(&[&path_string, "/temp"].concat()).unwrap_or(0);
-        zone.name = read_str(&[&path_string, "/type"].concat()).unwrap_or("unknown".to_string());
-        zone.enabled = read_str(&[&path_string, "/mode"].concat()).unwrap_or("disable".to_string())
-            == "enabled";
+        zone.temp = read_int(&[&path_string, "/temp"].concat())?;
+        zone.name = read_str(&[&path_string, "/type"].concat())?;
+        zone.enabled = read_str(&[&path_string, "/mode"].concat())? == "enabled";
         zone.path = path_string;
 
         zones.push(zone);
     }
-    zones
+    Ok(zones)
 }

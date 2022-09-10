@@ -148,51 +148,6 @@ pub fn print_cpus(cpus: Vec<CPU>, name: String, raw: bool) {
     }
 }
 
-pub fn print_cpu(cpu: &CPU) {
-    print!("{}", render_cpu(cpu));
-}
-
-pub fn render_cpu(cpu: &CPU) -> String {
-    let temp: colored::ColoredString;
-    let reduced_cpu_cur_temp = cpu.cur_temp / 1000;
-
-    if reduced_cpu_cur_temp > 60 {
-        temp = format!("{}C", reduced_cpu_cur_temp).red();
-    } else if reduced_cpu_cur_temp > 40 {
-        temp = format!("{}C", reduced_cpu_cur_temp).yellow();
-    } else if reduced_cpu_cur_temp == 1 || reduced_cpu_cur_temp == 0 {
-        temp = format!("{}C*", reduced_cpu_cur_temp).white();
-    } else {
-        temp = format!("{}C", reduced_cpu_cur_temp).green();
-    }
-
-    let usage: colored::ColoredString;
-    let scaled_cpus_cur_usage = cpu.cur_usage * 100.0;
-
-    if cpu.cur_usage > 0.9 {
-        usage = format!("{:.2}%", scaled_cpus_cur_usage).red();
-    } else if cpu.cur_usage > 0.5 {
-        usage = format!("{:.2}%", scaled_cpus_cur_usage).yellow();
-    } else if cpu.cur_usage > 0.2 {
-        usage = format!("{:.2}%", scaled_cpus_cur_usage).white();
-    } else if cpu.cur_usage > 0.0000 {
-        usage = format!("{:.2}%", scaled_cpus_cur_usage).green();
-    } else {
-        usage = format!("{:.2}%", scaled_cpus_cur_usage).purple();
-    }
-
-    format!(
-        "{}: {}MHz\t{}MHz\t{}\t{}\t{}\t{}\n",
-        cpu.name.bold(),
-        cpu.max_freq / 1000,
-        cpu.min_freq / 1000,
-        format!("{}MHz", cpu.cur_freq / 1000).green(),
-        temp,
-        usage,
-        cpu.gov
-    )
-}
-
 pub fn print_cpu_speeds(cpu_speeds: Vec<i32>, raw: bool) {
     print_vec(cpu_speeds, raw);
 }
@@ -223,7 +178,7 @@ mod tests {
             gov: "Unknown".to_string(),
         };
 
-        let out = render_cpu(&new);
+        let out = format!("{}", &new);
         assert!(out.contains("Unknown"));
         assert!(out.contains("cpu1"));
     }

@@ -77,7 +77,13 @@ impl Getter for Get {
     }
 
     fn thermal(&self, raw: bool) {
-        let zones = read_thermal_zones();
+        let zones = match read_thermal_zones() {
+            Ok(zones) => zones,
+            Err(error) => {
+                println!("Error: {:?}", error);
+                return;
+            }
+        };
         if raw {
             println!("{:?}", zones)
         } else {

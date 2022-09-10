@@ -555,12 +555,6 @@ pub fn run(daemon_mutex: Arc<Mutex<Daemon>>) -> Result<(), Error> {
         // Before runnig the loop drop the lock and aquire it again later within the loop
         let mode = daemon.settings.edit;
 
-        let effective_timeout = if daemon.charging {
-            daemon.timeout
-        } else {
-            daemon.timeout_battery
-        };
-
         drop(daemon);
 
         // Choose which mode acs runs in
@@ -568,6 +562,11 @@ pub fn run(daemon_mutex: Arc<Mutex<Daemon>>) -> Result<(), Error> {
             loop {
                 let mut daemon = daemon_mutex.lock().unwrap();
                 daemon.single_edit()?;
+                let effective_timeout = if daemon.charging {
+                    daemon.timeout
+                } else {
+                    daemon.timeout_battery
+                };
                 drop(daemon);
                 thread::sleep(effective_timeout);
             }
@@ -575,6 +574,11 @@ pub fn run(daemon_mutex: Arc<Mutex<Daemon>>) -> Result<(), Error> {
             loop {
                 let mut daemon = daemon_mutex.lock().unwrap();
                 daemon.single_monit()?;
+                let effective_timeout = if daemon.charging {
+                    daemon.timeout
+                } else {
+                    daemon.timeout_battery
+                };
                 drop(daemon);
                 thread::sleep(effective_timeout);
             }

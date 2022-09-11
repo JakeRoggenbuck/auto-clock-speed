@@ -42,6 +42,7 @@ impl fmt::Debug for Error {
                     "Hardware component missing, operating system may not be supported".to_string(),
                 Error::Unknown => "Unknown error occured".to_string(),
                 Error::DivisionByZero => "Division by zero occured".to_string(),
+                Error::Parse => "Failed to parse data".to_string(),
             },
             BUG_REPORT
         )

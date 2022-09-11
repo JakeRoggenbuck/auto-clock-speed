@@ -1,9 +1,9 @@
 use super::system::{read_int, read_str};
 use crate::error::Error;
+use colored::Colorize;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fs::read_dir;
-use colored::Colorize;
 
 const THERMAL_ZONE_DIR: &str = "/sys/class/thermal/";
 

@@ -27,7 +27,7 @@ impl fmt::Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(
             f,
-            "An error occured: {}",
+            "An error occured: {}\n{}",
             match self {
                 Error::IO(e) => format!("IO Error: {}", e),
                 Error::TimeError(e) => format!("Time Error: {}", e),
@@ -35,7 +35,8 @@ impl fmt::Debug for Error {
                     "Hardware component missing, operating system may not be supported".to_string(),
                 Error::Unknown => "Unknown error occured".to_string(),
                 Error::DivisionByZero => "Division by zero occured".to_string(),
-            }
+            },
+            BUG_REPORT
         )
     }
 }

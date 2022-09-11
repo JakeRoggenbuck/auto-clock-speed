@@ -86,8 +86,7 @@ impl Battery {
         sysfs::read(
             &mut self.capacity,
             &self.sys_parent_path.clone().join("capacity"),
-        )
-        .unwrap();
+        )?;
 
         Ok(())
     }
@@ -134,14 +133,12 @@ impl Battery {
         sysfs::read(
             &mut self.energy_full_design,
             &self.sys_parent_path.clone().join("energy_full_design"),
-        )
-        .unwrap();
+        )?;
 
         sysfs::read(
             &mut self.energy_full,
             &self.sys_parent_path.clone().join("energy_full"),
-        )
-        .unwrap();
+        )?;
         Ok(())
     }
 
@@ -150,14 +147,12 @@ impl Battery {
         sysfs::read(
             &mut self.charge_full_design,
             &self.sys_parent_path.clone().join("charge_full_design"),
-        )
-        .unwrap();
+        )?;
 
         sysfs::read(
             &mut self.charge_full,
             &self.sys_parent_path.clone().join("charge_full"),
-        )
-        .unwrap();
+        )?;
         Ok(())
     }
 

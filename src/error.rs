@@ -6,6 +6,7 @@ https://github.com/JakeRoggenbuck/auto-clock-speed/issues/new/choose";
 pub enum Error {
     IO(std::io::Error),
     TimeError(std::time::SystemTimeError),
+    Parse,
     HdwNotFound,
     Unknown,
     DivisionByZero,
@@ -20,6 +21,12 @@ impl From<std::io::Error> for Error {
 impl From<std::time::SystemTimeError> for Error {
     fn from(e: std::time::SystemTimeError) -> Error {
         Error::TimeError(e)
+    }
+}
+
+impl From<std::num::ParseIntError> for Error {
+    fn from(_: std::num::ParseIntError) -> Self {
+        Error::Parse
     }
 }
 

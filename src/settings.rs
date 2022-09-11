@@ -21,6 +21,7 @@ impl fmt::Display for GraphType {
     }
 }
 
+/// Parse from graph_type parameter which type of graph will be displayed
 pub fn get_graph_type(graph_type: &str) -> GraphType {
     match graph_type.to_lowercase().as_str() {
         "hidden" => GraphType::Hidden,

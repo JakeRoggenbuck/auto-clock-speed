@@ -6,7 +6,7 @@ use super::cpu::CPU;
 use super::power::lid::LidState;
 use super::system::check_turbo_enabled;
 use crate::power::battery::{has_battery, Battery, BatteryStatus};
-use colored::*;
+use colored::Colorize;
 
 #[macro_export]
 macro_rules! warn_user {
@@ -29,8 +29,7 @@ macro_rules! create_issue {
     ($a:expr) => {{
         eprintln!(
             "{}, {}",
-            $a,
-            "please create an issue at https://github.com/JakeRoggenbuck/auto-clock-speed/issues/new/choose",
+            $a, "please create an issue at issue.autoclockspeed.org",
         );
     }};
 }

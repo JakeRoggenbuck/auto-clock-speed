@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
 use std::{thread, time};
 
-use colored::*;
+use colored::Colorize;
 use nix::unistd::Uid;
 use serde::Serialize;
 

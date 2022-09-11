@@ -1,6 +1,6 @@
 use super::system::{read_int, read_str};
 use crate::error::Error;
-use colored::*;
+use colored::Colorize;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fs::read_dir;

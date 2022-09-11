@@ -5,7 +5,7 @@ use std::time::SystemTime;
 
 use chrono::prelude::DateTime;
 use chrono::Utc;
-use colored::*;
+use colored::Colorize;
 
 pub enum Severity {
     Error,
@@ -41,7 +41,7 @@ pub struct Logger {
 }
 
 impl Interface for Logger {
-    /// Create a Log from message and severity, add the timestamp
+    /// Create a Log with the timestamp from message and severity
     fn log(&mut self, msg: &str, sev: Severity) {
         let time = SystemTime::now();
 

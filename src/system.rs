@@ -40,10 +40,8 @@ pub fn get_highest_temp(cpus: &[CPU]) -> i32 {
     temp_max
 }
 
-fn open_cpu_info() -> String {
-    fs::read_to_string("/proc/cpuinfo").unwrap_or_else(|_| {
-        panic!("Could not read /proc/cpuinfo");
-    })
+fn open_cpu_info() -> Result<String, Error> {
+    Ok(fs::read_to_string("/proc/cpuinfo")?)
 }
 
 fn get_name_from_cpu_info(cpu_info: String) -> Result<String, Error> {
@@ -61,7 +59,7 @@ fn get_name_from_cpu_info(cpu_info: String) -> Result<String, Error> {
 }
 
 pub fn check_cpu_name() -> Result<String, Error> {
-    let cpu_info: String = open_cpu_info();
+    let cpu_info: String = open_cpu_info()?;
     let name: String = get_name_from_cpu_info(cpu_info)?;
     Ok(name)
 }

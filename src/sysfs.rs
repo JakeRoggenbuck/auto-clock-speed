@@ -14,10 +14,7 @@ where
     file_content.pop();
 
     // Convert String to expected value
-    *val = match file_content.parse::<T>() {
-        Ok(val) => val,
-        Err(_) => return Err(Error::Parse),
-    };
+    *val = file_content.parse::<T>().map_err(|_| Error::Unknown)?;
 
     Ok(())
 }

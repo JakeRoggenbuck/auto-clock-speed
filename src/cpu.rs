@@ -23,8 +23,8 @@ pub trait Speed {
     fn get_temp(&mut self) -> Result<(), Error>;
     fn get_gov(&mut self) -> Result<(), Error>;
     fn set_gov(&mut self, gov: String) -> Result<(), Error>;
-    fn print(&self);
-    fn render(&self) -> String;
+    // fn print(&self);
+    // fn render(&self) -> String;
     fn random() -> CPU;
 }
 
@@ -192,16 +192,16 @@ impl Speed for CPU {
     /// Print value from format
     /// DEPRECATION NOTICE: This method will be replace for implemented fmt trait
     /// One can now simply println!("{cpu_1}"); instead of cpu_1.print();
-    fn print(&self) {
-        print!("{self}");
-    }
+    // fn print(&self) {
+    //     print!("{self}");
+    // }
 
     /// Load all printable things into a string and return it
     /// DEPRECATION NOTICE: This method will be replace for implemented fmt trait
     /// One can now simply let a = format!("{cpu_1}"); instead of let a = cpu_1.render();
-    fn render(&self) -> String {
-        format!("{self}")
-    }
+    // fn render(&self) -> String {
+    //     format!("{self}")
+    // }
 
     /// Randomly generate cpu objects with somewhat realistic values
     fn random() -> CPU {

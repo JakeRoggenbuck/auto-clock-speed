@@ -285,7 +285,7 @@ impl Checker for Daemon {
         let message = format!("{}\n", self.message);
         let title = "Name  Max\tMin\tFreq\tTemp\tUsage\tGovernor\n".bold();
         // Render each line of cpu core
-        let cpus = &self.cpus.iter().map(|c| c.render()).collect::<String>();
+        let cpus = &self.cpus.iter().map(|c| format!("{c}")).collect::<String>();
 
         // Prints battery percent or N/A if not
         let battery_status = print_battery_status(&self.battery);

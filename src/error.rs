@@ -25,7 +25,18 @@ impl From<std::time::SystemTimeError> for Error {
 
 impl fmt::Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "Something went wrong. Try running with sudo.")
+        writeln!(
+            f,
+            "An error occured: {}",
+            match self {
+                Error::IO(e) => format!("IO Error: {}", e),
+                Error::TimeError(e) => format!("Time Error: {}", e),
+                Error::HdwNotFound =>
+                    "Hardware component missing, operating system may not be supported".to_string(),
+                Error::Unknown => "Unknown error occured".to_string(),
+                Error::DivisionByZero => "Division by zero occured".to_string(),
+            }
+        )
     }
 }
 

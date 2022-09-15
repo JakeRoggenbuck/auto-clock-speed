@@ -499,7 +499,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         // otherwise, there is a real problem, because there should be a power source possible
         charging: {
             let source = read_power_source();
-            ac_present = false;
+            ac_present = source.is_ok();
             source.unwrap_or(true)
         },
         charge: 100,

@@ -14,7 +14,7 @@ where
     file_content.pop();
 
     // Convert String to expected value
-    *val = file_content.parse::<T>().map_err(|_| Error::Unknown)?;
+    *val = file_content.parse::<T>().map_err(|_| Error::Parse)?;
 
     Ok(())
 }
@@ -27,7 +27,7 @@ pub fn get_path_by_glob(sysfs_parent_path: &str, hdw_glob: &str) -> Result<PathB
     let glob = Glob::new(&glob_path)
         .map_err(|_| Error::Unknown)?
         .compile_matcher();
-    let entries = fs::read_dir(sysfs_parent_path).map_err(|_| Error::Unknown)?;
+    let entries = fs::read_dir(sysfs_parent_path)?;
 
     for entry in entries {
         let entry = entry.map_err(|_| Error::Unknown)?;

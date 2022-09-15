@@ -1,4 +1,3 @@
-use crate::create_issue;
 use crate::sysfs;
 use crate::Error;
 use std::any::Any;
@@ -16,24 +15,28 @@ pub fn has_battery() -> bool {
 }
 
 /// Describes how the battery condition was obtained
+#[derive(Clone, Default)]
 pub enum BatteryConditionType {
     Energy,
     Charge,
+    #[default]
     None,
 }
 
 /// Describes the current status of the battery
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Clone, Default)]
 pub enum BatteryStatus {
     Charging,
     Discharging,
     Full,
+    #[default]
     Unknown,
 }
 
 /// A structure for holding information about a battery
 /// This structure follows an update model where information within the structure gets updated upon
 /// calling the update method
+#[derive(Clone, Default)]
 pub struct Battery {
     pub sys_parent_path: PathBuf,
     pub capacity: i8,
@@ -52,17 +55,7 @@ impl Battery {
     /// current system. It will also initialize the condition_type variable by checking in the file
     /// system.
     pub fn new() -> Result<Battery, Error> {
-        let mut obj = Battery {
-            sys_parent_path: PathBuf::new(),
-            capacity: 0_i8,
-            condition_type: BatteryConditionType::None,
-            condition: 0_i8,
-            charge_full: 0_i32,
-            charge_full_design: 0_i32,
-            energy_full: 0_i32,
-            energy_full_design: 0_i32,
-            status: BatteryStatus::Unknown,
-        };
+        let mut obj = Battery::default();
         let path: PathBuf = match sysfs::get_path_by_glob(SYSFS_BATTERY_PATH, "BAT*") {
             Ok(path) => path,
             Err(error) => {
@@ -70,9 +63,6 @@ impl Battery {
                     // Make sure to return IO error if one occurs
                     return Err(error);
                 }
-                // If it doesn't exist then it is plugged in so make it 100% percent capacity
-                eprintln!("We could not detect your battery.");
-                create_issue!("If you are on a laptop");
                 return Err(Error::HdwNotFound);
             }
         };

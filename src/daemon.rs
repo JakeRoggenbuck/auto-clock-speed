@@ -198,7 +198,7 @@ impl Checker for Daemon {
         self.update_all()?;
 
         // Update current states
-        self.charging = read_power_source()?;
+        self.charging = read_power_source().unwrap_or(true);
         self.charge = self.battery.capacity;
         self.lid_state = read_lid_state()?;
         self.usage = calculate_average_usage(&self.cpus) * 100.0;
@@ -486,6 +486,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
     // Attempt to create battery object
     let battery = Battery::new();
     let battery_present = battery.is_ok();
+    let ac_present;
 
     // Create a new Daemon
     let mut daemon: Daemon = Daemon {
@@ -496,10 +497,10 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         lid_state: LidState::Unknown,
         // If edit is still true, then there is definitely a bool result to read_power_source
         // otherwise, there is a real problem, because there should be a power source possible
-        charging: if settings.edit {
-            read_power_source()?
-        } else {
-            false
+        charging: {
+            let source = read_power_source();
+            ac_present = false;
+            source.unwrap_or(true)
         },
         charge: 100,
         usage: 0.0,
@@ -525,6 +526,13 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         daemon.do_update_battery = false;
         daemon.logger.log(
             "Failed to detect a laptop battery",
+            logger::Severity::Warning,
+        )
+    }
+
+    if !ac_present {
+        daemon.logger.log(
+            "Failed to detect AC power source",
             logger::Severity::Warning,
         )
     }

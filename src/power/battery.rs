@@ -1,4 +1,3 @@
-use crate::create_issue;
 use crate::sysfs;
 use crate::Error;
 use std::any::Any;

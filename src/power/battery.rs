@@ -15,26 +15,28 @@ pub fn has_battery() -> bool {
 }
 
 /// Describes how the battery condition was obtained
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub enum BatteryConditionType {
     Energy,
     Charge,
+    #[default]
     None,
 }
 
 /// Describes the current status of the battery
-#[derive(PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone, Default)]
 pub enum BatteryStatus {
     Charging,
     Discharging,
     Full,
+    #[default]
     Unknown,
 }
 
 /// A structure for holding information about a battery
 /// This structure follows an update model where information within the structure gets updated upon
 /// calling the update method
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Battery {
     pub sys_parent_path: PathBuf,
     pub capacity: i8,
@@ -45,22 +47,6 @@ pub struct Battery {
     pub energy_full: i32,
     pub energy_full_design: i32,
     pub status: BatteryStatus,
-}
-
-impl Default for Battery {
-    fn default() -> Self {
-        Self {
-            sys_parent_path: Default::default(),
-            capacity: Default::default(),
-            condition_type: BatteryConditionType::None,
-            condition: Default::default(),
-            charge_full: Default::default(),
-            charge_full_design: Default::default(),
-            energy_full: Default::default(),
-            energy_full_design: Default::default(),
-            status: BatteryStatus::Unknown,
-        }
-    }
 }
 
 impl Battery {

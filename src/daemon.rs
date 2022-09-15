@@ -97,6 +97,7 @@ pub struct Daemon {
     pub timeout: time::Duration,
     pub timeout_battery: time::Duration,
     pub settings: Settings,
+    pub do_update_battery: bool,
 }
 
 fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
@@ -244,12 +245,15 @@ impl Checker for Daemon {
     /// Calls update on each cpu to update the state of each one
     /// Also updates battery
     fn update_all(&mut self) -> Result<(), Error> {
-        match self.battery.update() {
-            Ok(_) => {}
-            Err(e) => {
-                if !matches!(e, Error::HdwNotFound) {
-                    self.logger
-                        .log(&format!("Battery error: {:?}", e), logger::Severity::Error)
+        if self.do_update_battery {
+            match self.battery.update() {
+                Ok(_) => {}
+                Err(e) => {
+                    if !matches!(e, Error::HdwNotFound) {
+                        self.do_update_battery = false;
+                        self.logger
+                            .log(&format!("Battery error: {:?}", e), logger::Severity::Error)
+                    }
                 }
             }
         }
@@ -479,9 +483,13 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         testing: settings.testing,
     };
 
+    // Attempt to create battery object
+    let battery = Battery::new();
+    let battery_present = battery.is_ok();
+
     // Create a new Daemon
     let mut daemon: Daemon = Daemon {
-        battery: Battery::new()?,
+        battery: battery.unwrap_or_default(),
         cpus: Vec::<CPU>::new(),
         last_proc: Vec::<ProcStat>::new(),
         message,
@@ -510,7 +518,16 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         timeout_battery: time::Duration::from_millis(2),
         state: State::Unknown,
         settings: new_settings,
+        do_update_battery: true,
     };
+
+    if !battery_present {
+        daemon.do_update_battery = false;
+        daemon.logger.log(
+            "Failed to detect a laptop battery",
+            logger::Severity::Warning,
+        )
+    }
 
     // Make a cpu struct for each cpu listed
     for cpu in list_cpus() {

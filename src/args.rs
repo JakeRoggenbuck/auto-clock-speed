@@ -12,6 +12,18 @@ use super::settings::{get_graph_type, GraphType, Settings};
 use super::warn_user;
 
 #[derive(StructOpt)]
+enum DaemonControlType {
+    #[structopt(name = "disable")]
+    Disable,
+    #[structopt(name = "enable")]
+    Enable,
+    #[structopt(name = "status")]
+    Status,
+    #[structopt(name = "toggle")]
+    Toggle,
+}
+
+#[derive(StructOpt)]
 enum GetType {
     /// Get the power
     #[structopt(name = "power")]
@@ -119,6 +131,14 @@ _
 )]
 
 enum ACSCommand {
+    /// Controls interaction with a running daemon
+    #[structopt(name = "daemon", alias = "d")]
+    Daemon {
+        /// The type of data to request or control
+        #[structopt(subcommand)]
+        control: DaemonControlType,
+    },
+
     /// Get a specific value or status
     #[structopt(name = "get", alias = "g")]
     Get {
@@ -222,6 +242,15 @@ pub fn parse_args(config: config::Config) {
     };
 
     match ACSCommand::from_args() {
+        ACSCommand::Daemon { control } => match control {
+            DaemonControlType::Disable {} => {
+                println!("Daemon hook implementation goes here")
+            }
+            DaemonControlType::Enable => todo!(),
+            DaemonControlType::Status => todo!(),
+            DaemonControlType::Toggle => todo!(),
+        },
+
         ACSCommand::Get { get } => match get {
             GetType::Freq { raw } => {
                 int.get.freq(raw);

@@ -484,13 +484,16 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
     };
 
     // Attempt to create battery object
-    let battery = Battery::new();
-    let battery_present = battery.is_ok();
+    let battery_present;
     let ac_present;
 
     // Create a new Daemon
     let mut daemon: Daemon = Daemon {
-        battery: battery.unwrap_or_default(),
+        battery: {
+            let battery = Battery::new();
+            battery_present = battery.is_ok();
+            battery.unwrap_or_default()
+        },
         cpus: Vec::<CPU>::new(),
         last_proc: Vec::<ProcStat>::new(),
         message,

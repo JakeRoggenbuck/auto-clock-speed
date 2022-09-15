@@ -246,9 +246,12 @@ impl Checker for Daemon {
     fn update_all(&mut self) -> Result<(), Error> {
         match self.battery.update() {
             Ok(_) => {}
-            Err(e) => self
-                .logger
-                .log(&format!("Battery error: {:?}", e), logger::Severity::Error),
+            Err(e) => {
+                if !matches!(e, Error::HdwNotFound) {
+                    self.logger
+                        .log(&format!("Battery error: {:?}", e), logger::Severity::Error)
+                }
+            }
         }
 
         let cur_proc = parse_proc_file(read_proc_stat_file()?)?;

@@ -16,6 +16,12 @@ pub mod listen;
 pub enum Packet {
     Hello(String),
     HelloResponse(String, u32),
+    DaemonDisableRequest(),
+    DaemonDisableResponse(bool),
+    DaemonEnableRequest(),
+    DaemonEnableResponse(bool),
+    DaemonStatusRequest(),
+    DaemonStatusResponse(bool),
     Unknown,
 }
 
@@ -54,6 +60,12 @@ impl Display for Packet {
             Packet::Hello(data) => writeln!(f, "0|{}", data),
             Packet::HelloResponse(data, version) => writeln!(f, "1|{}|{}", data, version),
             Packet::Unknown => writeln!(f),
+            Packet::DaemonDisableRequest() => todo!(),
+            Packet::DaemonDisableResponse(_) => todo!(),
+            Packet::DaemonEnableRequest() => todo!(),
+            Packet::DaemonEnableResponse(_) => todo!(),
+            Packet::DaemonStatusRequest() => todo!(),
+            Packet::DaemonStatusResponse(_) => todo!(),
         }
     }
 }

@@ -254,8 +254,8 @@ pub fn parse_args(config: config::Config) {
                     Ok(_) => {
                         println!(":)")
                     }
-                    Err(_) => {
-                        println!("):")
+                    Err(e) => {
+                        println!("): {:?}", e)
                     }
                 }
             }

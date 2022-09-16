@@ -255,7 +255,7 @@ pub fn parse_args(config: config::Config) {
                         crate::network::Packet::DaemonDisableResponse(success) => {
                             println!(":) Success: {}", success)
                         }
-                        _ => println!("Unexpected packet"),
+                        _ => println!("Unexpected response packet"),
                     },
                     Err(e) => {
                         println!("): {:?}", e)

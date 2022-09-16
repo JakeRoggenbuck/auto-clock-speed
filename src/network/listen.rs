@@ -106,17 +106,18 @@ pub fn handle_stream(stream: UnixStream, c_daemon_mutex: &Arc<Mutex<Daemon>>) {
                 Packet::HelloResponse(_, _) => {}
                 Packet::Unknown => {}
                 Packet::DaemonDisableRequest() => {
-                    let disable_response = Packet::DaemonDisableResponse(false);
-                    log_to_daemon(
-                        &inner_daemon_mutex.clone(),
-                        "Daemon disable request received.",
-                        logger::Severity::Log,
-                    );
+                    let disable_response = Packet::DaemonDisableResponse(true);
+                    inner_daemon_mutex.lock().unwrap().paused = true;
                     let mut writer = BufWriter::new(&stream);
                     writer
                         .write_all(format!("{}", disable_response).as_bytes())
                         .unwrap();
                     writer.flush().unwrap();
+                    log_to_daemon(
+                        &inner_daemon_mutex.clone(),
+                        "Daemon has been disabled by a client",
+                        logger::Severity::Log,
+                    );
                 }
                 Packet::DaemonDisableResponse(_) => {}
                 Packet::DaemonEnableRequest() => todo!(),

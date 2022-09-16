@@ -1,6 +1,8 @@
 use std::{thread, time};
 use structopt::StructOpt;
 
+use crate::network::send::query_one;
+
 use super::config;
 use super::config::{config_dir_exists, init_config};
 use super::daemon;
@@ -244,7 +246,18 @@ pub fn parse_args(config: config::Config) {
     match ACSCommand::from_args() {
         ACSCommand::Daemon { control } => match control {
             DaemonControlType::Disable {} => {
-                println!("Daemon hook implementation goes here")
+                println!("Daemon hook implementation goes here");
+                match query_one(
+                    "/tmp/acs.sock",
+                    crate::network::Packet::DaemonDisableRequest(),
+                ) {
+                    Ok(_) => {
+                        println!(":)")
+                    }
+                    Err(_) => {
+                        println!("):")
+                    }
+                }
             }
             DaemonControlType::Enable => todo!(),
             DaemonControlType::Status => todo!(),

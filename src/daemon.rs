@@ -98,6 +98,7 @@ pub struct Daemon {
     pub timeout_battery: time::Duration,
     pub settings: Settings,
     pub paused: bool,
+    pub do_update_battery: bool,
 }
 
 fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
@@ -198,7 +199,7 @@ impl Checker for Daemon {
         self.update_all()?;
 
         // Update current states
-        self.charging = read_power_source()?;
+        self.charging = read_power_source().unwrap_or(true);
         self.charge = self.battery.capacity;
         self.lid_state = read_lid_state()?;
         self.usage = calculate_average_usage(&self.cpus) * 100.0;
@@ -247,11 +248,17 @@ impl Checker for Daemon {
     /// Calls update on each cpu to update the state of each one
     /// Also updates battery
     fn update_all(&mut self) -> Result<(), Error> {
-        match self.battery.update() {
-            Ok(_) => {}
-            Err(e) => self
-                .logger
-                .log(&format!("Battery error: {:?}", e), logger::Severity::Error),
+        if self.do_update_battery {
+            match self.battery.update() {
+                Ok(_) => {}
+                Err(e) => {
+                    if !matches!(e, Error::HdwNotFound) {
+                        self.do_update_battery = false;
+                        self.logger
+                            .log(&format!("Battery error: {:?}", e), logger::Severity::Error)
+                    }
+                }
+            }
         }
 
         let cur_proc = parse_proc_file(read_proc_stat_file()?)?;
@@ -479,19 +486,27 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         testing: settings.testing,
     };
 
+    // Attempt to create battery object
+    let battery_present;
+    let ac_present;
+
     // Create a new Daemon
     let mut daemon: Daemon = Daemon {
-        battery: Battery::new()?,
+        battery: {
+            let battery = Battery::new();
+            battery_present = battery.is_ok();
+            battery.unwrap_or_default()
+        },
         cpus: Vec::<CPU>::new(),
         last_proc: Vec::<ProcStat>::new(),
         message,
         lid_state: LidState::Unknown,
         // If edit is still true, then there is definitely a bool result to read_power_source
         // otherwise, there is a real problem, because there should be a power source possible
-        charging: if settings.edit {
-            read_power_source()?
-        } else {
-            false
+        charging: {
+            let source = read_power_source();
+            ac_present = source.is_ok();
+            source.unwrap_or(true)
         },
         charge: 100,
         usage: 0.0,
@@ -511,7 +526,23 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         state: State::Unknown,
         settings: new_settings,
         paused: false,
+        do_update_battery: true,
     };
+
+    if !battery_present {
+        daemon.do_update_battery = false;
+        daemon.logger.log(
+            "Failed to detect a laptop battery",
+            logger::Severity::Warning,
+        )
+    }
+
+    if !ac_present {
+        daemon.logger.log(
+            "Failed to detect AC power source",
+            logger::Severity::Warning,
+        )
+    }
 
     // Make a cpu struct for each cpu listed
     for cpu in list_cpus() {

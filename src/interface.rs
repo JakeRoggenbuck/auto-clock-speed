@@ -37,25 +37,32 @@ impl Getter for Get {
     }
 
     fn power(&self, raw: bool) {
-        let battery = match Battery::new() {
+        let mut battery = match Battery::new() {
             Ok(plugged) => plugged,
-            Err(_) => {
-                eprintln!("Failed to get battery");
+            Err(e) => {
+                eprintln!("Failed to get battery, an error occured: {:?}", e);
+                return;
+            }
+        };
+        match battery.update() {
+            Ok(plugged) => plugged,
+            Err(e) => {
+                eprintln!("Failed to update battery, an error occured: {:?}", e);
                 return;
             }
         };
         let plugged = match read_power_source() {
             Ok(plugged) => plugged,
-            Err(_) => {
-                eprintln!("Failed to get read power source");
+            Err(e) => {
+                eprintln!("Failed to get read power source, an error occured: {:?}", e);
                 return;
             }
         };
 
         let lid = match read_lid_state() {
             Ok(lid) => lid,
-            Err(_) => {
-                eprintln!("Failed to get read lid state");
+            Err(e) => {
+                eprintln!("Failed to get read lid state, an error occured: {:?}", e);
                 return;
             }
         };

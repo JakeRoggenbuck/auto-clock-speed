@@ -2,7 +2,6 @@ use std::any::Any;
 use std::fs;
 use std::path::Path;
 
-use super::create_issue;
 use super::Error;
 
 pub mod battery;
@@ -33,9 +32,7 @@ pub fn read_power_source() -> Result<bool, Error> {
                 // Make sure to return IO error if one occurs
                 return Err(error);
             }
-            eprintln!("We could not detect your AC power source.");
-            create_issue!("If you have a power source");
-            return Ok(true);
+            return Err(Error::HdwNotFound);
         }
     };
 

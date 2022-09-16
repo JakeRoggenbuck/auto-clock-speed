@@ -262,7 +262,23 @@ pub fn parse_args(config: config::Config) {
                     }
                 }
             }
-            DaemonControlType::Enable => todo!(),
+            DaemonControlType::Enable {} => {
+                println!("Daemon hook implementation goes here");
+                match query_one(
+                    "/tmp/acs.sock",
+                    crate::network::Packet::DaemonEnableRequest(),
+                ) {
+                    Ok(packet) => match packet {
+                        crate::network::Packet::DaemonEnableResponse(success) => {
+                            println!(":) Success: {}", success)
+                        }
+                        _ => println!("Unexpected response packet"),
+                    },
+                    Err(e) => {
+                        println!("): {:?}", e)
+                    }
+                }
+            }
             DaemonControlType::Status => todo!(),
             DaemonControlType::Toggle => todo!(),
         },

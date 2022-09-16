@@ -251,9 +251,12 @@ pub fn parse_args(config: config::Config) {
                     "/tmp/acs.sock",
                     crate::network::Packet::DaemonDisableRequest(),
                 ) {
-                    Ok(_) => {
-                        println!(":)")
-                    }
+                    Ok(packet) => match packet {
+                        crate::network::Packet::DaemonDisableResponse(success) => {
+                            println!(":) Success: {}", success)
+                        }
+                        _ => println!("Unexpected packet"),
+                    },
                     Err(e) => {
                         println!("): {:?}", e)
                     }

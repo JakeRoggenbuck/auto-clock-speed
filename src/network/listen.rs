@@ -130,8 +130,13 @@ pub fn handle_stream(stream: UnixStream, c_daemon_mutex: &Arc<Mutex<Daemon>>) {
                         logger::Severity::Log,
                     );
                 }
-                Packet::DaemonEnableResponse(_) => todo!(),
-                Packet::DaemonStatusRequest() => todo!(),
+                Packet::DaemonEnableResponse(_) => {}
+                Packet::DaemonStatusRequest() => {
+                    let response =
+                        Packet::DaemonStatusResponse(!inner_daemon_mutex.lock().unwrap().paused);
+                    let mut writer = BufWriter::new(&stream);
+                    write_packet!(writer, response);
+                }
                 Packet::DaemonStatusResponse(_) => todo!(),
             };
         }

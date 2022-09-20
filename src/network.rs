@@ -76,6 +76,13 @@ pub fn parse_packet(packet: &str) -> Result<Packet, PacketParseError> {
                 .ok_or(PacketParseError)?
                 .parse::<bool>()?,
         )),
+        "6" => Ok(Packet::DaemonStatusRequest()),
+        "7" => Ok(Packet::DaemonStatusResponse(
+            packet_split
+                .next()
+                .ok_or(PacketParseError)?
+                .parse::<bool>()?,
+        )),
         _ => Err(PacketParseError),
     }
 }
@@ -89,8 +96,8 @@ impl Display for Packet {
             Packet::DaemonDisableResponse(data) => writeln!(f, "3|{}", data),
             Packet::DaemonEnableRequest() => writeln!(f, "4"),
             Packet::DaemonEnableResponse(data) => writeln!(f, "5|{}", data),
-            Packet::DaemonStatusRequest() => todo!(),
-            Packet::DaemonStatusResponse(_) => todo!(),
+            Packet::DaemonStatusRequest() => writeln!(f, "6"),
+            Packet::DaemonStatusResponse(data) => writeln!(f, "7|{}", data),
             Packet::Unknown => writeln!(f),
         }
     }

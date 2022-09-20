@@ -246,7 +246,6 @@ pub fn parse_args(config: config::Config) {
     match ACSCommand::from_args() {
         ACSCommand::Daemon { control } => match control {
             DaemonControlType::Disable {} => {
-                println!("Daemon hook implementation goes here");
                 match query_one(
                     "/tmp/acs.sock",
                     crate::network::Packet::DaemonDisableRequest(),
@@ -263,7 +262,6 @@ pub fn parse_args(config: config::Config) {
                 }
             }
             DaemonControlType::Enable {} => {
-                println!("Daemon hook implementation goes here");
                 match query_one(
                     "/tmp/acs.sock",
                     crate::network::Packet::DaemonEnableRequest(),
@@ -279,8 +277,23 @@ pub fn parse_args(config: config::Config) {
                     }
                 }
             }
-            DaemonControlType::Status => todo!(),
-            DaemonControlType::Toggle => todo!(),
+            DaemonControlType::Status => {
+                match query_one(
+                    "/tmp/acs.sock",
+                    crate::network::Packet::DaemonStatusRequest(),
+                ) {
+                    Ok(packet) => match packet {
+                        crate::network::Packet::DaemonStatusResponse(status) => {
+                            println!(":) Daemon active: {}", status)
+                        }
+                        _ => println!("Unexpected response packet"),
+                    },
+                    Err(e) => {
+                        println!("): {:?}", e)
+                    }
+                }
+            }
+            DaemonControlType::Toggle => {}
         },
 
         ACSCommand::Get { get } => match get {

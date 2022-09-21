@@ -126,15 +126,19 @@ pub fn handle_stream(stream: UnixStream, c_daemon_mutex: &Arc<Mutex<Daemon>>) {
                 }
                 Packet::DaemonDisableResponse(_) => {}
                 Packet::DaemonEnableRequest() => {
-                    let response = Packet::DaemonEnableResponse(true);
-                    inner_daemon_mutex.lock().unwrap().paused = false;
+                    let mut inner_daemon = inner_daemon_mutex.lock().unwrap();
+                    let response;
+                    if !inner_daemon.paused {
+                        response = Packet::DaemonEnableResponse(false);
+                    } else {
+                        response = Packet::DaemonEnableResponse(true);
+                        inner_daemon
+                            .logger
+                            .log("Daemon has been enabled by a client", logger::Severity::Log);
+                        inner_daemon.paused = false;
+                    }
                     let mut writer = BufWriter::new(&stream);
                     write_packet!(writer, response);
-                    log_to_daemon(
-                        &inner_daemon_mutex.clone(),
-                        "Daemon has been enabled by a client",
-                        logger::Severity::Log,
-                    );
                 }
                 Packet::DaemonEnableResponse(_) => {}
                 Packet::DaemonStatusRequest() => {

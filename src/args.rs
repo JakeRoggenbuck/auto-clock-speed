@@ -251,10 +251,11 @@ pub fn parse_args(config: config::Config) {
                     crate::network::Packet::DaemonDisableRequest(),
                 ) {
                     Ok(packet) => match packet {
-                        crate::network::Packet::DaemonDisableResponse(success) => {
-                            println!(":) Success: {}", success)
-                        }
-                        _ => println!("Unexpected response packet"),
+                        crate::network::Packet::DaemonDisableResponse(success) => match success {
+                            true => println!("The running daemon has been disabled"),
+                            false => println!("The running daemon is already disabled"),
+                        },
+                        _ => println!("Failed: Unexpected response packet"),
                     },
                     Err(e) => {
                         println!("): {:?}", e)
@@ -267,10 +268,11 @@ pub fn parse_args(config: config::Config) {
                     crate::network::Packet::DaemonEnableRequest(),
                 ) {
                     Ok(packet) => match packet {
-                        crate::network::Packet::DaemonEnableResponse(success) => {
-                            println!(":) Success: {}", success)
-                        }
-                        _ => println!("Unexpected response packet"),
+                        crate::network::Packet::DaemonEnableResponse(success) => match success {
+                            true => println!("The running daemon has been enabled"),
+                            false => println!("The running daemon is already enabled"),
+                        },
+                        _ => println!("Failed: Unexpected response packet"),
                     },
                     Err(e) => {
                         println!("): {:?}", e)
@@ -283,10 +285,11 @@ pub fn parse_args(config: config::Config) {
                     crate::network::Packet::DaemonStatusRequest(),
                 ) {
                     Ok(packet) => match packet {
-                        crate::network::Packet::DaemonStatusResponse(status) => {
-                            println!(":) Daemon active: {}", status)
-                        }
-                        _ => println!("Unexpected response packet"),
+                        crate::network::Packet::DaemonStatusResponse(status) => match status {
+                            true => println!("The daemon is currently enabled"),
+                            false => println!("The daemon is currently disabled"),
+                        },
+                        _ => println!("Failed: Unexpected response packet"),
                     },
                     Err(e) => {
                         println!("): {:?}", e)
@@ -308,20 +311,20 @@ pub fn parse_args(config: config::Config) {
                                 },
                             ) {
                                 Ok(packet) => match packet {
-                                    crate::network::Packet::DaemonDisableResponse(status) => {
-                                        println!("Daemon disabled")
+                                    crate::network::Packet::DaemonDisableResponse(_) => {
+                                        println!("The running daemon has been disabled")
                                     }
-                                    crate::network::Packet::DaemonEnableResponse(status) => {
-                                        println!("Daemon enabled")
+                                    crate::network::Packet::DaemonEnableResponse(_) => {
+                                        println!("The running daemon has been enabled")
                                     }
-                                    _ => println!("Unexpected response packet"),
+                                    _ => println!("Failed: Unexpected response packet"),
                                 },
                                 Err(e) => {
                                     println!("): {:?}", e)
                                 }
                             }
                         }
-                        _ => println!("Unexpected response packet"),
+                        _ => println!("Failed: Unexpected response packet"),
                     },
                     Err(e) => {
                         println!("): {:?}", e)

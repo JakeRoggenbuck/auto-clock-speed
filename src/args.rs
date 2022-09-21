@@ -293,7 +293,41 @@ pub fn parse_args(config: config::Config) {
                     }
                 }
             }
-            DaemonControlType::Toggle => {}
+            DaemonControlType::Toggle => {
+                match query_one(
+                    "/tmp/acs.sock",
+                    crate::network::Packet::DaemonStatusRequest(),
+                ) {
+                    Ok(packet) => match packet {
+                        crate::network::Packet::DaemonStatusResponse(status) => {
+                            match query_one(
+                                "/tmp/acs.sock",
+                                match status {
+                                    true => crate::network::Packet::DaemonDisableRequest(),
+                                    false => crate::network::Packet::DaemonEnableRequest(),
+                                },
+                            ) {
+                                Ok(packet) => match packet {
+                                    crate::network::Packet::DaemonDisableResponse(status) => {
+                                        println!("Daemon disabled")
+                                    }
+                                    crate::network::Packet::DaemonEnableResponse(status) => {
+                                        println!("Daemon enabled")
+                                    }
+                                    _ => println!("Unexpected response packet"),
+                                },
+                                Err(e) => {
+                                    println!("): {:?}", e)
+                                }
+                            }
+                        }
+                        _ => println!("Unexpected response packet"),
+                    },
+                    Err(e) => {
+                        println!("): {:?}", e)
+                    }
+                }
+            }
         },
 
         ACSCommand::Get { get } => match get {

@@ -1,6 +1,8 @@
 use std::{thread, time};
 use structopt::StructOpt;
 
+use crate::network::send::query_one;
+
 use super::config;
 use super::config::{config_dir_exists, init_config};
 use super::daemon;
@@ -10,6 +12,18 @@ use super::interactive::interactive;
 use super::interface::{Get, Getter, Interface, Set, Setter};
 use super::settings::{get_graph_type, GraphType, Settings};
 use super::warn_user;
+
+#[derive(StructOpt)]
+enum DaemonControlType {
+    #[structopt(name = "disable")]
+    Disable,
+    #[structopt(name = "enable")]
+    Enable,
+    #[structopt(name = "status")]
+    Status,
+    #[structopt(name = "toggle")]
+    Toggle,
+}
 
 #[derive(StructOpt)]
 enum GetType {
@@ -119,6 +133,14 @@ _
 )]
 
 enum ACSCommand {
+    /// Controls interaction with a running daemon
+    #[structopt(name = "daemon", alias = "d")]
+    Daemon {
+        /// The type of data to request or control
+        #[structopt(subcommand)]
+        control: DaemonControlType,
+    },
+
     /// Get a specific value or status
     #[structopt(name = "get", alias = "g")]
     Get {
@@ -222,6 +244,95 @@ pub fn parse_args(config: config::Config) {
     };
 
     match ACSCommand::from_args() {
+        ACSCommand::Daemon { control } => match control {
+            DaemonControlType::Disable {} => {
+                match query_one(
+                    "/tmp/acs.sock",
+                    crate::network::Packet::DaemonDisableRequest(),
+                ) {
+                    Ok(packet) => match packet {
+                        crate::network::Packet::DaemonDisableResponse(success) => match success {
+                            true => println!("The running daemon has been disabled"),
+                            false => println!("The running daemon is already disabled"),
+                        },
+                        _ => println!("Failed: Unexpected response packet"),
+                    },
+                    Err(e) => {
+                        println!("{:?}", e)
+                    }
+                }
+            }
+            DaemonControlType::Enable {} => {
+                match query_one(
+                    "/tmp/acs.sock",
+                    crate::network::Packet::DaemonEnableRequest(),
+                ) {
+                    Ok(packet) => match packet {
+                        crate::network::Packet::DaemonEnableResponse(success) => match success {
+                            true => println!("The running daemon has been enabled"),
+                            false => println!("The running daemon is already enabled"),
+                        },
+                        _ => println!("Failed: Unexpected response packet"),
+                    },
+                    Err(e) => {
+                        println!("{:?}", e)
+                    }
+                }
+            }
+            DaemonControlType::Status => {
+                match query_one(
+                    "/tmp/acs.sock",
+                    crate::network::Packet::DaemonStatusRequest(),
+                ) {
+                    Ok(packet) => match packet {
+                        crate::network::Packet::DaemonStatusResponse(status) => match status {
+                            true => println!("The daemon is currently enabled"),
+                            false => println!("The daemon is currently disabled"),
+                        },
+                        _ => println!("Failed: Unexpected response packet"),
+                    },
+                    Err(e) => {
+                        println!("{:?}", e)
+                    }
+                }
+            }
+            DaemonControlType::Toggle => {
+                match query_one(
+                    "/tmp/acs.sock",
+                    crate::network::Packet::DaemonStatusRequest(),
+                ) {
+                    Ok(packet) => match packet {
+                        crate::network::Packet::DaemonStatusResponse(status) => {
+                            match query_one(
+                                "/tmp/acs.sock",
+                                match status {
+                                    true => crate::network::Packet::DaemonDisableRequest(),
+                                    false => crate::network::Packet::DaemonEnableRequest(),
+                                },
+                            ) {
+                                Ok(packet) => match packet {
+                                    crate::network::Packet::DaemonDisableResponse(_) => {
+                                        println!("The running daemon has been disabled")
+                                    }
+                                    crate::network::Packet::DaemonEnableResponse(_) => {
+                                        println!("The running daemon has been enabled")
+                                    }
+                                    _ => println!("Failed: Unexpected response packet"),
+                                },
+                                Err(e) => {
+                                    println!("): {:?}", e)
+                                }
+                            }
+                        }
+                        _ => println!("Failed: Unexpected response packet"),
+                    },
+                    Err(e) => {
+                        println!("{:?}", e)
+                    }
+                }
+            }
+        },
+
         ACSCommand::Get { get } => match get {
             GetType::Freq { raw } => {
                 int.get.freq(raw);

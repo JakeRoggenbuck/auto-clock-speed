@@ -1,10 +1,12 @@
 use crate::logger;
+use crate::logger::Interface;
 use crate::network::log_to_daemon;
 use crate::network::parse_packet;
 use crate::network::BufWriter;
 use crate::network::Daemon;
 use crate::network::Packet;
 use crate::network::UnixListener;
+use crate::write_packet;
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::fs::PermissionsExt;
 use std::os::unix::net::UnixStream;
@@ -55,7 +57,8 @@ pub fn listen(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
 }
 
 pub fn handle_stream(stream: UnixStream, c_daemon_mutex: &Arc<Mutex<Daemon>>) {
-    log_to_daemon(c_daemon_mutex, "Received connection", logger::Severity::Log);
+    // We don't need to log ALL the time
+    // log_to_daemon(c_daemon_mutex, "Received connection", logger::Severity::Log);
 
     let inner_daemon_mutex = c_daemon_mutex.clone();
 
@@ -105,6 +108,46 @@ pub fn handle_stream(stream: UnixStream, c_daemon_mutex: &Arc<Mutex<Daemon>>) {
                 }
                 Packet::HelloResponse(_, _) => {}
                 Packet::Unknown => {}
+                Packet::DaemonDisableRequest() => {
+                    let mut inner_daemon = inner_daemon_mutex.lock().unwrap();
+                    let response;
+                    if inner_daemon.paused {
+                        response = Packet::DaemonDisableResponse(false);
+                    } else {
+                        response = Packet::DaemonDisableResponse(true);
+                        inner_daemon.logger.log(
+                            "Daemon has been disabled by a client",
+                            logger::Severity::Log,
+                        );
+                        inner_daemon.paused = true;
+                    }
+                    let mut writer = BufWriter::new(&stream);
+                    write_packet!(writer, response);
+                }
+                Packet::DaemonDisableResponse(_) => {}
+                Packet::DaemonEnableRequest() => {
+                    let mut inner_daemon = inner_daemon_mutex.lock().unwrap();
+                    let response;
+                    if !inner_daemon.paused {
+                        response = Packet::DaemonEnableResponse(false);
+                    } else {
+                        response = Packet::DaemonEnableResponse(true);
+                        inner_daemon
+                            .logger
+                            .log("Daemon has been enabled by a client", logger::Severity::Log);
+                        inner_daemon.paused = false;
+                    }
+                    let mut writer = BufWriter::new(&stream);
+                    write_packet!(writer, response);
+                }
+                Packet::DaemonEnableResponse(_) => {}
+                Packet::DaemonStatusRequest() => {
+                    let response =
+                        Packet::DaemonStatusResponse(!inner_daemon_mutex.lock().unwrap().paused);
+                    let mut writer = BufWriter::new(&stream);
+                    write_packet!(writer, response);
+                }
+                Packet::DaemonStatusResponse(_) => todo!(),
             };
         }
     });

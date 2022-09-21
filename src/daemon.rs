@@ -97,6 +97,7 @@ pub struct Daemon {
     pub timeout: time::Duration,
     pub timeout_battery: time::Duration,
     pub settings: Settings,
+    pub paused: bool,
     pub do_update_battery: bool,
 }
 
@@ -216,21 +217,23 @@ impl Checker for Daemon {
     fn single_edit(&mut self) -> Result<(), Error> {
         self.start_loop()?;
 
-        let state = self.run_state_machine();
+        if !self.paused {
+            let state = self.run_state_machine();
 
-        // Check if the state has changed since the last time we checked
-        if self.state != state {
-            // Log the state change
-            self.logger.log(
-                &format!("State changed: {:?} -> {:?}", self.state, state,),
-                logger::Severity::Log,
-            );
+            // Check if the state has changed since the last time we checked
+            if self.state != state {
+                // Log the state change
+                self.logger.log(
+                    &format!("State changed: {:?} -> {:?}", self.state, state,),
+                    logger::Severity::Log,
+                );
 
-            // Change the cpu governor based on the state
-            self.set_govs(get_governor(&state).to_string())?;
+                // Change the cpu governor based on the state
+                self.set_govs(get_governor(&state).to_string())?;
+            }
+
+            self.state = state;
         }
-
-        self.state = state;
 
         self.end_loop();
         Ok(())
@@ -522,6 +525,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         timeout_battery: time::Duration::from_millis(2),
         state: State::Unknown,
         settings: new_settings,
+        paused: false,
         do_update_battery: true,
     };
 

@@ -6,16 +6,24 @@ use std::fmt::{Display, Formatter};
 use std::io::BufWriter;
 use std::num::ParseIntError;
 use std::os::unix::net::UnixListener;
+use std::str::ParseBoolError;
 use std::sync::Arc;
 use std::sync::Mutex;
 
 pub mod hook;
 pub mod listen;
+pub mod send;
 
 #[derive(PartialEq, Eq, Debug)]
 pub enum Packet {
     Hello(String),
     HelloResponse(String, u32),
+    DaemonDisableRequest(),
+    DaemonDisableResponse(bool),
+    DaemonEnableRequest(),
+    DaemonEnableResponse(bool),
+    DaemonStatusRequest(),
+    DaemonStatusResponse(bool),
     Unknown,
 }
 
@@ -34,15 +42,46 @@ impl From<ParseIntError> for PacketParseError {
     }
 }
 
+impl From<ParseBoolError> for PacketParseError {
+    fn from(_err: ParseBoolError) -> Self {
+        PacketParseError
+    }
+}
+
 pub fn parse_packet(packet: &str) -> Result<Packet, PacketParseError> {
     let mut packet_split = packet.split('|');
     let packet_type = packet_split.next().ok_or(PacketParseError)?;
-    let packet_data = packet_split.next().ok_or(PacketParseError)?;
     match packet_type {
-        "0" => Ok(Packet::Hello(packet_data.to_string())),
+        "0" => Ok(Packet::Hello(
+            packet_split.next().ok_or(PacketParseError)?.to_string(),
+        )),
         "1" => Ok(Packet::HelloResponse(
-            packet_data.to_string(),
-            packet_split.next().unwrap().parse::<u32>()?,
+            packet_split.next().ok_or(PacketParseError)?.to_string(),
+            packet_split
+                .next()
+                .ok_or(PacketParseError)?
+                .parse::<u32>()?,
+        )),
+        "2" => Ok(Packet::DaemonDisableRequest()),
+        "3" => Ok(Packet::DaemonDisableResponse(
+            packet_split
+                .next()
+                .ok_or(PacketParseError)?
+                .parse::<bool>()?,
+        )),
+        "4" => Ok(Packet::DaemonEnableRequest()),
+        "5" => Ok(Packet::DaemonEnableResponse(
+            packet_split
+                .next()
+                .ok_or(PacketParseError)?
+                .parse::<bool>()?,
+        )),
+        "6" => Ok(Packet::DaemonStatusRequest()),
+        "7" => Ok(Packet::DaemonStatusResponse(
+            packet_split
+                .next()
+                .ok_or(PacketParseError)?
+                .parse::<bool>()?,
         )),
         _ => Err(PacketParseError),
     }
@@ -53,6 +92,12 @@ impl Display for Packet {
         match self {
             Packet::Hello(data) => writeln!(f, "0|{}", data),
             Packet::HelloResponse(data, version) => writeln!(f, "1|{}|{}", data, version),
+            Packet::DaemonDisableRequest() => writeln!(f, "2"),
+            Packet::DaemonDisableResponse(data) => writeln!(f, "3|{}", data),
+            Packet::DaemonEnableRequest() => writeln!(f, "4"),
+            Packet::DaemonEnableResponse(data) => writeln!(f, "5|{}", data),
+            Packet::DaemonStatusRequest() => writeln!(f, "6"),
+            Packet::DaemonStatusResponse(data) => writeln!(f, "7|{}", data),
             Packet::Unknown => writeln!(f),
         }
     }

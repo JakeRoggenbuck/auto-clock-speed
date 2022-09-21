@@ -34,7 +34,7 @@ impl fmt::Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(
             f,
-            "An error occured: {}\n{}",
+            "An error occured: {}",
             match self {
                 Error::IO(e) => format!("IO Error: {}", e),
                 Error::TimeError(e) => format!("Time Error: {}", e),
@@ -43,8 +43,7 @@ impl fmt::Debug for Error {
                 Error::Unknown => "Unknown error occured".to_string(),
                 Error::DivisionByZero => "Division by zero occured".to_string(),
                 Error::Parse => "Failed to parse data".to_string(),
-            },
-            BUG_REPORT
+            }
         )
     }
 }

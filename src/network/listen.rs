@@ -1,4 +1,5 @@
 use crate::logger;
+use crate::logger::Interface;
 use crate::network::log_to_daemon;
 use crate::network::parse_packet;
 use crate::network::BufWriter;
@@ -108,15 +109,20 @@ pub fn handle_stream(stream: UnixStream, c_daemon_mutex: &Arc<Mutex<Daemon>>) {
                 Packet::HelloResponse(_, _) => {}
                 Packet::Unknown => {}
                 Packet::DaemonDisableRequest() => {
-                    let response = Packet::DaemonDisableResponse(true);
-                    inner_daemon_mutex.lock().unwrap().paused = true;
+                    let mut inner_daemon = inner_daemon_mutex.lock().unwrap();
+                    let response;
+                    if inner_daemon.paused {
+                        response = Packet::DaemonDisableResponse(false);
+                    } else {
+                        response = Packet::DaemonDisableResponse(true);
+                        inner_daemon.logger.log(
+                            "Daemon has been disabled by a client",
+                            logger::Severity::Log,
+                        );
+                        inner_daemon.paused = true;
+                    }
                     let mut writer = BufWriter::new(&stream);
                     write_packet!(writer, response);
-                    log_to_daemon(
-                        &inner_daemon_mutex.clone(),
-                        "Daemon has been disabled by a client",
-                        logger::Severity::Log,
-                    );
                 }
                 Packet::DaemonDisableResponse(_) => {}
                 Packet::DaemonEnableRequest() => {

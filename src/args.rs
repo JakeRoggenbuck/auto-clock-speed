@@ -258,7 +258,7 @@ pub fn parse_args(config: config::Config) {
                         _ => println!("Failed: Unexpected response packet"),
                     },
                     Err(e) => {
-                        println!("): {:?}", e)
+                        println!("{:?}", e)
                     }
                 }
             }
@@ -275,7 +275,7 @@ pub fn parse_args(config: config::Config) {
                         _ => println!("Failed: Unexpected response packet"),
                     },
                     Err(e) => {
-                        println!("): {:?}", e)
+                        println!("{:?}", e)
                     }
                 }
             }
@@ -292,7 +292,7 @@ pub fn parse_args(config: config::Config) {
                         _ => println!("Failed: Unexpected response packet"),
                     },
                     Err(e) => {
-                        println!("): {:?}", e)
+                        println!("{:?}", e)
                     }
                 }
             }
@@ -327,7 +327,7 @@ pub fn parse_args(config: config::Config) {
                         _ => println!("Failed: Unexpected response packet"),
                     },
                     Err(e) => {
-                        println!("): {:?}", e)
+                        println!("{:?}", e)
                     }
                 }
             }

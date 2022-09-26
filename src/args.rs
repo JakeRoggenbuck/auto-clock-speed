@@ -244,67 +244,28 @@ pub fn parse_args(config: config::Config) {
 
     match ACSCommand::from_args() {
         ACSCommand::Daemon { control } => match control {
-            DaemonControlType::Disable {} => {
-                int.dec.disable();
-            }
-            DaemonControlType::Enable {} => {
-                int.dec.enable();
-            }
-            DaemonControlType::Status => {
-                int.dec.status();
-            }
-            DaemonControlType::Toggle => {
-                int.dec.toggle();
-            }
+            DaemonControlType::Disable => int.dec.disable(),
+            DaemonControlType::Enable => int.dec.enable(),
+            DaemonControlType::Status => int.dec.status(),
+            DaemonControlType::Toggle => int.dec.toggle(),
         },
 
         ACSCommand::Get { get } => match get {
-            GetType::Freq { raw } => {
-                int.get.freq(raw);
-            }
-
-            GetType::Power { raw } => {
-                int.get.power(raw);
-            }
-
-            GetType::Usage { raw } => {
-                int.get.usage(raw);
-            }
-
-            GetType::Thermal { raw } => {
-                int.get.thermal(raw);
-            }
-
-            GetType::Turbo { raw } => {
-                int.get.turbo(raw);
-            }
-            GetType::AvailableGovs { raw } => {
-                int.get.available_govs(raw);
-            }
-            GetType::CPUs { raw } => {
-                int.get.cpus(raw);
-            }
-
-            GetType::Speeds { raw } => {
-                int.get.speeds(raw);
-            }
-
-            GetType::Temp { raw } => {
-                int.get.temp(raw);
-            }
-
-            GetType::Govs { raw } => {
-                int.get.govs(raw);
-            }
-            GetType::BatCond { raw } => {
-                int.get.bat_cond(raw);
-            }
+            GetType::Freq { raw } => int.get.freq(raw),
+            GetType::Power { raw } => int.get.power(raw),
+            GetType::Usage { raw } => int.get.usage(raw),
+            GetType::Thermal { raw } => int.get.thermal(raw),
+            GetType::Turbo { raw } => int.get.turbo(raw),
+            GetType::AvailableGovs { raw } => int.get.available_govs(raw),
+            GetType::CPUs { raw } => int.get.cpus(raw),
+            GetType::Speeds { raw } => int.get.speeds(raw),
+            GetType::Temp { raw } => int.get.temp(raw),
+            GetType::Govs { raw } => int.get.govs(raw),
+            GetType::BatCond { raw } => int.get.bat_cond(raw),
         },
 
         ACSCommand::Set { set } => match set {
-            SetType::Gov { value } => {
-                int.set.gov(value, config, set_settings);
-            }
+            SetType::Gov { value } => int.set.gov(value, config, set_settings),
         },
 
         ACSCommand::ShowConfig {} => show_config(),

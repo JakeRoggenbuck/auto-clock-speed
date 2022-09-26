@@ -1,15 +1,13 @@
 use std::{thread, time};
 use structopt::StructOpt;
 
-use crate::network::send::query_one;
-
 use super::config;
 use super::config::{config_dir_exists, init_config};
 use super::daemon;
 use super::daemon::daemon_init;
 use super::display::show_config;
 use super::interactive::interactive;
-use super::interface::{Get, Getter, Interface, Set, Setter};
+use super::interface::{DaemonControl, DaemonController, Get, Getter, Interface, Set, Setter};
 use super::settings::{get_graph_type, GraphType, Settings};
 use super::warn_user;
 
@@ -241,95 +239,22 @@ pub fn parse_args(config: config::Config) {
     let int = Interface {
         set: Set {},
         get: Get {},
+        dec: DaemonControl {},
     };
 
     match ACSCommand::from_args() {
         ACSCommand::Daemon { control } => match control {
             DaemonControlType::Disable {} => {
-                match query_one(
-                    "/tmp/acs.sock",
-                    crate::network::Packet::DaemonDisableRequest(),
-                ) {
-                    Ok(packet) => match packet {
-                        crate::network::Packet::DaemonDisableResponse(success) => match success {
-                            true => println!("The running daemon has been disabled"),
-                            false => println!("The running daemon is already disabled"),
-                        },
-                        _ => println!("Failed: Unexpected response packet"),
-                    },
-                    Err(e) => {
-                        println!("{:?}", e)
-                    }
-                }
+                int.dec.disable();
             }
             DaemonControlType::Enable {} => {
-                match query_one(
-                    "/tmp/acs.sock",
-                    crate::network::Packet::DaemonEnableRequest(),
-                ) {
-                    Ok(packet) => match packet {
-                        crate::network::Packet::DaemonEnableResponse(success) => match success {
-                            true => println!("The running daemon has been enabled"),
-                            false => println!("The running daemon is already enabled"),
-                        },
-                        _ => println!("Failed: Unexpected response packet"),
-                    },
-                    Err(e) => {
-                        println!("{:?}", e)
-                    }
-                }
+                int.dec.enable();
             }
             DaemonControlType::Status => {
-                match query_one(
-                    "/tmp/acs.sock",
-                    crate::network::Packet::DaemonStatusRequest(),
-                ) {
-                    Ok(packet) => match packet {
-                        crate::network::Packet::DaemonStatusResponse(status) => match status {
-                            true => println!("The daemon is currently enabled"),
-                            false => println!("The daemon is currently disabled"),
-                        },
-                        _ => println!("Failed: Unexpected response packet"),
-                    },
-                    Err(e) => {
-                        println!("{:?}", e)
-                    }
-                }
+                int.dec.status();
             }
             DaemonControlType::Toggle => {
-                match query_one(
-                    "/tmp/acs.sock",
-                    crate::network::Packet::DaemonStatusRequest(),
-                ) {
-                    Ok(packet) => match packet {
-                        crate::network::Packet::DaemonStatusResponse(status) => {
-                            match query_one(
-                                "/tmp/acs.sock",
-                                match status {
-                                    true => crate::network::Packet::DaemonDisableRequest(),
-                                    false => crate::network::Packet::DaemonEnableRequest(),
-                                },
-                            ) {
-                                Ok(packet) => match packet {
-                                    crate::network::Packet::DaemonDisableResponse(_) => {
-                                        println!("The running daemon has been disabled")
-                                    }
-                                    crate::network::Packet::DaemonEnableResponse(_) => {
-                                        println!("The running daemon has been enabled")
-                                    }
-                                    _ => println!("Failed: Unexpected response packet"),
-                                },
-                                Err(e) => {
-                                    println!("): {:?}", e)
-                                }
-                            }
-                        }
-                        _ => println!("Failed: Unexpected response packet"),
-                    },
-                    Err(e) => {
-                        println!("{:?}", e)
-                    }
-                }
+                int.dec.toggle();
             }
         },
 

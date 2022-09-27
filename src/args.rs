@@ -382,7 +382,7 @@ pub fn parse_args(config: config::Config) {
             }
         },
 
-        ACSCommand::ShowConfig {} => show_config(),
+        ACSCommand::ShowConfig {} => show_config(&config),
         ACSCommand::InitConfig {} => init_config(),
         ACSCommand::Interactive {} => interactive(),
 

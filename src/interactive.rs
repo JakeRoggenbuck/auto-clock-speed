@@ -6,26 +6,30 @@ use std::io::{stdin, stdout, Write};
 
 pub fn help() {
     const HELP_TEXT: &str = "\
-    - get
-      - freq
-      - cpus
-      - temp
-      - govs
-      - power
-      - usage
-      - turbo
-      - available_governors
+- exit
 
-    - set
-      - gov
+- get
+  - freq
+  - cpus
+  - temp
+  - govs
+  - power
+  - usage
+  - turbo
+  - speeds
+  - available_governors
+  - battery_condition
 
-    - daemon
-      - disable
-      - enable
-      - status
-      - toggle
+- set
+  - gov
 
-    E.g. 'get cpus'
+- daemon
+  - disable
+  - enable
+  - status
+  - toggle
+
+E.g. 'get cpus'
     ";
 
     println!("{}\n", "Help:".bold().green());

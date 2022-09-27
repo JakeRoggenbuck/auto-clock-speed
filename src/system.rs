@@ -510,12 +510,14 @@ microcode	: 0xea
         );
 
         for x in check_available_governors()? {
-            assert!(x == "powersave"
-                || x == "performance"
-                || x == "schedutil"
-                || x == "conservative"
-                || x == "ondemand"
-                || x == "userspace");
+            assert!(
+                x == "powersave"
+                    || x == "performance"
+                    || x == "schedutil"
+                    || x == "conservative"
+                    || x == "ondemand"
+                    || x == "userspace"
+            );
         }
         Ok(())
     }

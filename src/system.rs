@@ -189,6 +189,7 @@ fn interpret_govs(governors_string: &mut String) -> Result<Vec<String>, Error> {
         .split(' ')
         .into_iter()
         .map(|x| x.to_owned())
+        .filter(|x| x != "")
         .collect();
     Ok(governors)
 }
@@ -509,14 +510,12 @@ microcode	: 0xea
         );
 
         for x in check_available_governors()? {
-            assert!(
-                x == "powersave"
-                    || x == "performance"
-                    || x == "schedutil"
-                    || x == "conservative"
-                    || x == "ondemand"
-                    || x == "userspace"
-            );
+            assert!(x == "powersave"
+                || x == "performance"
+                || x == "schedutil"
+                || x == "conservative"
+                || x == "ondemand"
+                || x == "userspace");
         }
         Ok(())
     }

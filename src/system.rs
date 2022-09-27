@@ -509,7 +509,14 @@ microcode	: 0xea
         );
 
         for x in check_available_governors()? {
-            assert!(x == "powersave" || x == "performance");
+            assert!(
+                x == "powersave"
+                    || x == "performance"
+                    || x == "schedutil"
+                    || x == "conservative"
+                    || x == "ondemand"
+                    || x == "userspace"
+            );
         }
         Ok(())
     }
@@ -543,7 +550,7 @@ microcode	: 0xea
             assert!(x.cur_freq > 0);
             assert!(x.cur_temp > -100);
 
-            assert!(x.gov == "powersave" || x.gov == "performance");
+            assert!(x.gov == "powersave" || x.gov == "performance" || x.gov == "schedutil");
         }
     }
 
@@ -574,7 +581,7 @@ microcode	: 0xea
         assert_eq!(type_of(list_cpu_governors()), type_of(Vec::<String>::new()));
 
         for x in list_cpu_governors() {
-            assert!(x == "powersave" || x == "performance");
+            assert!(x == "powersave" || x == "performance" || x == "schedutil");
         }
     }
 }

@@ -1,7 +1,7 @@
 use std::fmt::Display;
 use std::thread;
 
-use super::config::get_config;
+use super::config::Config;
 use super::cpu::CPU;
 use super::power::lid::LidState;
 use super::system::check_turbo_enabled;
@@ -34,8 +34,8 @@ macro_rules! create_issue {
     }};
 }
 
-pub fn show_config() {
-    println!("{}", get_config());
+pub fn show_config(config: &Config) {
+    println!("{}", config);
 }
 
 pub fn print_freq(f: f32, raw: bool) {

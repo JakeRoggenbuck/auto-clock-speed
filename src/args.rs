@@ -268,7 +268,7 @@ pub fn parse_args(config: config::Config) {
             SetType::Gov { value } => int.set.gov(value, config, set_settings),
         },
 
-        ACSCommand::ShowConfig {} => show_config(),
+        ACSCommand::ShowConfig {} => show_config(&config),
         ACSCommand::InitConfig {} => init_config(),
         ACSCommand::Interactive {} => interactive(),
 

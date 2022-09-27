@@ -1,15 +1,13 @@
 use std::{thread, time};
 use structopt::StructOpt;
 
-use crate::network::send::query_one;
-
 use super::config;
 use super::config::{config_dir_exists, init_config};
 use super::daemon;
 use super::daemon::daemon_init;
 use super::display::show_config;
 use super::interactive::interactive;
-use super::interface::{Get, Getter, Interface, Set, Setter};
+use super::interface::{DaemonControl, DaemonController, Get, Getter, Interface, Set, Setter};
 use super::settings::{get_graph_type, GraphType, Settings};
 use super::warn_user;
 
@@ -241,145 +239,33 @@ pub fn parse_args(config: config::Config) {
     let int = Interface {
         set: Set {},
         get: Get {},
+        dec: DaemonControl {},
     };
 
     match ACSCommand::from_args() {
         ACSCommand::Daemon { control } => match control {
-            DaemonControlType::Disable {} => {
-                match query_one(
-                    "/tmp/acs.sock",
-                    crate::network::Packet::DaemonDisableRequest(),
-                ) {
-                    Ok(packet) => match packet {
-                        crate::network::Packet::DaemonDisableResponse(success) => match success {
-                            true => println!("The running daemon has been disabled"),
-                            false => println!("The running daemon is already disabled"),
-                        },
-                        _ => println!("Failed: Unexpected response packet"),
-                    },
-                    Err(e) => {
-                        println!("{:?}", e)
-                    }
-                }
-            }
-            DaemonControlType::Enable {} => {
-                match query_one(
-                    "/tmp/acs.sock",
-                    crate::network::Packet::DaemonEnableRequest(),
-                ) {
-                    Ok(packet) => match packet {
-                        crate::network::Packet::DaemonEnableResponse(success) => match success {
-                            true => println!("The running daemon has been enabled"),
-                            false => println!("The running daemon is already enabled"),
-                        },
-                        _ => println!("Failed: Unexpected response packet"),
-                    },
-                    Err(e) => {
-                        println!("{:?}", e)
-                    }
-                }
-            }
-            DaemonControlType::Status => {
-                match query_one(
-                    "/tmp/acs.sock",
-                    crate::network::Packet::DaemonStatusRequest(),
-                ) {
-                    Ok(packet) => match packet {
-                        crate::network::Packet::DaemonStatusResponse(status) => match status {
-                            true => println!("The daemon is currently enabled"),
-                            false => println!("The daemon is currently disabled"),
-                        },
-                        _ => println!("Failed: Unexpected response packet"),
-                    },
-                    Err(e) => {
-                        println!("{:?}", e)
-                    }
-                }
-            }
-            DaemonControlType::Toggle => {
-                match query_one(
-                    "/tmp/acs.sock",
-                    crate::network::Packet::DaemonStatusRequest(),
-                ) {
-                    Ok(packet) => match packet {
-                        crate::network::Packet::DaemonStatusResponse(status) => {
-                            match query_one(
-                                "/tmp/acs.sock",
-                                match status {
-                                    true => crate::network::Packet::DaemonDisableRequest(),
-                                    false => crate::network::Packet::DaemonEnableRequest(),
-                                },
-                            ) {
-                                Ok(packet) => match packet {
-                                    crate::network::Packet::DaemonDisableResponse(_) => {
-                                        println!("The running daemon has been disabled")
-                                    }
-                                    crate::network::Packet::DaemonEnableResponse(_) => {
-                                        println!("The running daemon has been enabled")
-                                    }
-                                    _ => println!("Failed: Unexpected response packet"),
-                                },
-                                Err(e) => {
-                                    println!("): {:?}", e)
-                                }
-                            }
-                        }
-                        _ => println!("Failed: Unexpected response packet"),
-                    },
-                    Err(e) => {
-                        println!("{:?}", e)
-                    }
-                }
-            }
+            DaemonControlType::Disable => int.dec.disable(),
+            DaemonControlType::Enable => int.dec.enable(),
+            DaemonControlType::Status => int.dec.status(),
+            DaemonControlType::Toggle => int.dec.toggle(),
         },
 
         ACSCommand::Get { get } => match get {
-            GetType::Freq { raw } => {
-                int.get.freq(raw);
-            }
-
-            GetType::Power { raw } => {
-                int.get.power(raw);
-            }
-
-            GetType::Usage { raw } => {
-                int.get.usage(raw);
-            }
-
-            GetType::Thermal { raw } => {
-                int.get.thermal(raw);
-            }
-
-            GetType::Turbo { raw } => {
-                int.get.turbo(raw);
-            }
-            GetType::AvailableGovs { raw } => {
-                int.get.available_govs(raw);
-            }
-            GetType::CPUs { raw } => {
-                int.get.cpus(raw);
-            }
-
-            GetType::Speeds { raw } => {
-                int.get.speeds(raw);
-            }
-
-            GetType::Temp { raw } => {
-                int.get.temp(raw);
-            }
-
-            GetType::Govs { raw } => {
-                int.get.govs(raw);
-            }
-            GetType::BatCond { raw } => {
-                int.get.bat_cond(raw);
-            }
+            GetType::Freq { raw } => int.get.freq(raw),
+            GetType::Power { raw } => int.get.power(raw),
+            GetType::Usage { raw } => int.get.usage(raw),
+            GetType::Thermal { raw } => int.get.thermal(raw),
+            GetType::Turbo { raw } => int.get.turbo(raw),
+            GetType::AvailableGovs { raw } => int.get.available_govs(raw),
+            GetType::CPUs { raw } => int.get.cpus(raw),
+            GetType::Speeds { raw } => int.get.speeds(raw),
+            GetType::Temp { raw } => int.get.temp(raw),
+            GetType::Govs { raw } => int.get.govs(raw),
+            GetType::BatCond { raw } => int.get.bat_cond(raw),
         },
 
         ACSCommand::Set { set } => match set {
-            SetType::Gov { value } => {
-                int.set.gov(value, config, set_settings);
-            }
+            SetType::Gov { value } => int.set.gov(value, config, set_settings),
         },
 
         ACSCommand::ShowConfig {} => show_config(),

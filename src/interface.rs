@@ -13,6 +13,108 @@ use super::system::{
     get_cpu_percent, list_cpu_governors, list_cpu_speeds, list_cpu_temp, list_cpus,
 };
 use super::thermal::read_thermal_zones;
+use crate::network::send::query_one;
+
+pub struct DaemonControl {}
+
+pub trait DaemonController {
+    fn disable(&self);
+    fn enable(&self);
+    fn status(&self);
+    fn toggle(&self);
+}
+
+impl DaemonController for DaemonControl {
+    fn disable(&self) {
+        match query_one(
+            "/tmp/acs.sock",
+            crate::network::Packet::DaemonDisableRequest(),
+        ) {
+            Ok(packet) => match packet {
+                crate::network::Packet::DaemonDisableResponse(success) => match success {
+                    true => println!("The running daemon has been disabled"),
+                    false => println!("The running daemon is already disabled"),
+                },
+                _ => println!("Failed: Unexpected response packet"),
+            },
+            Err(e) => {
+                println!("{:?}", e)
+            }
+        }
+    }
+
+    fn enable(&self) {
+        match query_one(
+            "/tmp/acs.sock",
+            crate::network::Packet::DaemonEnableRequest(),
+        ) {
+            Ok(packet) => match packet {
+                crate::network::Packet::DaemonEnableResponse(success) => match success {
+                    true => println!("The running daemon has been enabled"),
+                    false => println!("The running daemon is already enabled"),
+                },
+                _ => println!("Failed: Unexpected response packet"),
+            },
+            Err(e) => {
+                println!("{:?}", e)
+            }
+        }
+    }
+
+    fn status(&self) {
+        match query_one(
+            "/tmp/acs.sock",
+            crate::network::Packet::DaemonStatusRequest(),
+        ) {
+            Ok(packet) => match packet {
+                crate::network::Packet::DaemonStatusResponse(status) => match status {
+                    true => println!("The daemon is currently enabled"),
+                    false => println!("The daemon is currently disabled"),
+                },
+                _ => println!("Failed: Unexpected response packet"),
+            },
+            Err(e) => {
+                println!("{:?}", e)
+            }
+        }
+    }
+
+    fn toggle(&self) {
+        match query_one(
+            "/tmp/acs.sock",
+            crate::network::Packet::DaemonStatusRequest(),
+        ) {
+            Ok(packet) => match packet {
+                crate::network::Packet::DaemonStatusResponse(status) => {
+                    match query_one(
+                        "/tmp/acs.sock",
+                        match status {
+                            true => crate::network::Packet::DaemonDisableRequest(),
+                            false => crate::network::Packet::DaemonEnableRequest(),
+                        },
+                    ) {
+                        Ok(packet) => match packet {
+                            crate::network::Packet::DaemonDisableResponse(_) => {
+                                println!("The running daemon has been disabled")
+                            }
+                            crate::network::Packet::DaemonEnableResponse(_) => {
+                                println!("The running daemon has been enabled")
+                            }
+                            _ => println!("Failed: Unexpected response packet"),
+                        },
+                        Err(e) => {
+                            println!("): {:?}", e)
+                        }
+                    }
+                }
+                _ => println!("Failed: Unexpected response packet"),
+            },
+            Err(e) => {
+                println!("{:?}", e)
+            }
+        }
+    }
+}
 
 pub struct Get {}
 
@@ -171,4 +273,5 @@ impl Setter for Set {
 pub struct Interface {
     pub get: Get,
     pub set: Set,
+    pub dec: DaemonControl,
 }

@@ -1,5 +1,5 @@
 use super::config::{get_config, Config};
-use super::interface::{Get, Getter, Interface, Set, Setter};
+use super::interface::{DaemonControl, DaemonController, Get, Getter, Interface, Set, Setter};
 use super::settings::{GraphType, Settings};
 use colored::Colorize;
 use std::io::{stdin, stdout, Write};
@@ -19,6 +19,12 @@ pub fn help() {
     - set
       - gov
 
+    - daemon
+      - disable
+      - enable
+      - status
+      - toggle
+
     E.g. 'get cpus'
     ";
 
@@ -30,6 +36,7 @@ pub fn interactive() {
     let int = Interface {
         set: Set {},
         get: Get {},
+        dec: DaemonControl {},
     };
 
     let mut input;
@@ -85,6 +92,10 @@ pub fn interactive() {
                         int.set
                             .gov("powersave".to_string(), config, set_settings.clone());
                     }
+                    "daemon disable" => int.dec.disable(),
+                    "daemon enable" => int.dec.enable(),
+                    "daemon status" => int.dec.status(),
+                    "daemon toggle" => int.dec.toggle(),
 
                     "exit" => {
                         println!("Bye!");

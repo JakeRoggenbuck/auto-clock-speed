@@ -186,12 +186,16 @@ enum ACSCommand {
         no_animation: bool,
 
         /// Graph
-        #[structopt(short = "g", long = "--graph")]
+        #[structopt(short = "g", long = "graph")]
         graph_type: Option<String>,
 
         /// Commit hash
         #[structopt(short, long)]
         commit: bool,
+
+        /// Write to a csv file
+        #[structopt(long = "csv")]
+        csv_file: Option<String>,
     },
 
     /// Monitor each cpu, it's min, max, and current speed, along with the governor
@@ -220,6 +224,10 @@ enum ACSCommand {
         /// Commit hash
         #[structopt(short, long)]
         commit: bool,
+
+        /// Write to a csv file
+        #[structopt(long = "csv")]
+        csv_file: Option<String>,
     },
 }
 
@@ -234,6 +242,7 @@ pub fn parse_args(config: config::Config) {
         graph: GraphType::Hidden,
         commit: false,
         testing: false,
+        csv_file: None,
     };
 
     let int = Interface {
@@ -280,6 +289,7 @@ pub fn parse_args(config: config::Config) {
             no_animation,
             graph_type,
             commit,
+            csv_file,
         } => {
             if !config_dir_exists() {
                 warn_user!("Config directory '/etc/acs' does not exist!");
@@ -315,6 +325,7 @@ pub fn parse_args(config: config::Config) {
                 graph: parsed_graph_type,
                 commit,
                 testing: false,
+                csv_file,
             };
 
             match daemon_init(settings, config) {
@@ -333,6 +344,7 @@ pub fn parse_args(config: config::Config) {
             graph_type,
             hook,
             commit,
+            csv_file,
         } => {
             if !config_dir_exists() {
                 warn_user!("Config directory '/etc/acs' does not exist!");
@@ -367,6 +379,7 @@ pub fn parse_args(config: config::Config) {
                 graph: parsed_graph_type,
                 commit,
                 testing: false,
+                csv_file,
             };
 
             match daemon_init(settings, config) {

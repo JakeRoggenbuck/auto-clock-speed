@@ -1,5 +1,8 @@
 use crate::power::battery::{has_battery, Battery};
 use std::convert::TryInto;
+use std::fs::{File, OpenOptions};
+use std::io::Write;
+use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
 use std::{thread, time};
@@ -69,6 +72,7 @@ pub trait Checker {
     fn update_all(&mut self) -> Result<(), Error>;
 
     fn run_state_machine(&mut self) -> State;
+    fn write_csv(&self);
 
     fn preprint_render(&mut self) -> String;
     fn postprint_render(&mut self) -> String;
@@ -184,6 +188,23 @@ impl Checker for Daemon {
         state
     }
 
+    fn write_csv(&self) {
+        let lines = &self.cpus.iter().map(|c| c.to_csv()).collect::<String>();
+
+        if let Some(name) = &self.settings.csv_file {
+            let mut file = OpenOptions::new()
+                .write(true)
+                .append(true) // This is needed to append to file
+                .open(name)
+                .unwrap();
+
+            match write!(file, "{}", lines) {
+                Ok(_) => {}
+                Err(..) => warn_user!("CSV Writer not working."),
+            };
+        }
+    }
+
     fn init(&mut self) {
         // Get the commit hash from the compile time env variable
         if self.settings.commit {
@@ -192,6 +213,12 @@ impl Checker for Daemon {
 
         self.timeout_battery = time::Duration::from_millis(self.settings.delay_battery);
         self.timeout = time::Duration::from_millis(self.settings.delay);
+
+        if let Some(name) = &self.settings.csv_file {
+            if !Path::new(name).exists() {
+                File::create(name).expect("CSV file could not be created.");
+            }
+        }
     }
 
     fn start_loop(&mut self) -> Result<(), Error> {
@@ -203,6 +230,8 @@ impl Checker for Daemon {
         self.charge = self.battery.capacity;
         self.lid_state = read_lid_state()?;
         self.usage = calculate_average_usage(&self.cpus) * 100.0;
+
+        self.write_csv();
 
         Ok(())
     }
@@ -484,6 +513,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         graph: settings.graph,
         commit: settings.commit,
         testing: settings.testing,
+        csv_file: settings.csv_file,
     };
 
     // Attempt to create battery object
@@ -640,6 +670,7 @@ mod tests {
             graph: GraphType::Hidden,
             commit: false,
             testing: true,
+            csv_file: None,
         };
 
         let config = default_config();
@@ -668,6 +699,7 @@ mod tests {
             graph: GraphType::Hidden,
             commit: false,
             testing: true,
+            csv_file: None,
         };
 
         let config = default_config();
@@ -699,6 +731,7 @@ mod tests {
             graph: GraphType::Hidden,
             commit: false,
             testing: true,
+            csv_file: None,
         };
 
         let config = default_config();

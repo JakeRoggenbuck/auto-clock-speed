@@ -49,9 +49,9 @@ pub mod thermal;
 fn main() {
     env_logger::init();
 
+    setup::setup();
+
     let config: config::Config = get_config();
 
     parse_args(config);
-
-    setup::setup();
 }

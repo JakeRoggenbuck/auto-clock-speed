@@ -44,6 +44,7 @@ pub mod sysfs;
 pub mod system;
 pub mod terminal;
 pub mod thermal;
+pub mod setup;
 
 fn main() {
     env_logger::init();

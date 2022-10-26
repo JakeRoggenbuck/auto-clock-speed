@@ -40,6 +40,18 @@ pub fn get_highest_temp(cpus: &[CPU]) -> i32 {
     temp_max
 }
 
+fn open_cgroup() -> Result<String, Error> {
+    Ok(fs::read_to_string("/proc/1/cgroup")?)
+}
+
+/// Warn the user that speeds may be wrong if inside docker
+pub fn inside_docker() -> bool {
+    match open_cgroup() {
+        Ok(a) => a.contains("docker"),
+        Err(_) => false,
+    }
+}
+
 fn open_cpu_info() -> Result<String, Error> {
     Ok(fs::read_to_string("/proc/cpuinfo")?)
 }

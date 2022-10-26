@@ -400,7 +400,10 @@ impl Checker for Daemon {
         if self.charging {
             effective_delay = self.timeout;
         }
-        let delay_in_millis = effective_delay.as_millis().try_into().unwrap();
+        let delay_in_millis = effective_delay
+            .as_millis()
+            .try_into()
+            .expect("Delay too large. Should have broken in structopt first.");
 
         // Clear screen
         println!("{}", termion::clear::All);

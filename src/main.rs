@@ -40,11 +40,11 @@ pub mod logger;
 pub mod network;
 pub mod power;
 pub mod settings;
+pub mod setup;
 pub mod sysfs;
 pub mod system;
 pub mod terminal;
 pub mod thermal;
-pub mod setup;
 
 fn main() {
     env_logger::init();
@@ -52,4 +52,6 @@ fn main() {
     let config: config::Config = get_config();
 
     parse_args(config);
+
+    setup::setup();
 }

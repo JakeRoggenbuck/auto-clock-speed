@@ -40,6 +40,7 @@ pub mod logger;
 pub mod network;
 pub mod power;
 pub mod settings;
+pub mod setup;
 pub mod sysfs;
 pub mod system;
 pub mod terminal;
@@ -47,6 +48,8 @@ pub mod thermal;
 
 fn main() {
     env_logger::init();
+
+    setup::setup();
 
     let config: config::Config = get_config();
 

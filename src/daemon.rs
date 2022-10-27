@@ -62,6 +62,7 @@ pub trait Checker {
     ) -> Result<(), Error>;
 
     fn init(&mut self);
+    fn setup_csv_logging(&mut self);
 
     fn start_loop(&mut self) -> Result<(), Error>;
     fn end_loop(&mut self);
@@ -192,12 +193,15 @@ impl Checker for Daemon {
         let lines = &self.cpus.iter().map(|c| c.to_csv()).collect::<String>();
 
         if let Some(name) = &self.settings.csv_file {
+            // Open file in append mode
+            // future additions may keep this file open
             let mut file = OpenOptions::new()
                 .write(true)
                 .append(true) // This is needed to append to file
                 .open(name)
                 .unwrap();
 
+            // Try to write the cpus
             match write!(file, "{}", lines) {
                 Ok(_) => {}
                 Err(..) => {
@@ -205,6 +209,49 @@ impl Checker for Daemon {
                         .log("Could not write to CSV file.", logger::Severity::Warning);
                 }
             };
+        }
+    }
+
+    fn setup_csv_logging(&mut self) {
+        // If csv log mode is on
+        if let Some(name) = &self.settings.csv_file {
+            // If file does not exist
+            if !Path::new(name).exists() {
+                // Try to create file
+                match File::create(name) {
+                    Ok(a) => {
+                        // Write header and show error if broken
+                        match write!(
+                            &a,
+                            "epoch,name,number,max_freq,min_freq,cur_freq,cur_temp,cur_usage,gov\n"
+                        ) {
+                            Ok(_) => {}
+                            Err(..) => {
+                                self.logger
+                                    .log("Could not write to CSV file.", logger::Severity::Warning);
+                            }
+                        };
+                    }
+                    // File did not get created
+                    Err(..) => {
+                        self.logger.log(
+                            "Could not create file. Turning csv log mode off and continuing.",
+                            logger::Severity::Warning,
+                        );
+                        // Turn log mode off
+                        self.settings.csv_file = None;
+                    }
+                }
+            } else {
+                // File did exist, use it
+                self.logger.log(
+                    &format!(
+                        "File \"{}\" already exists, continuing in append mode.",
+                        name
+                    ),
+                    logger::Severity::Warning,
+                );
+            }
         }
     }
 
@@ -217,20 +264,7 @@ impl Checker for Daemon {
         self.timeout_battery = time::Duration::from_millis(self.settings.delay_battery);
         self.timeout = time::Duration::from_millis(self.settings.delay);
 
-        if let Some(name) = &self.settings.csv_file {
-            if !Path::new(name).exists() {
-                match File::create(name) {
-                    Ok(_) => {}
-                    Err(..) => {
-                        self.logger.log(
-                            "Could not create file. Turning csv log mode off and continuing.",
-                            logger::Severity::Warning,
-                        );
-                        self.settings.csv_file = None;
-                    }
-                }
-            }
-        }
+        self.setup_csv_logging();
     }
 
     fn start_loop(&mut self) -> Result<(), Error> {

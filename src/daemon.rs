@@ -381,7 +381,7 @@ impl Checker for Daemon {
 
     fn preprint_render(&mut self) -> String {
         let message = format!("{}\n", self.message);
-        let title = "Name  Max\tMin\tFreq\tTemp\tUsage\tGovernor\n".bold();
+        let title = "Name\tMax\tMin\tFreq\tTemp\tUsage\tGovernor\n".bold();
         // Render each line of cpu core
         let cpus = &self.cpus.iter().map(|c| format!("{c}")).collect::<String>();
 

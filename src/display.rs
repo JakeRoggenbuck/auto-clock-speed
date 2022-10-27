@@ -122,13 +122,13 @@ pub fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize, d
         Ok(turbo) => {
             let enabled_message = if turbo { "yes" } else { "no" };
 
-            println!("  Turbo: {}", enabled_message.bold(),);
+            println!("  Turbo: {}", enabled_message.bold());
 
             if !no_animation {
                 print_turbo_animation(cores, turbo_y_pos, delay);
             }
         }
-        Err(e) => eprintln!("Could not check turbo\n{:?}", e),
+        Err(..) => eprintln!("Could not check turbo. Expected for AMD.\n"),
     }
 }
 

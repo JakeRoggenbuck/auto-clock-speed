@@ -96,7 +96,7 @@ enum GetType {
     },
 
     /// The battery condition in percentage
-    #[structopt(name = "bat_cond")]
+    #[structopt(name = "bat-cond")]
     BatCond {
         #[structopt(short, long)]
         raw: bool,
@@ -196,6 +196,10 @@ enum ACSCommand {
         /// Write to a csv file
         #[structopt(long = "csv")]
         csv_file: Option<String>,
+
+        /// Log file size cutoff in MB
+        #[structopt(long = "log-size-cutoff", default_value = "20")]
+        log_size_cutoff: i32,
     },
 
     /// Monitor each cpu, it's min, max, and current speed, along with the governor
@@ -228,6 +232,10 @@ enum ACSCommand {
         /// Write to a csv file
         #[structopt(long = "csv")]
         csv_file: Option<String>,
+
+        /// Log file size cutoff in MB
+        #[structopt(long = "log-size-cutoff", default_value = "20")]
+        log_size_cutoff: i32,
     },
 }
 
@@ -243,6 +251,7 @@ pub fn parse_args(config: config::Config) {
         commit: false,
         testing: false,
         csv_file: None,
+        log_size_cutoff: 20,
     };
 
     let int = Interface {
@@ -290,6 +299,7 @@ pub fn parse_args(config: config::Config) {
             graph_type,
             commit,
             csv_file,
+            log_size_cutoff,
         } => {
             if !config_dir_exists() {
                 warn_user!("Config directory '/etc/acs' does not exist!");
@@ -326,6 +336,7 @@ pub fn parse_args(config: config::Config) {
                 commit,
                 testing: false,
                 csv_file,
+                log_size_cutoff,
             };
 
             match daemon_init(settings, config) {
@@ -345,6 +356,7 @@ pub fn parse_args(config: config::Config) {
             hook,
             commit,
             csv_file,
+            log_size_cutoff,
         } => {
             if !config_dir_exists() {
                 warn_user!("Config directory '/etc/acs' does not exist!");
@@ -380,6 +392,7 @@ pub fn parse_args(config: config::Config) {
                 commit,
                 testing: false,
                 csv_file,
+                log_size_cutoff,
             };
 
             match daemon_init(settings, config) {

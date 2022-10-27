@@ -201,14 +201,27 @@ impl Checker for Daemon {
                 .open(name)
                 .unwrap();
 
-            // Try to write the cpus
-            match write!(file, "{}", lines) {
-                Ok(_) => {}
-                Err(..) => {
-                    self.logger
-                        .log("Could not write to CSV file.", logger::Severity::Warning);
-                }
-            };
+            // If file is smaller than log_size_cutoff
+            if file.metadata().unwrap().len() < (self.settings.log_size_cutoff * 1000_000) as u64 {
+                // Try to write the cpus
+                match write!(file, "{}", lines) {
+                    Ok(_) => {}
+                    Err(..) => {
+                        self.logger
+                            .log("Could not write to CSV file.", logger::Severity::Warning);
+                    }
+                };
+            } else {
+                self.logger.log(
+                    &format!(
+                        "Max log file size reached of {}MB",
+                        self.settings.log_size_cutoff
+                    ),
+                    logger::Severity::Warning,
+                );
+                // Deactivate csv logging after file size max
+                self.settings.csv_file = None;
+            }
         }
     }
 
@@ -560,6 +573,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         commit: settings.commit,
         testing: settings.testing,
         csv_file: settings.csv_file,
+        log_size_cutoff: settings.log_size_cutoff,
     };
 
     // Attempt to create battery object
@@ -717,6 +731,7 @@ mod tests {
             commit: false,
             testing: true,
             csv_file: None,
+            log_size_cutoff: 20,
         };
 
         let config = default_config();
@@ -746,6 +761,7 @@ mod tests {
             commit: false,
             testing: true,
             csv_file: None,
+            log_size_cutoff: 20,
         };
 
         let config = default_config();
@@ -778,6 +794,7 @@ mod tests {
             commit: false,
             testing: true,
             csv_file: None,
+            log_size_cutoff: 20,
         };
 
         let config = default_config();

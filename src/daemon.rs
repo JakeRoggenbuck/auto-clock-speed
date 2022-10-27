@@ -72,7 +72,7 @@ pub trait Checker {
     fn update_all(&mut self) -> Result<(), Error>;
 
     fn run_state_machine(&mut self) -> State;
-    fn write_csv(&self);
+    fn write_csv(&mut self);
 
     fn preprint_render(&mut self) -> String;
     fn postprint_render(&mut self) -> String;
@@ -188,7 +188,7 @@ impl Checker for Daemon {
         state
     }
 
-    fn write_csv(&self) {
+    fn write_csv(&mut self) {
         let lines = &self.cpus.iter().map(|c| c.to_csv()).collect::<String>();
 
         if let Some(name) = &self.settings.csv_file {
@@ -200,7 +200,10 @@ impl Checker for Daemon {
 
             match write!(file, "{}", lines) {
                 Ok(_) => {}
-                Err(..) => warn_user!("CSV Writer not working."),
+                Err(..) => {
+                    self.logger
+                        .log("Could not write to CSV file.", logger::Severity::Warning);
+                }
             };
         }
     }
@@ -216,7 +219,16 @@ impl Checker for Daemon {
 
         if let Some(name) = &self.settings.csv_file {
             if !Path::new(name).exists() {
-                File::create(name).expect("CSV file could not be created.");
+                match File::create(name) {
+                    Ok(_) => {}
+                    Err(..) => {
+                        self.logger.log(
+                            "Could not create file. Turning csv log mode off and continuing.",
+                            logger::Severity::Warning,
+                        );
+                        self.settings.csv_file = None;
+                    }
+                }
             }
         }
     }

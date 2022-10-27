@@ -48,12 +48,20 @@ pub fn inside_docker() -> bool {
 
 /// Detects if being executed inside of windows subsystem for linux
 pub fn inside_wsl() -> bool {
-    if let Ok(osrelease) = std::fs::read("/proc/sys/kernel/osrelease") {
-        return std::str::from_utf8(&osrelease).to_ascii_lowercase().contains("microsoft" || "wsl");
-    } else if let Ok(version) = std::fs::read("/proc/version") {
-        return std::str::from_utf8(&version).to_ascii_lowercase().contains("microsoft" || "wsl");
+    if let Ok(path_osrelease) = std::fs::read("/proc/sys/kernel/osrelease") {
+        return uft8_to_str(&path_osrelease).contains("microsoft") || uft8_to_str(&path_osrelease).contains("wsl");
+    } else if let Ok(path_version) = std::fs::read("/proc/version") {
+        return uft8_to_str(&path_version).contains("microsoft") || uft8_to_str(&path_version).contains("wsl");
     }
     false
+}
+
+fn uft8_to_str(path: &[u8]) -> String {
+    return if let Ok(st) = std::str::from_utf8(&path) {
+        st.to_ascii_lowercase()
+    } else {
+        "a".to_string()
+    }
 }
 
 fn open_cpu_info() -> Result<String, Error> {

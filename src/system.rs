@@ -46,6 +46,18 @@ pub fn inside_docker() -> bool {
     Path::new("/proc/self/root/.dockerenv").exists()
 }
 
+/// Detects if being executed inside of windows subsystem for linux
+pub fn inside_wsl() -> bool {
+    if Path::new("/proc/sys/kernel/osrelease").exists() {
+        let o = fs::read_to_string("/proc/sys/kernel/osrelease").expect("Unable to read file");
+        return o.contains("microsoft");
+    } else if Path::new("/proc/version").exists() {
+        let v = fs::read_to_string("/proc/version").expect("Unable to read file");
+        return v.contains("microsoft") || v.contains("WSL");
+    }
+    false
+}
+
 fn open_cpu_info() -> Result<String, Error> {
     Ok(fs::read_to_string("/proc/cpuinfo")?)
 }

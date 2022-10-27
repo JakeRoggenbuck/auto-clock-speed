@@ -43,4 +43,6 @@ pub struct Settings {
     pub graph: GraphType,
     pub commit: bool,
     pub testing: bool,
+    pub csv_file: Option<String>,
+    pub log_size_cutoff: i32,
 }

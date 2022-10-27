@@ -58,6 +58,8 @@ pub fn interactive() {
         graph: GraphType::Hidden,
         commit: false,
         testing: false,
+        csv_file: None,
+        log_size_cutoff: 20,
     };
 
     loop {

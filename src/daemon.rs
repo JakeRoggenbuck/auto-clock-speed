@@ -1,5 +1,8 @@
 use crate::power::battery::{has_battery, Battery};
 use std::convert::TryInto;
+use std::fs::{File, OpenOptions};
+use std::io::Write;
+use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
 use std::{thread, time};
@@ -59,6 +62,7 @@ pub trait Checker {
     ) -> Result<(), Error>;
 
     fn init(&mut self);
+    fn setup_csv_logging(&mut self);
 
     fn start_loop(&mut self) -> Result<(), Error>;
     fn end_loop(&mut self);
@@ -69,6 +73,7 @@ pub trait Checker {
     fn update_all(&mut self) -> Result<(), Error>;
 
     fn run_state_machine(&mut self) -> State;
+    fn write_csv(&mut self);
 
     fn preprint_render(&mut self) -> String;
     fn postprint_render(&mut self) -> String;
@@ -184,6 +189,85 @@ impl Checker for Daemon {
         state
     }
 
+    fn write_csv(&mut self) {
+        let lines = &self.cpus.iter().map(|c| c.to_csv()).collect::<String>();
+
+        if let Some(name) = &self.settings.csv_file {
+            // Open file in append mode
+            // future additions may keep this file open
+            let mut file = OpenOptions::new()
+                .write(true)
+                .append(true) // This is needed to append to file
+                .open(name)
+                .unwrap();
+
+            // If file is smaller than log_size_cutoff
+            if file.metadata().unwrap().len() < (self.settings.log_size_cutoff * 1000_000) as u64 {
+                // Try to write the cpus
+                match write!(file, "{}", lines) {
+                    Ok(_) => {}
+                    Err(..) => {
+                        self.logger
+                            .log("Could not write to CSV file.", logger::Severity::Warning);
+                    }
+                };
+            } else {
+                self.logger.log(
+                    &format!(
+                        "Max log file size reached of {}MB",
+                        self.settings.log_size_cutoff
+                    ),
+                    logger::Severity::Warning,
+                );
+                // Deactivate csv logging after file size max
+                self.settings.csv_file = None;
+            }
+        }
+    }
+
+    fn setup_csv_logging(&mut self) {
+        // If csv log mode is on
+        if let Some(name) = &self.settings.csv_file {
+            // If file does not exist
+            if !Path::new(name).exists() {
+                // Try to create file
+                match File::create(name) {
+                    Ok(a) => {
+                        // Write header and show error if broken
+                        match write!(
+                            &a,
+                            "epoch,name,number,max_freq,min_freq,cur_freq,cur_temp,cur_usage,gov\n"
+                        ) {
+                            Ok(_) => {}
+                            Err(..) => {
+                                self.logger
+                                    .log("Could not write to CSV file.", logger::Severity::Warning);
+                            }
+                        };
+                    }
+                    // File did not get created
+                    Err(..) => {
+                        self.logger.log(
+                            "Could not create file. Turning csv log mode off and continuing.",
+                            logger::Severity::Warning,
+                        );
+                        // Turn log mode off
+                        self.settings.csv_file = None;
+                    }
+                }
+            } else {
+                // File did exist, use it
+                self.logger.log(
+                    &format!(
+                        "File \"{}\" already exists, continuing in append mode.",
+                        name
+                    ),
+                    logger::Severity::Warning,
+                );
+            }
+        }
+    }
+
     fn init(&mut self) {
         // Get the commit hash from the compile time env variable
         if self.settings.commit {
@@ -192,6 +276,8 @@ impl Checker for Daemon {
 
         self.timeout_battery = time::Duration::from_millis(self.settings.delay_battery);
         self.timeout = time::Duration::from_millis(self.settings.delay);
+
+        self.setup_csv_logging();
     }
 
     fn start_loop(&mut self) -> Result<(), Error> {
@@ -203,6 +289,8 @@ impl Checker for Daemon {
         self.charge = self.battery.capacity;
         self.lid_state = read_lid_state()?;
         self.usage = calculate_average_usage(&self.cpus) * 100.0;
+
+        self.write_csv();
 
         Ok(())
     }
@@ -483,6 +571,8 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         graph: settings.graph,
         commit: settings.commit,
         testing: settings.testing,
+        csv_file: settings.csv_file,
+        log_size_cutoff: settings.log_size_cutoff,
     };
 
     // Attempt to create battery object
@@ -639,6 +729,8 @@ mod tests {
             graph: GraphType::Hidden,
             commit: false,
             testing: true,
+            csv_file: None,
+            log_size_cutoff: 20,
         };
 
         let config = default_config();
@@ -667,6 +759,8 @@ mod tests {
             graph: GraphType::Hidden,
             commit: false,
             testing: true,
+            csv_file: None,
+            log_size_cutoff: 20,
         };
 
         let config = default_config();
@@ -698,6 +792,8 @@ mod tests {
             graph: GraphType::Hidden,
             commit: false,
             testing: true,
+            csv_file: None,
+            log_size_cutoff: 20,
         };
 
         let config = default_config();

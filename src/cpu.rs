@@ -4,6 +4,7 @@ use std::fmt;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use super::system::{calculate_cpu_percent, read_int, read_str, ProcStat};
 use super::Error;
@@ -209,7 +210,11 @@ impl Speed for CPU {
 
     fn to_csv(&self) -> String {
         format!(
-            "{},{},{},{},{},{},{},{}\n",
+            "{},{},{},{},{},{},{},{},{}\n",
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap_or(Duration::new(0 as u64, 1 as u32))
+                .as_secs(),
             self.name,
             self.number,
             self.max_freq,

@@ -366,7 +366,6 @@ impl Checker for Daemon {
         let preprint = self.preprint_render();
         let postprint = self.postprint_render();
 
-        // Shows if turbo is enabled with an amazing turbo animation
         let mut effective_delay = self.timeout_battery;
         if self.charging {
             effective_delay = self.timeout;

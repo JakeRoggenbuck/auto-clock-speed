@@ -344,8 +344,8 @@ impl Checker for Daemon {
         };
 
         format!(
-            "{}\n{}\n\n{}\n\n{}\n{}",
-            graph_type, graph, stop_message, logs, commit
+            "{}\n{}\n\n{}\n\n{}\n\n{}",
+            graph_type, graph, commit, stop_message, logs
         )
     }
 

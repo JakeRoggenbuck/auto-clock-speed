@@ -53,14 +53,20 @@ pub enum WritableValue {
 impl Speed for CPU {
     /// Read the temperature of a cpu
     fn read_temp(&mut self, sub_path: &str) -> Result<i32, Error> {
-        let cpu_info_path: String = format!(
+        let mut cpu_info_path: String = format!(
             "/sys/class/thermal/{}/{}",
             self.name.replace("cpu", "thermal_zone"),
             sub_path
         );
 
+        // If the thermal path does not exist, use the first thermal path only if it exists
         if !Path::new(&cpu_info_path).exists() {
-            return Ok(-1);
+            let test_path = format!("/sys/class/thermal/thermal_zone0/{}", sub_path);
+            if Path::new(&test_path).exists() {
+                cpu_info_path = test_path;
+            } else {
+                return Ok(-1);
+            }
         }
 
         let mut info = fs::read_to_string(cpu_info_path)?;

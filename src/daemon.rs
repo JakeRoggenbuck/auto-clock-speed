@@ -1,4 +1,3 @@
-use crate::power::battery::{has_battery, Battery};
 use std::convert::TryInto;
 use std::fs::{File, OpenOptions};
 use std::io::Write;
@@ -17,12 +16,15 @@ use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
 use super::network::{hook, listen};
+use super::power::battery::{has_battery, Battery};
 use super::power::lid::{read_lid_state, LidState};
 use super::power::read_power_source;
 use super::settings::{GraphType, Settings};
+use super::setup::{inside_docker_message, inside_wsl_message};
 use super::system::{
     check_available_governors, check_cpu_freq, check_cpu_temperature, check_cpu_usage,
-    get_highest_temp, list_cpus, parse_proc_file, read_proc_stat_file, ProcStat,
+    get_highest_temp, inside_docker, inside_wsl, list_cpus, parse_proc_file, read_proc_stat_file,
+    ProcStat,
 };
 use super::terminal::terminal_width;
 use super::Error;
@@ -278,6 +280,15 @@ impl Checker for Daemon {
         self.timeout = time::Duration::from_millis(self.settings.delay);
 
         self.setup_csv_logging();
+
+        if inside_wsl() {
+            self.logger
+                .log(&inside_wsl_message(), logger::Severity::Warning);
+        }
+        if inside_docker() {
+            self.logger
+                .log(&inside_docker_message(), logger::Severity::Warning);
+        }
     }
 
     fn start_loop(&mut self) -> Result<(), Error> {

@@ -61,9 +61,9 @@ impl Speed for CPU {
 
         // If the thermal path does not exist, use the first thermal path only if it exists
         if !Path::new(&cpu_info_path).exists() {
-            let test_path = format!("/sys/class/thermal/thermal_zone0/{}", sub_path);
-            if Path::new(&test_path).exists() {
-                cpu_info_path = test_path;
+            let first_core_path = format!("/sys/class/thermal/thermal_zone0/{}", sub_path);
+            if Path::new(&first_core_path).exists() {
+                cpu_info_path = first_core_path;
             } else {
                 return Ok(-1);
             }

@@ -260,7 +260,7 @@ impl fmt::Display for CPU {
 
         write!(
             f,
-            "{}: {}MHz\t{}MHz\t{}\t{}\t{}\t{}\n",
+            "{}:\t{}MHz\t{}MHz\t{}\t{}\t{}\t{}\n",
             self.name.bold(),
             self.max_freq / 1000,
             self.min_freq / 1000,

@@ -9,7 +9,7 @@ repository = "https://github.com/JakeRoggenbuck/auto-clock-speed"
 readme = "README.md"
 categories = ["command-line-utilities", "hardware-support"]
 keywords = ["clockspeed", "cpu", "battery"]
-authors = ["jakeroggenbuck <jakeroggenbuck2@gmail.com", "cameron <cameron.bannasch@gmail>", "shuzhengz <treez.zhang@gmail.com>"]
+authors = ["jakeroggenbuck <jakeroggenbuck2@gmail.com", "cameron <cameron.bannasch@gmail.com>", "shuzhengz <treez.zhang@gmail.com>"]
 
 [dependencies]
 structopt = { version = "0.3.26", default-features = false }

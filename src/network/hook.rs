@@ -21,7 +21,6 @@ pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
             }
         };
         let packet = Packet::Hello("sup!".to_string());
-        println!("(debug not for production) Sending out: {}", packet);
         stream
             .write_all((format!("{}", packet)).as_bytes())
             .unwrap();
@@ -30,7 +29,6 @@ pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
         let mut reader = BufReader::new(&stream);
         let mut line = String::new();
         reader.read_line(&mut line).unwrap();
-        println!("(debug not for production) Response: {}", line);
         stream.shutdown(std::net::Shutdown::Both).unwrap();
     });
 }

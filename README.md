@@ -9,7 +9,7 @@ A utility to check stats about your CPU, and auto regulate clock speeds to help 
 This program is designed for Linux and Intel laptops, although it should theoretically work on AMD systems and sometimes desktops as well.
 If you encounter any issues or bugs, please refer to the [wiki](https://github.com/JakeRoggenbuck/auto-clock-speed/wiki) to see if there is a solution.
 
-![image](https://github.com/Camerooooon/clockspeed/raw/eedaa0b2458135c8ff8e21510a37269b1052a25e/assets/screenshots/2022-06-14_06-35.png)
+![acs](https://user-images.githubusercontent.com/35516367/199084229-aee15ac5-bd86-41e9-b7fc-22517e21e6f0.png)
 
 ## Goals
 - First and foremost, this is a project to learn about Rust and Linux

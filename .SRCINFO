@@ -1,6 +1,6 @@
 pkgbase = autoclockspeed-bin
 	pkgdesc = A utility to check stats about your CPU, and auto regulate clock speeds to help with either performance or battery life.
-	pkgver = 0.1.9
+	pkgver = 0.1.10
 	pkgrel = 1
 	url = https://github.com/JakeRoggenbuck/auto-clock-speed
 	arch = x86_64

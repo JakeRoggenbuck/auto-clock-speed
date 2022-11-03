@@ -168,13 +168,7 @@ impl SafeFillConfig for SafeConfig {
 
 impl fmt::Display for Config {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
-        // TODO: We need to make a better way to loop through everything. It might be to make
-        // config iterable. This would also make safe_fill_config a lot easier as well.
-        write!(
-            f,
-            "powersave_under = {}\noverheat_threshold = {}\nhigh_cpu_threshold = {}\nactive_rules = {:?}",
-            self.powersave_under, self.overheat_threshold, self.high_cpu_threshold, self.active_rules,
-        )
+        write!(f, "{:#?}", self)
     }
 }
 

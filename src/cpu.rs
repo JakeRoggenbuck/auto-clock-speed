@@ -26,6 +26,7 @@ pub trait Speed {
     fn set_gov(&mut self, gov: String) -> Result<(), Error>;
     fn to_csv(&self) -> String;
     fn random() -> CPU;
+    fn empty() -> CPU;
 }
 
 /// Data relating to the CPU
@@ -214,6 +215,19 @@ impl Speed for CPU {
         }
     }
 
+    fn empty() -> CPU {
+        CPU {
+            name: "cpu".to_string(),
+            number: 0,
+            max_freq: 0,
+            min_freq: 0,
+            cur_freq: 0,
+            cur_temp: 0,
+            cur_usage: 0.0,
+            gov: "powersave".to_string(),
+        }
+    }
+
     fn to_csv(&self) -> String {
         format!(
             "{},{},{},{},{},{},{},{},{}\n",
@@ -289,5 +303,30 @@ mod tests {
 
         assert_ne!(cpu_1.cur_temp, cpu_2.cur_temp);
         assert_ne!(cpu_1.max_freq, cpu_2.max_freq);
+    }
+
+    #[test]
+    fn cpu_empt_unit_test() {
+        let cpu_1 = CPU::empty();
+        let cpu_2 = CPU::random();
+
+        assert_ne!(cpu_1.cur_temp, cpu_2.cur_temp);
+        assert_ne!(cpu_1.max_freq, cpu_2.max_freq);
+
+        assert_eq!(cpu_1.cur_temp, 0);
+        assert_eq!(cpu_1.max_freq, 0);
+    }
+
+    #[test]
+    fn cpu_to_csv_unit_test() {
+        let mut cpu = CPU::empty();
+
+        let out = cpu.to_csv();
+        assert!(out.contains(",cpu,0,0,0,0,0,0,powersave\n"));
+
+        cpu.cur_temp = 5;
+
+        let out = cpu.to_csv();
+        assert!(out.contains(",cpu,0,0,0,0,5,0,powersave\n"));
     }
 }

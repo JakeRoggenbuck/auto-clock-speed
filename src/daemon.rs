@@ -1,3 +1,32 @@
+//! The daemon handles the running auto clock speed instance
+//!
+//! # Modes
+//!
+//! The auto clock speed daemon has two different modes
+//! - **Edit mode**
+//!     - Modifies the system cpu governor based on information such as battery state and cpu usage
+//!     - Requires sudo to run
+//! - **Monitor Mode**
+//!     - Displays information about the system to the user
+//!     - Runs in without sudo
+//!
+//! The selected mode is passed to the daemon through the settings object
+//!
+//! # Updating
+//!
+//! Data within the daemon struct gets updated every `daemon.settings.delay` millis or every
+//! `daemon.settings.delay_battery` millis when on battery.
+//!
+//! The data gets updated in the `update_all` method that gets called periodically from the `run`
+//! method.
+//!
+//! # Extra Features
+//!
+//! When not disabled the by user, the daemon will print out pretty printed data to stdout. The creation of this
+//! print string is controlled by `preprint_render` and `postprint_render`.
+//!
+//! When enabled by the user the daemon will log all of the computer telemetry to a csv file.
+
 use std::convert::TryInto;
 use std::fs::{File, OpenOptions};
 use std::io::Write;
@@ -98,34 +127,7 @@ pub trait Checker {
     fn set_govs(&mut self, gov: String) -> Result<(), Error>;
 }
 
-/// The daemon stores information about the currently running auto clock speed instance
-///
-/// # Modes
-///
-/// The auto clock speed daemon has two different modes
-/// - **Edit mode**
-///     - Modifies the system cpu governor based on information such as battery state and cpu usage
-///     - Requires sudo to run
-/// - **Monitor Mode**
-///     - Displays information about the system to the user
-///     - Runs in without sudo
-///
-/// The selected mode is passed to the daemon through the settings object
-///
-/// # Updating
-///
-/// Data within the daemon struct gets updated every `daemon.settings.delay` millis or every
-/// `daemon.settings.delay_battery` millis when on battery.
-///
-/// The data gets updated in the `update_all` method that gets called periodically from the `run`
-/// method.
-///
-/// # Extra Features
-///
-/// When not disabled the by user, the daemon will print out pretty printed data to stdout. The creation of this
-/// print string is controlled by `preprint_render` and `postprint_render`.
-///
-/// When enabled by the user the daemon will log all of the computer telemetry to a csv file.
+/// The daemon structure which contains information about the auto clock speed instance
 pub struct Daemon {
     pub battery: Battery,
     pub cpus: Vec<CPU>,

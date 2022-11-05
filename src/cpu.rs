@@ -29,7 +29,7 @@ pub trait Speed {
 }
 
 /// Data relating to the CPU
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct CPU {
     pub name: String,
     pub number: i8,
@@ -289,5 +289,30 @@ mod tests {
 
         assert_ne!(cpu_1.cur_temp, cpu_2.cur_temp);
         assert_ne!(cpu_1.max_freq, cpu_2.max_freq);
+    }
+
+    #[test]
+    fn cpu_empt_unit_test() {
+        let cpu_1 = CPU::default();
+        let cpu_2 = CPU::random();
+
+        assert_ne!(cpu_1.cur_temp, cpu_2.cur_temp);
+        assert_ne!(cpu_1.max_freq, cpu_2.max_freq);
+
+        assert_eq!(cpu_1.cur_temp, 0);
+        assert_eq!(cpu_1.max_freq, 0);
+    }
+
+    #[test]
+    fn cpu_to_csv_unit_test() {
+        let mut cpu = CPU::default();
+
+        let out = cpu.to_csv();
+        assert!(out.contains(",,0,0,0,0,0,0,\n"));
+
+        cpu.cur_temp = 5;
+
+        let out = cpu.to_csv();
+        assert!(out.contains(",,0,0,0,0,5,0,\n"));
     }
 }

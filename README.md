@@ -16,10 +16,12 @@ If you encounter any issues or bugs, please refer to the [wiki](https://github.c
 - Secondly, try to improve upon AdnanHodzic's already amazing [auto-cpufreq](https://github.com/AdnanHodzic/auto-cpufreq)
 - Add options to display raw output of governors, clockspeed, turbo, battery, etc. for use in scripts or display panels like polybar.
 
+
 ## Want to help? Yay! Welcome!
 - Read our [CONTRIBUTING.md](CONTRIBUTING.md) for some helpful tips
 - Find an issue - ["good first issue"](https://github.com/JakeRoggenbuck/auto-clock-speed/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) recommended
 - Feel free to ask questions!
+
 
 ## Install Latest Release
 If you have cargo on your machine, skip to step 3
@@ -47,6 +49,14 @@ Note: The latest release of acs can also be installed locally with the following
 ```sh
 cargo install autoclockspeed
 ```
+
+## Tested Devices
+Auto clock speed has been tested to work on the following devices. If you have a device that is not listed please submit a pull request.
+
+| Device Name | Functional |
+| ----------- | ---------- |
+| Dell XPS 13 9360 | Working |
+| Steam Deck | Working |
 
 ## In Action
 [![image](https://user-images.githubusercontent.com/35516367/170888770-cf20411e-2b21-43a5-9636-bf6a6b545346.png)](https://www.youtube.com/watch?v=QTnv4pommN4)

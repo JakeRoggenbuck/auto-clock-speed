@@ -238,6 +238,14 @@ impl Checker for Daemon {
         state
     }
 
+    /// Writes out all the telemetry data from the daemon to the csv file
+    ///
+    /// This method gets called every `daemon.settings.delay` millis or every `daemon.settings.delay_battery` millis when on battery
+    ///
+    /// Each time this method gets called it creates a new row in the csv file. If the csv file
+    /// gets larger than `self.settings.log_size_cutoff` MB it will cease logging.
+    ///
+    /// If an error occurs it will log the error to the daemon logger.
     fn write_csv(&mut self) {
         let lines = &self.cpus.iter().map(|c| c.to_csv()).collect::<String>();
 
@@ -274,6 +282,13 @@ impl Checker for Daemon {
         }
     }
 
+    /// Initializes a new csv file. If ones currently exists it will keep it. If not it will
+    /// generate a new file.
+    ///
+    /// # Generating a new file
+    ///
+    /// The file will be created and the column titles will be filled in
+    /// If an error occurs while generating a file it will be logged to the daemon
     fn setup_csv_logging(&mut self) {
         // If csv log mode is on
         if let Some(name) = &self.settings.csv_file {

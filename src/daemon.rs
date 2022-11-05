@@ -79,7 +79,7 @@ pub enum State {
     Charging,
     #[serde(rename = "cpu_usage_rule")]
     /// The cpu usage has been high for a certain amount of time
-    /// The cpu will enter performance mode until it goes does
+    /// The cpu will enter performance mode until the usage goes down
     CpuUsageHigh,
     /// We down know what state the system is in
     Unknown,

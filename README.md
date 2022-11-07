@@ -57,6 +57,11 @@ Auto clock speed has been tested to work on the following devices. If you have a
 | ----------- | ---------- |
 | Dell XPS 13 9360 | Working |
 | Steam Deck | Working |
+| Thinkpad T400 | Working |
+| Thinkpad X230 | Working |
+| Thinkpad W540 | Working |
+| ThinkPad X1 Extreme Gen 1 | Working |
+| Thinkpad P1 Gen 4 (Intel Core) | Working |
 
 ## In Action
 [![image](https://user-images.githubusercontent.com/35516367/170888770-cf20411e-2b21-43a5-9636-bf6a6b545346.png)](https://www.youtube.com/watch?v=QTnv4pommN4)

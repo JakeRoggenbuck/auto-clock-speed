@@ -53,7 +53,14 @@ cargo install autoclockspeed
 ## Tested Devices
 Auto clock speed has been tested to work on the following devices. If you have a device that is not listed please submit a pull request.
 
-| Device Name | Functional |
+| Functionality | Description |
+| ------------- | ----------- |
+| Working | All parts of ACS are fully functional, the computer has enough data to make decisions on governor changes and can be run in edit mode |
+| Mostly Working | ACS is unable to understand some data from the computer however certain data (like battery life, battery condition, temperature etc) which is non essential in making governor decisions, is missing |
+| Barely Working | ACS is unable to be ran in edit mode due to missing data from the system, monit mode may still work however functionality is limited. If you have a system that falls under this category please open an issue |
+| Borked | ACS cannot find any useful data. Please open an issue |
+
+| Device Name | Functionality |
 | ----------- | ---------- |
 | Dell XPS 13 9360 | Working |
 | Dell Latitude 7480 | Working |

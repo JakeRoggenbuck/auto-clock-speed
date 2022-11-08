@@ -1,3 +1,32 @@
+//! The daemon handles the running auto clock speed instance
+//!
+//! # Modes
+//!
+//! The auto clock speed daemon has two different modes
+//! - **Edit mode**
+//!     - Modifies the system cpu governor based on information such as battery state and cpu usage
+//!     - Requires sudo to run
+//! - **Monitor Mode**
+//!     - Displays information about the system to the user
+//!     - Runs in without sudo
+//!
+//! The selected mode is passed to the daemon through the settings object
+//!
+//! # Updating
+//!
+//! Data within the daemon struct gets updated every `daemon.settings.delay` millis or every
+//! `daemon.settings.delay_battery` millis when on battery.
+//!
+//! The data gets updated in the `update_all` method that gets called periodically from the `run`
+//! method.
+//!
+//! # Extra Features
+//!
+//! When not disabled the by user, the daemon will print out pretty printed data to stdout. The creation of this
+//! print string is controlled by `preprint_render` and `postprint_render`.
+//!
+//! When enabled by the user the daemon will log all of the cpu data to a csv file.
+
 use std::convert::TryInto;
 use std::fs::{File, OpenOptions};
 use std::io::Write;
@@ -31,21 +60,35 @@ use super::Error;
 use crate::display::{print_battery_status, print_turbo_status};
 use crate::warn_user;
 
+/// Describes the state of the machine
+///
+/// - The state is stored in the Daemon
+/// - The state value is updated in the run_state_machine method.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub enum State {
+    /// System will be in powersave mode unless it gets plugged in
     Normal,
     #[serde(rename = "battery_percent_rule")]
+    /// System will always be in powersave mode
     BatteryLow,
     #[serde(rename = "lid_open_rule")]
+    /// System will always be in powersave mode
     LidClosed,
     #[serde(rename = "ac_charging_rule")]
+    /// The system will be in performance mode unless the battery is low
     Charging,
     #[serde(rename = "cpu_usage_rule")]
+    /// The cpu usage has been high for a certain amount of time
+    /// The cpu will enter performance mode until the usage goes down
     CpuUsageHigh,
+    /// We down know what state the system is in
     Unknown,
 }
 
-/// Return governor string based on current state
+/// Returns the expected governor string based on current state
+///
+/// Switches through each state and returns the specified governor string
+/// Currently returns "powersave" or "performance"
 fn get_governor(current_state: &State) -> &'static str {
     match current_state {
         State::Normal => "powersave",
@@ -84,6 +127,7 @@ pub trait Checker {
     fn set_govs(&mut self, gov: String) -> Result<(), Error>;
 }
 
+/// The daemon structure which contains information about the auto clock speed instance
 pub struct Daemon {
     pub battery: Battery,
     pub cpus: Vec<CPU>,
@@ -123,6 +167,7 @@ fn make_gov_schedutil(cpu: &mut CPU) -> Result<(), Error> {
     Ok(())
 }
 
+/// Finds the average cpu usage based on a vector of CPUs
 fn calculate_average_usage(cpus: &Vec<CPU>) -> f32 {
     let mut sum = 0.0;
     for cpu in cpus {
@@ -143,6 +188,8 @@ impl Checker for Daemon {
         Ok(())
     }
 
+    /// Returns the wanted `State` of the machine based on a set of rules
+    /// See `State` enum for information about the individual state.
     fn run_state_machine(&mut self) -> State {
         let mut state = State::Normal;
 
@@ -191,6 +238,14 @@ impl Checker for Daemon {
         state
     }
 
+    /// Writes out all the cpu data from the daemon to the csv file
+    ///
+    /// This method gets called every `daemon.settings.delay` millis or every `daemon.settings.delay_battery` millis when on battery
+    ///
+    /// Each time this method gets called it creates a new row in the csv file. If the csv file
+    /// gets larger than `self.settings.log_size_cutoff` MB it will cease logging.
+    ///
+    /// If an error occurs it will log the error to the daemon logger.
     fn write_csv(&mut self) {
         let lines = &self.cpus.iter().map(|c| c.to_csv()).collect::<String>();
 
@@ -227,6 +282,13 @@ impl Checker for Daemon {
         }
     }
 
+    /// Initializes a new csv file. If ones currently exists it will keep it. If not it will
+    /// generate a new file.
+    ///
+    /// # Generating a new file
+    ///
+    /// The file will be created and the column titles will be filled in
+    /// If an error occurs while generating a file it will be logged to the daemon
     fn setup_csv_logging(&mut self) {
         // If csv log mode is on
         if let Some(name) = &self.settings.csv_file {

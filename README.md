@@ -60,17 +60,17 @@ Auto clock speed has been tested to work on the following devices. If you have a
 | Barely Working | ACS is unable to be ran in edit mode due to missing data from the system, monit mode may still work however functionality is limited. If you have a system that falls under this category please open an issue |
 | Borked | ACS cannot find any useful data. Please open an issue |
 
-| Device Name | Functionality |
-| ----------- | ---------- |
-| Dell XPS 13 9360 | Working |
-| Dell Latitude 7480 | Working |
-| Steam Deck | Working |
-| Thinkpad T400 | Working |
-| Thinkpad X230 | Working |
-| Thinkpad W540 | Working |
-| ThinkPad X1 Extreme Gen 1 | Working |
-| Thinkpad P1 Gen 4 (Intel Core) | Working |
-| Thinkpad P14 Gen 2 (AMD) | Mostly Working |
+| Device Name | Functionality | Notes |
+| ----------- | ------------- | ----- |
+| Dell XPS 13 9360 | Working | |
+| Dell Latitude 7480 | Working | |
+| Steam Deck | Working | Edit mode not neccessary (use built in governor switcher) |
+| Thinkpad T400 | Working | |
+| Thinkpad X230 | Working | |
+| Thinkpad W540 | Working | |
+| ThinkPad X1 Extreme Gen 1 | Working | |
+| Thinkpad P1 Gen 4 (Intel Core) | Working | |
+| Thinkpad P14 Gen 2 (AMD) | Mostly Working | |
 
 
 ## In Action

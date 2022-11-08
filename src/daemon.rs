@@ -25,7 +25,7 @@
 //! When not disabled the by user, the daemon will print out pretty printed data to stdout. The creation of this
 //! print string is controlled by `preprint_render` and `postprint_render`.
 //!
-//! When enabled by the user the daemon will log all of the computer telemetry to a csv file.
+//! When enabled by the user the daemon will log all of the cpu data to a csv file.
 
 use std::convert::TryInto;
 use std::fs::{File, OpenOptions};

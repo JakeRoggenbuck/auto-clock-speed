@@ -63,7 +63,7 @@ Auto clock speed has been tested to work on the following devices. If you have a
 | Thinkpad W540 | Working |
 | ThinkPad X1 Extreme Gen 1 | Working |
 | Thinkpad P1 Gen 4 (Intel Core) | Working |
-| Thinkpad P14 Gen 2 (AMD) | Working |
+| Thinkpad P14 Gen 2 (AMD) | Mostly Working |
 
 
 ## In Action

@@ -238,7 +238,7 @@ impl Checker for Daemon {
         state
     }
 
-    /// Writes out all the telemetry data from the daemon to the csv file
+    /// Writes out all the cpu data from the daemon to the csv file
     ///
     /// This method gets called every `daemon.settings.delay` millis or every `daemon.settings.delay_battery` millis when on battery
     ///

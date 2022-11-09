@@ -214,23 +214,7 @@ impl Speed for CPU {
         }
     }
 
-    fn to_csv(&self) -> String {
-        format!(
-            "{},{},{},{},{},{},{},{},{}\n",
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap_or(Duration::new(0 as u64, 1 as u32))
-                .as_secs(),
-            self.name,
-            self.number,
-            self.max_freq,
-            self.min_freq,
-            self.cur_freq,
-            self.cur_temp,
-            self.cur_usage,
-            self.gov
-        )
-    }
+    fn to_csv(&self) -> String {}
 }
 
 impl fmt::Display for CPU {

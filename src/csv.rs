@@ -18,7 +18,7 @@ pub struct CSVWriter {
 
 trait Writer {
     fn write(&mut self, column: Column);
-    fn init(&mut self);
+    fn init(&mut self, column: Column);
 }
 
 trait Writable {
@@ -85,7 +85,37 @@ impl Writer for CSVWriter {
         }
     }
 
-    fn init(&mut self) {
-        todo!()
+    fn init(&mut self, column: Column) {
+        if !self.enabled {
+            return;
+        }
+        let lines = column.cpus.iter().map(|c| c.to_csv()).collect::<String>();
+
+        // Open file in append mode
+        // future additions may keep this file open
+        let mut file = OpenOptions::new()
+            .write(true)
+            .append(true) // This is needed to append to file
+            .open(self.path)
+            .unwrap();
+
+        // If file is smaller than log_size_cutoff
+        if file.metadata().unwrap().len() < (self.log_size_cutoff * 1_000_000) as u64 {
+            // Try to write the cpus
+            match write!(file, "{}", lines) {
+                Ok(_) => {}
+                Err(..) => {
+                    self.logger
+                        .log("Could not write to CSV file.", logger::Severity::Warning);
+                }
+            };
+        } else {
+            self.logger.log(
+                &format!("Max log file size reached of {}MB", self.log_size_cutoff),
+                logger::Severity::Warning,
+            );
+            // Deactivate csv logging after file size max
+            self.enabled = false;
+        }
     }
 }

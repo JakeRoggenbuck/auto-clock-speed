@@ -5,7 +5,7 @@ use super::display::{
     print_cpu_temp, print_cpus, print_freq, print_power, print_turbo,
 };
 use super::power::battery::Battery;
-use super::power::lid::read_lid_state;
+use super::power::lid::{Lid, LidRetriever};
 use super::power::{Power, PowerRetriever};
 use super::settings::Settings;
 use super::system::{
@@ -153,8 +153,7 @@ impl Getter for Get {
                 return;
             }
         };
-        let power = Power::default();
-        power.set_best_path();
+        let power = Power::new();
 
         let plugged = match power.read_power_source() {
             Ok(plugged) => plugged,
@@ -164,7 +163,8 @@ impl Getter for Get {
             }
         };
 
-        let lid = match read_lid_state() {
+        let lid_struct = Lid::new();
+        let lid = match lid_struct.read_lid_state() {
             Ok(lid) => lid,
             Err(e) => {
                 eprintln!("Failed to get read lid state, an error occured: {:?}", e);

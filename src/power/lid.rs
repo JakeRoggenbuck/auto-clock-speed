@@ -1,4 +1,3 @@
-use crate::create_issue;
 use crate::Error;
 use std::cmp::PartialEq;
 use std::fmt;
@@ -13,45 +12,54 @@ pub enum LidState {
     Unknown,
 }
 
-pub struct Lid {
-    best_path: &'static str,
+fn set_best_path() -> Option<&'static str> {
+    static LID_STATUS_PATH: [&str; 4] = [
+        "/proc/acpi/button/lid/LID/state",
+        "/proc/acpi/button/lid/LID0/state",
+        "/proc/acpi/button/lid/LID1/state",
+        "/proc/acpi/button/lid/LID2/state",
+    ];
+
+    // Find if any AC power path exists
+    for path in LID_STATUS_PATH.iter() {
+        if Path::new(path).exists() {
+            // Mutate Power struct and leave
+            return Some(path);
+        }
+    }
+
+    None
 }
 
-trait Retriever {
-    fn set_best_path(&mut self) -> Result<(), Error>;
+pub struct Lid {
+    pub best_path: &'static str,
+    found_path: bool,
+}
+
+pub trait LidRetriever {
+    fn new() -> Self;
     fn read_lid_state(&self) -> Result<LidState, Error>;
 }
 
-impl Retriever for Lid {
-    fn set_best_path(&mut self) -> Result<(), Error> {
-        static lid_status_path: [&str; 4] = [
-            "/proc/acpi/button/lid/LID/state",
-            "/proc/acpi/button/lid/LID0/state",
-            "/proc/acpi/button/lid/LID1/state",
-            "/proc/acpi/button/lid/LID2/state",
-        ];
-
-        // Find if any AC power path exists
-        for path in lid_status_path.iter() {
-            if Path::new(path).exists() {
-                // Mutate Power struct and leave
-                self.best_path = path;
-                return Ok(());
-            }
+impl LidRetriever for Lid {
+    fn new() -> Self {
+        if let Some(lid) = set_best_path() {
+            return Lid {
+                best_path: lid,
+                found_path: true,
+            };
+        } else {
+            return Lid {
+                best_path: "",
+                found_path: false,
+            };
         }
-
-        Err(Error::HdwNotFound)
     }
 
     fn read_lid_state(&self) -> Result<LidState, Error> {
-        match self.set_best_path() {
-            Ok(path) => path,
-            Err(error) => {
-                eprintln!("Could not detect your lid state.");
-                create_issue!("If you are on a laptop");
-                return Ok(LidState::Unapplicable);
-            }
-        };
+        if !self.found_path {
+            return Ok(LidState::Unapplicable);
+        }
 
         let lid_str = fs::read_to_string(self.best_path)?;
 

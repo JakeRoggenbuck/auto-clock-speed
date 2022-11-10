@@ -1,4 +1,3 @@
-use std::any::Any;
 use std::fs;
 use std::path::Path;
 
@@ -7,39 +6,50 @@ use super::Error;
 pub mod battery;
 pub mod lid;
 
-const POWER_SOURCE_PATH: [&str; 4] = [
-    "/sys/class/power_supply/AC/online",
-    "/sys/class/power_supply/AC0/online",
-    "/sys/class/power_supply/AC1/online",
-    "/sys/class/power_supply/ACAD/online",
-];
-
-pub fn get_best_path(paths: [&'static str; 4]) -> Result<&str, Error> {
-    for path in paths.iter() {
-        if Path::new(path).exists() {
-            return Ok(path);
-        }
-    }
-
-    Err(Error::Unknown)
+pub struct Power {
+    best_path: &'static str,
 }
 
-pub fn read_power_source() -> Result<bool, Error> {
-    let path: &str = match get_best_path(POWER_SOURCE_PATH) {
-        Ok(path) => path,
-        Err(error) => {
-            if error.type_id() == Error::IO.type_id() {
-                // Make sure to return IO error if one occurs
-                return Err(error);
+trait Retriever {
+    fn set_best_path(&mut self) -> Result<(), Error>;
+    fn read_power_source(&self) -> Result<bool, Error>;
+}
+
+impl Retriever for Power {
+    /// Called once at the start of read_power_source
+    fn set_best_path(&mut self) -> Result<(), Error> {
+        // Only loaded once
+        static power_source_path: [&str; 4] = [
+            "/sys/class/power_supply/AC/online",
+            "/sys/class/power_supply/AC0/online",
+            "/sys/class/power_supply/AC1/online",
+            "/sys/class/power_supply/ACAD/online",
+        ];
+
+        // Find if any AC power path exists
+        for path in power_source_path.iter() {
+            if Path::new(path).exists() {
+                // Mutate Power struct and leave
+                self.best_path = path;
+                return Ok(());
             }
-            return Err(Error::HdwNotFound);
         }
-    };
 
-    let mut pwr_str = fs::read_to_string(path)?;
+        Err(Error::HdwNotFound)
+    }
 
-    // Remove the \n char
-    pwr_str.pop();
+    fn read_power_source(&self) -> Result<bool, Error> {
+        // Set self.best_path or HdwNotFound
+        match self.set_best_path() {
+            Ok(a) => a,
+            Err(e) => return Err(e),
+        };
 
-    Ok(pwr_str == "1")
+        let mut pwr_str = fs::read_to_string(self.best_path)?;
+
+        // Remove the \n char
+        pwr_str.pop();
+
+        Ok(pwr_str == "1")
+    }
 }

@@ -6,7 +6,7 @@ use super::display::{
 };
 use super::power::battery::Battery;
 use super::power::lid::read_lid_state;
-use super::power::read_power_source;
+use super::power::{Power, PowerRetriever};
 use super::settings::Settings;
 use super::system::{
     check_available_governors, check_cpu_freq, check_cpu_name, check_turbo_enabled,
@@ -153,7 +153,10 @@ impl Getter for Get {
                 return;
             }
         };
-        let plugged = match read_power_source() {
+        let power = Power::default();
+        power.set_best_path();
+
+        let plugged = match power.read_power_source() {
             Ok(plugged) => plugged,
             Err(e) => {
                 eprintln!("Failed to get read power source, an error occured: {:?}", e);

@@ -47,7 +47,7 @@ use super::logger::Interface;
 use super::network::{hook, listen};
 use super::power::battery::{has_battery, Battery};
 use super::power::lid::{read_lid_state, LidState};
-use super::power::read_power_source;
+use super::power::{Power, PowerRetriever};
 use super::settings::{GraphType, Settings};
 use super::setup::{inside_docker_message, inside_wsl_message};
 use super::system::{
@@ -150,6 +150,7 @@ pub struct Daemon {
     pub settings: Settings,
     pub paused: bool,
     pub do_update_battery: bool,
+    pub power: Power,
 }
 
 fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
@@ -358,7 +359,7 @@ impl Checker for Daemon {
         self.update_all()?;
 
         // Update current states
-        self.charging = read_power_source().unwrap_or(true);
+        self.charging = self.power.read_power_source().unwrap_or(true);
         self.charge = self.battery.capacity;
         self.lid_state = read_lid_state()?;
         self.usage = calculate_average_usage(&self.cpus) * 100.0;
@@ -383,7 +384,6 @@ impl Checker for Daemon {
 
             // Check if the state has changed since the last time we checked
             if self.state != state {
-                // Log the state change
                 self.logger.log(
                     &format!("State changed: {:?} -> {:?}", self.state, state,),
                     logger::Severity::Log,
@@ -655,6 +655,9 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
     let battery_present;
     let ac_present;
 
+    let power = Power::default();
+    power.set_best_path();
+
     // Create a new Daemon
     let mut daemon: Daemon = Daemon {
         battery: {
@@ -666,10 +669,11 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         last_proc: Vec::<ProcStat>::new(),
         message,
         lid_state: LidState::Unknown,
+        power,
         // If edit is still true, then there is definitely a bool result to read_power_source
         // otherwise, there is a real problem, because there should be a power source possible
         charging: {
-            let source = read_power_source();
+            let source = power.read_power_source();
             ac_present = source.is_ok();
             source.unwrap_or(true)
         },

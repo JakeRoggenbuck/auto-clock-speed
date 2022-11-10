@@ -6,16 +6,17 @@ use super::Error;
 pub mod battery;
 pub mod lid;
 
+#[derive(Default)]
 pub struct Power {
-    best_path: &'static str,
+    pub best_path: &'static str,
 }
 
-trait Retriever {
+pub trait PowerRetriever {
     fn set_best_path(&mut self) -> Result<(), Error>;
     fn read_power_source(&self) -> Result<bool, Error>;
 }
 
-impl Retriever for Power {
+impl PowerRetriever for Power {
     /// Called once at the start of read_power_source
     fn set_best_path(&mut self) -> Result<(), Error> {
         // Only loaded once
@@ -40,10 +41,7 @@ impl Retriever for Power {
 
     fn read_power_source(&self) -> Result<bool, Error> {
         // Set self.best_path or HdwNotFound
-        match self.set_best_path() {
-            Ok(a) => a,
-            Err(e) => return Err(e),
-        };
+        self.set_best_path()?;
 
         let mut pwr_str = fs::read_to_string(self.best_path)?;
 

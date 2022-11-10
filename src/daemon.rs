@@ -46,8 +46,8 @@ use super::logger;
 use super::logger::Interface;
 use super::network::{hook, listen};
 use super::power::battery::{has_battery, Battery};
-use super::power::lid::{read_lid_state, LidState};
-use super::power::read_power_source;
+use super::power::lid::{Lid, LidRetriever, LidState};
+use super::power::{Power, PowerRetriever};
 use super::settings::{GraphType, Settings};
 use super::setup::{inside_docker_message, inside_wsl_message};
 use super::system::{
@@ -130,26 +130,33 @@ pub trait Checker {
 /// The daemon structure which contains information about the auto clock speed instance
 pub struct Daemon {
     pub battery: Battery,
+    pub power: Power,
+    pub lid: Lid,
+    pub lid_state: LidState,
+
+    pub config: Config,
+    pub settings: Settings,
+
+    pub state: State,
+
+    pub logger: logger::Logger,
+    pub grapher: Graph,
+
     pub cpus: Vec<CPU>,
     pub last_proc: Vec<ProcStat>,
     pub message: String,
-    pub lid_state: LidState,
     pub charging: bool,
     pub charge: i8,
     pub usage: f32,
-    pub logger: logger::Logger,
-    pub config: Config,
     pub last_below_cpu_usage_percent: Option<SystemTime>,
-    pub state: State,
     pub graph: String,
-    pub grapher: Graph,
     pub temp_max: i8,
     pub commit_hash: String,
-    pub timeout: time::Duration,
-    pub timeout_battery: time::Duration,
-    pub settings: Settings,
     pub paused: bool,
     pub do_update_battery: bool,
+
+    pub timeout: time::Duration,
+    pub timeout_battery: time::Duration,
 }
 
 fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
@@ -358,9 +365,9 @@ impl Checker for Daemon {
         self.update_all()?;
 
         // Update current states
-        self.charging = read_power_source().unwrap_or(true);
+        self.charging = self.power.read_power_source().unwrap_or(true);
         self.charge = self.battery.capacity;
-        self.lid_state = read_lid_state()?;
+        self.lid_state = self.lid.read_lid_state()?;
         self.usage = calculate_average_usage(&self.cpus) * 100.0;
 
         self.write_csv();
@@ -383,7 +390,6 @@ impl Checker for Daemon {
 
             // Check if the state has changed since the last time we checked
             if self.state != state {
-                // Log the state change
                 self.logger.log(
                     &format!("State changed: {:?} -> {:?}", self.state, state,),
                     logger::Severity::Log,
@@ -655,6 +661,9 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
     let battery_present;
     let ac_present;
 
+    let power = Power::new();
+    let lid = Lid::new();
+
     // Create a new Daemon
     let mut daemon: Daemon = Daemon {
         battery: {
@@ -666,13 +675,15 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         last_proc: Vec::<ProcStat>::new(),
         message,
         lid_state: LidState::Unknown,
+        lid,
         // If edit is still true, then there is definitely a bool result to read_power_source
         // otherwise, there is a real problem, because there should be a power source possible
         charging: {
-            let source = read_power_source();
+            let source = power.read_power_source();
             ac_present = source.is_ok();
             source.unwrap_or(true)
         },
+        power,
         charge: 100,
         usage: 0.0,
         logger: logger::Logger {

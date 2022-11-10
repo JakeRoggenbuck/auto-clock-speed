@@ -1,17 +1,78 @@
-use crate::create_issue;
-use crate::power::get_best_path;
 use crate::Error;
-use std::any::Any;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::fs;
+use std::path::Path;
 
-const LID_STATUS_PATH: [&str; 4] = [
-    "/proc/acpi/button/lid/LID/state",
-    "/proc/acpi/button/lid/LID0/state",
-    "/proc/acpi/button/lid/LID1/state",
-    "/proc/acpi/button/lid/LID2/state",
-];
+#[derive(PartialEq, Eq)]
+pub enum LidState {
+    Open,
+    Closed,
+    Unapplicable,
+    Unknown,
+}
+
+fn set_best_path() -> Option<&'static str> {
+    static LID_STATUS_PATH: [&str; 4] = [
+        "/proc/acpi/button/lid/LID/state",
+        "/proc/acpi/button/lid/LID0/state",
+        "/proc/acpi/button/lid/LID1/state",
+        "/proc/acpi/button/lid/LID2/state",
+    ];
+
+    // Find if any AC power path exists
+    for path in LID_STATUS_PATH.iter() {
+        if Path::new(path).exists() {
+            // Mutate Power struct and leave
+            return Some(path);
+        }
+    }
+
+    None
+}
+
+pub struct Lid {
+    pub best_path: &'static str,
+    found_path: bool,
+}
+
+pub trait LidRetriever {
+    fn new() -> Self;
+    fn read_lid_state(&self) -> Result<LidState, Error>;
+}
+
+impl LidRetriever for Lid {
+    fn new() -> Self {
+        if let Some(lid) = set_best_path() {
+            return Lid {
+                best_path: lid,
+                found_path: true,
+            };
+        } else {
+            return Lid {
+                best_path: "",
+                found_path: false,
+            };
+        }
+    }
+
+    fn read_lid_state(&self) -> Result<LidState, Error> {
+        if !self.found_path {
+            return Ok(LidState::Unapplicable);
+        }
+
+        let lid_str = fs::read_to_string(self.best_path)?;
+
+        let state = if lid_str.contains("open") {
+            LidState::Open
+        } else if lid_str.contains("closed") {
+            LidState::Closed
+        } else {
+            LidState::Unknown
+        };
+        Ok(state)
+    }
+}
 
 impl fmt::Display for LidState {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -22,39 +83,4 @@ impl fmt::Display for LidState {
             LidState::Unknown => write!(f, "unknown"),
         }
     }
-}
-
-#[derive(PartialEq, Eq)]
-pub enum LidState {
-    Open,
-    Closed,
-    Unapplicable,
-    Unknown,
-}
-
-pub fn read_lid_state() -> Result<LidState, Error> {
-    let path: &str = match get_best_path(LID_STATUS_PATH) {
-        Ok(path) => path,
-        Err(error) => {
-            if error.type_id() == Error::IO.type_id() {
-                // Make sure to return IO error if one occurs
-                return Err(error);
-            }
-            eprintln!("Could not detect your lid state.");
-            create_issue!("If you are on a laptop");
-            return Ok(LidState::Unapplicable);
-        }
-    };
-
-    let lid_str = fs::read_to_string(path)?;
-
-    let state = if lid_str.contains("open") {
-        LidState::Open
-    } else if lid_str.contains("closed") {
-        LidState::Closed
-    } else {
-        LidState::Unknown
-    };
-
-    Ok(state)
 }

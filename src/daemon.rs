@@ -370,7 +370,9 @@ impl Checker for Daemon {
         self.lid_state = self.lid.read_lid_state()?;
         self.usage = calculate_average_usage(&self.cpus) * 100.0;
 
-        self.write_csv();
+        if self.settings.csv_file.is_some() {
+            self.write_csv();
+        }
 
         Ok(())
     }

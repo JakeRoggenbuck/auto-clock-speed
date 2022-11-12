@@ -251,6 +251,7 @@ pub fn parse_args(config: config::Config) {
         commit: false,
         testing: false,
         csv_file: None,
+        csv_enabled: false,
         log_size_cutoff: 20,
     };
 
@@ -335,6 +336,7 @@ pub fn parse_args(config: config::Config) {
                 graph: parsed_graph_type,
                 commit,
                 testing: false,
+                csv_enabled: csv_file.is_some(),
                 csv_file,
                 log_size_cutoff,
             };
@@ -391,6 +393,7 @@ pub fn parse_args(config: config::Config) {
                 graph: parsed_graph_type,
                 commit,
                 testing: false,
+                csv_enabled: csv_file.is_some(),
                 csv_file,
                 log_size_cutoff,
             };

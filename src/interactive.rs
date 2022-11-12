@@ -59,6 +59,7 @@ pub fn interactive() {
         commit: false,
         testing: false,
         csv_file: None,
+        csv_enabled: false,
         log_size_cutoff: 20,
     };
 

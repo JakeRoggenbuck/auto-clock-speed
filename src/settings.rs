@@ -44,5 +44,6 @@ pub struct Settings {
     pub commit: bool,
     pub testing: bool,
     pub csv_file: Option<String>,
+    pub csv_enabled: bool,
     pub log_size_cutoff: i32,
 }

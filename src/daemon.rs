@@ -348,7 +348,9 @@ impl Checker for Daemon {
         self.timeout_battery = time::Duration::from_millis(self.settings.delay_battery);
         self.timeout = time::Duration::from_millis(self.settings.delay);
 
-        self.setup_csv_logging();
+        if self.settings.csv_enabled {
+            self.setup_csv_logging();
+        }
 
         if inside_wsl() {
             self.logger
@@ -370,7 +372,9 @@ impl Checker for Daemon {
         self.lid_state = self.lid.read_lid_state()?;
         self.usage = calculate_average_usage(&self.cpus) * 100.0;
 
-        self.write_csv();
+        if self.settings.csv_enabled {
+            self.write_csv();
+        }
 
         Ok(())
     }
@@ -654,6 +658,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         commit: settings.commit,
         testing: settings.testing,
         csv_file: settings.csv_file,
+        csv_enabled: settings.csv_enabled,
         log_size_cutoff: settings.log_size_cutoff,
     };
 
@@ -817,6 +822,7 @@ mod tests {
             commit: false,
             testing: true,
             csv_file: None,
+            csv_enabled: false,
             log_size_cutoff: 20,
         };
 
@@ -847,6 +853,7 @@ mod tests {
             commit: false,
             testing: true,
             csv_file: None,
+            csv_enabled: false,
             log_size_cutoff: 20,
         };
 
@@ -880,6 +887,7 @@ mod tests {
             commit: false,
             testing: true,
             csv_file: None,
+            csv_enabled: false,
             log_size_cutoff: 20,
         };
 

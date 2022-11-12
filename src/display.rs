@@ -1,3 +1,4 @@
+use efcl::{color, Color};
 use std::fmt::Display;
 use std::thread;
 
@@ -6,21 +7,20 @@ use super::cpu::CPU;
 use super::power::lid::LidState;
 use super::system::check_turbo_enabled;
 use crate::power::battery::{has_battery, Battery, BatteryStatus};
-use colored::Colorize;
 
 #[macro_export]
 macro_rules! warn_user {
     ($a:expr) => {{
-        use colored::Colorize;
-        println!("{}: {}", "WARN".bold().yellow(), $a,);
+        use efcl::{color, Color};
+        println!("{}: {}", color!(Color::YELLOW, "WARN"), $a,);
     }};
 }
 
 #[macro_export]
 macro_rules! print_error {
     ($a:expr) => {{
-        use colored::Colorize;
-        println!("{}: {}", "ERROR".bold().red(), $a,);
+        use efcl::{color, Color};
+        println!("{}: {}", color!(Color::RED, "ERROR"), $a,);
     }};
 }
 
@@ -82,13 +82,13 @@ pub fn print_battery_status(battery: &Battery) -> String {
         format!(
             "Battery: {}",
             if battery.status == BatteryStatus::Charging {
-                format!("{}%", battery.capacity).green()
+                color!(Color::GREEN, format!("{}%", battery.capacity).as_str())
             } else {
-                format!("{}%", battery.capacity).red()
+                color!(Color::RED, format!("{}%", battery.capacity).as_str())
             },
         )
     } else {
-        format!("Battery: {}", "N/A".bold())
+        format!("Battery: {}", "N/A")
     }
 }
 
@@ -122,7 +122,7 @@ pub fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize, d
         Ok(turbo) => {
             let enabled_message = if turbo { "yes" } else { "no" };
 
-            println!("  Turbo: {}", enabled_message.bold());
+            println!("  Turbo: {}", enabled_message);
 
             if !no_animation {
                 print_turbo_animation(cores, turbo_y_pos, delay);

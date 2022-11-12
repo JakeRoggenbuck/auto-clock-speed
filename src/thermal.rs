@@ -1,6 +1,6 @@
 use super::system::{read_int, read_str};
 use crate::error::Error;
-use colored::Colorize;
+use efcl::{color, Color};
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fs::read_dir;
@@ -36,12 +36,12 @@ impl Display for ThermalZone {
             f,
             "{} {}{} {}",
             if self.enabled {
-                self.name.green()
+                color!(Color::GREEN, &self.name)
             } else {
-                self.name.red()
+                color!(Color::RED, &self.name)
             },
-            (self.temp / 1000).to_string().yellow(),
-            "C°".yellow(),
+            color!(Color::YELLOW, (self.temp / 1000).to_string().as_str()),
+            color!(Color::YELLOW, "C°"),
             self.path
         )
     }

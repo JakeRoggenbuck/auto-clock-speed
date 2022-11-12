@@ -35,7 +35,7 @@ use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
 use std::{thread, time};
 
-use colored::Colorize;
+use efcl::{color, Color};
 use nix::unistd::Uid;
 use serde::Serialize;
 
@@ -460,7 +460,7 @@ impl Checker for Daemon {
 
     fn preprint_render(&mut self) -> String {
         let message = format!("{}\n", self.message);
-        let title = "Name\tMax\tMin\tFreq\tTemp\tUsage\tGovernor\n".bold();
+        let title = "Name\tMax\tMin\tFreq\tTemp\tUsage\tGovernor\n";
         // Render each line of cpu core
         let cpus = &self.cpus.iter().map(|c| format!("{c}")).collect::<String>();
 
@@ -596,13 +596,13 @@ fn format_message(
     format!(
         "Auto Clock Speed daemon has been initialized in {} mode with a delay of {}ms normally and {}ms when on battery{}\n",
         if edit {
-            "edit".red()
+            color!(Color::RED, "edit")
         } else {
-            "monitor".yellow()
+            color!(Color::YELLOW, "monitor")
         },
         delay,
         delay_battery,
-        if started_as_edit != edit { format!("\nForced to monitor mode because {}!", forced_reason).red() } else { "".normal() }
+        if started_as_edit != edit { color!(Color::RED, format!("\nForced to monitor mode because {}!", forced_reason).as_str()) } else { "".to_string() }
     )
 }
 
@@ -624,7 +624,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
             if !settings.testing {
                 println!(
                 "In order to properly run the daemon in edit mode you must give the executable root privileges.\n{}",
-                "Continuing anyway in 5 seconds...".red()
+                color!(Color::RED, "Continuing anyway in 5 seconds...")
             );
 
                 let timeout = time::Duration::from_millis(5000);

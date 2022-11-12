@@ -1,7 +1,7 @@
 use super::config::{get_config, Config};
 use super::interface::{DaemonControl, DaemonController, Get, Getter, Interface, Set, Setter};
 use super::settings::{GraphType, Settings};
-use colored::Colorize;
+use efcl::{color, Color};
 use std::io::{stdin, stdout, Write};
 
 pub fn help() {
@@ -32,8 +32,8 @@ pub fn help() {
 E.g. 'get cpus'
     ";
 
-    println!("{}\n", "Help:".bold().green());
-    println!("{HELP_TEXT}")
+    const HELP_TITLE: String = color!(Color::GREEN, "Help:\n");
+    println!("{HELP_TITLE}{HELP_TEXT}");
 }
 
 pub fn interactive() {
@@ -45,8 +45,9 @@ pub fn interactive() {
 
     let mut input;
 
-    println!("{}", "Auto Clock Speed".bold());
-    println!("{}", "Interactive Mode".bold().blue());
+    const INT_MODE: String = color!(Color::BLUE, "Interactive Mode");
+    println!("{}", "Auto Clock Speed");
+    println!("{}", INT_MODE);
 
     let set_settings = Settings {
         verbose: true,
@@ -62,8 +63,9 @@ pub fn interactive() {
         log_size_cutoff: 20,
     };
 
+    const PROMPT: String = color!(Color::GREEN, "\n> ");
     loop {
-        print!("{}", "\n> ".bold().green());
+        print!("{}", PROMPT);
         stdout().flush().expect("Failed to flush stdout");
 
         input = String::new();
@@ -109,7 +111,10 @@ pub fn interactive() {
                     }
                     _ => println!(
                         "{}",
-                        format!("Command '{}' not found. Use 'help'.", new).red()
+                        color!(
+                            Color::RED,
+                            format!("Command '{}' not found. Use 'help'.", new).as_str()
+                        )
                     ),
                 };
             }

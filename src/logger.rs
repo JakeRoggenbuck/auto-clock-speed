@@ -1,11 +1,11 @@
 extern crate chrono;
 
+use efcl::{color, Color};
 use std::fmt;
 use std::time::SystemTime;
 
 use chrono::prelude::DateTime;
 use chrono::Utc;
-use colored::Colorize;
 
 pub enum Severity {
     Error,
@@ -25,10 +25,14 @@ pub struct Log {
 
 impl fmt::Display for Log {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        const ERORR_TEXT: String = color!(Color::RED, "error:");
+        const WARNING_TEXT: String = color!(Color::YELLOW, "warn:");
+        const LOG_TEXT: String = color!(Color::BLUE, "notice:");
+
         let severity = match &self.severity {
-            Severity::Error => "error:".bold().red(),
-            Severity::Warning => "warn:".bold().yellow(),
-            Severity::Log => "notice:".bold().blue(),
+            Severity::Error => ERORR_TEXT,
+            Severity::Warning => WARNING_TEXT,
+            Severity::Log => LOG_TEXT,
         };
 
         let time = DateTime::<Utc>::from(self.timestamp).format("%Y-%m-%d %H:%M:%S");

@@ -16,6 +16,7 @@ pub struct CSVWriter {
     enabled: bool,
 }
 
+/// Generates a new instance of CSVWriten based on a settings object.
 pub fn gen_writer(settings: &Settings) -> CSVWriter {
     CSVWriter {
         log_size_cutoff: settings.log_size_cutoff,
@@ -29,7 +30,9 @@ pub trait Writer {
     fn init(&mut self, cpus: &[CPU], logger: &mut Logger);
 }
 
+/// A generic trait representing any object that can be converted into a CSV column
 trait Writable {
+    /// Convert this object into a column for CSV logging
     fn to_csv(&self) -> String;
 }
 

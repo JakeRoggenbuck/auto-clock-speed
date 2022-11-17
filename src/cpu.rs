@@ -219,7 +219,7 @@ impl Speed for CPU {
             "{},{},{},{},{},{},{},{},{}\n",
             SystemTime::now()
                 .duration_since(UNIX_EPOCH)
-                .unwrap_or(Duration::new(0 as u64, 1 as u32))
+                .unwrap_or(Duration::new(0_u64, 1_u32))
                 .as_secs(),
             self.name,
             self.number,
@@ -264,9 +264,9 @@ impl fmt::Display for CPU {
             usage = format!("{:.2}%", scaled_cpus_cur_usage).purple();
         }
 
-        write!(
+        writeln!(
             f,
-            "{}:\t{}MHz\t{}MHz\t{}\t{}\t{}\t{}\n",
+            "{}:\t{}MHz\t{}MHz\t{}\t{}\t{}\t{}",
             self.name.bold(),
             self.max_freq / 1000,
             self.min_freq / 1000,

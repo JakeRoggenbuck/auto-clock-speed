@@ -210,7 +210,7 @@ fn interpret_govs(governors_string: &mut String) -> Result<Vec<String>, Error> {
         .split(' ')
         .into_iter()
         .map(|x| x.to_owned())
-        .filter(|x| x != "")
+        .filter(|x| !x.is_empty())
         .collect();
     Ok(governors)
 }

@@ -1,8 +1,6 @@
 use std::{thread, time};
 use structopt::StructOpt;
 
-use crate::csv;
-
 use super::config;
 use super::config::{config_dir_exists, init_config};
 use super::daemon;

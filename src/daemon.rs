@@ -266,7 +266,7 @@ impl Checker for Daemon {
                 .unwrap();
 
             // If file is smaller than log_size_cutoff
-            if file.metadata().unwrap().len() < (self.settings.log_size_cutoff * 1000_000) as u64 {
+            if file.metadata().unwrap().len() < (self.settings.log_size_cutoff * 1_000_000) as u64 {
                 // Try to write the cpus
                 match write!(file, "{}", lines) {
                     Ok(_) => {}
@@ -305,9 +305,9 @@ impl Checker for Daemon {
                 match File::create(name) {
                     Ok(a) => {
                         // Write header and show error if broken
-                        match write!(
+                        match writeln!(
                             &a,
-                            "epoch,name,number,max_freq,min_freq,cur_freq,cur_temp,cur_usage,gov\n"
+                            "epoch,name,number,max_freq,min_freq,cur_freq,cur_temp,cur_usage,gov"
                         ) {
                             Ok(_) => {}
                             Err(..) => {

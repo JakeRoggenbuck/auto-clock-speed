@@ -40,15 +40,15 @@ pub trait PowerRetriever {
 impl PowerRetriever for Power {
     fn new() -> Self {
         if let Some(path) = set_best_path() {
-            return Power {
+            Power {
                 best_path: path,
                 found_path: true,
-            };
+            }
         } else {
-            return Power {
+            Power {
                 best_path: "",
                 found_path: false,
-            };
+            }
         }
     }
 

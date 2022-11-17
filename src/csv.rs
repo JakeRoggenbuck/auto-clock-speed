@@ -17,16 +17,16 @@ pub struct CSVWriter {
 }
 
 pub fn gen_writer(settings: &Settings) -> CSVWriter {
-    return CSVWriter {
+    CSVWriter {
         log_size_cutoff: settings.log_size_cutoff,
         path: settings.csv_file.to_string(),
         enabled: settings.log_csv,
-    };
+    }
 }
 
 pub trait Writer {
-    fn write(&mut self, cpus: &Vec<CPU>, logger: &mut Logger);
-    fn init(&mut self, cpus: &Vec<CPU>, logger: &mut Logger);
+    fn write(&mut self, cpus: &[CPU], logger: &mut Logger);
+    fn init(&mut self, cpus: &[CPU], logger: &mut Logger);
 }
 
 trait Writable {
@@ -39,7 +39,7 @@ impl Writable for CPU {
             "{},{},{},{},{},{},{},{},{}\n",
             SystemTime::now()
                 .duration_since(UNIX_EPOCH)
-                .unwrap_or(Duration::new(0 as u64, 1 as u32))
+                .unwrap_or(Duration::new(0_u64, 1_u32))
                 .as_secs(),
             self.name,
             self.number,
@@ -62,7 +62,7 @@ impl Writer for CSVWriter {
     /// gets larger than `self.log_size_cutoff` MB it will cease logging.
     ///
     /// If an error occurs it will log the error to the daemon logger.
-    fn write(&mut self, cpus: &Vec<CPU>, logger: &mut Logger) {
+    fn write(&mut self, cpus: &[CPU], logger: &mut Logger) {
         if !self.enabled {
             return;
         }
@@ -103,7 +103,7 @@ impl Writer for CSVWriter {
     ///
     /// The file will be created and the column titles will be filled in
     /// If an error occurs while generating a file it will be logged to the daemon
-    fn init(&mut self, cpus: &Vec<CPU>, logger: &mut Logger) {
+    fn init(&mut self, cpus: &[CPU], logger: &mut Logger) {
         if !self.enabled {
             return;
         }

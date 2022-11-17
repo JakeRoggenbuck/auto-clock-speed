@@ -337,7 +337,7 @@ pub fn parse_args(config: config::Config) {
                 commit,
                 testing: false,
                 log_csv: csv_file.is_some(),
-                csv_file: csv_file.unwrap_or("/tmp/acs/".to_string()),
+                csv_file: csv_file.unwrap_or_else(|| "/tmp/acs/".to_string()),
                 log_size_cutoff,
             };
 
@@ -394,7 +394,7 @@ pub fn parse_args(config: config::Config) {
                 commit,
                 testing: false,
                 log_csv: csv_file.is_some(),
-                csv_file: csv_file.unwrap_or("/tmp/acs/".to_string()),
+                csv_file: csv_file.unwrap_or_else(|| "/tmp/acs/".to_string()),
                 log_size_cutoff,
             };
 

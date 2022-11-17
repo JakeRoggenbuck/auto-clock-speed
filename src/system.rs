@@ -136,6 +136,9 @@ pub fn parse_proc_file(proc: String) -> Result<Vec<ProcStat>, Error> {
                 Err(_) => {}
             }
             procs.push(proc_struct);
+        } else {
+            // Leave after lines are not prefixed with cpu
+            break;
         }
     }
     Ok(procs)

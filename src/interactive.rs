@@ -58,7 +58,8 @@ pub fn interactive() {
         graph: GraphType::Hidden,
         commit: false,
         testing: false,
-        csv_file: None,
+        csv_file: "".to_string(),
+        log_csv: false,
         log_size_cutoff: 20,
     };
 

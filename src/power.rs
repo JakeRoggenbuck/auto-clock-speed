@@ -17,7 +17,7 @@ fn set_best_path() -> Option<&'static str> {
     ];
 
     // Find if any AC power path exists
-    for path in POWER_SOURCE_PATH.iter() {
+    for path in POWER_SOURCE_PATH {
         if Path::new(path).exists() {
             // Mutate Power struct and leave
             return Some(path);

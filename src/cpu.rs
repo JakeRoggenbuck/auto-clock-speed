@@ -1,3 +1,4 @@
+use crate::csv::Writable;
 use colored::Colorize;
 use rand::Rng;
 use std::fmt;

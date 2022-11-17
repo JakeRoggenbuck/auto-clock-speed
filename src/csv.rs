@@ -31,7 +31,7 @@ pub trait Writer {
 }
 
 /// A generic trait representing any object that can be converted into a CSV column
-trait Writable {
+pub trait Writable {
     /// Convert this object into a column for CSV logging
     fn to_csv(&self) -> String;
 }

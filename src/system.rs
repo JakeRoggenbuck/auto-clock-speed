@@ -121,19 +121,13 @@ pub fn parse_proc_file(proc: String) -> Result<Vec<ProcStat>, Error> {
             proc_struct.cpu_name = columns[0].to_string();
             for col in &columns {
                 let parse = col.parse::<f32>();
-                match parse {
-                    Ok(num) => {
-                        proc_struct.cpu_sum += num;
-                    }
-                    Err(_) => {}
+                if let Ok(num) = parse {
+                    proc_struct.cpu_sum += num;
                 }
             }
 
-            match columns[4].parse::<f32>() {
-                Ok(num) => {
-                    proc_struct.cpu_idle = num;
-                }
-                Err(_) => {}
+            if let Ok(num) = columns[4].parse::<f32>() {
+                proc_struct.cpu_idle = num;
             }
             procs.push(proc_struct);
         } else {
@@ -210,7 +204,7 @@ fn interpret_govs(governors_string: &mut String) -> Result<Vec<String>, Error> {
         .split(' ')
         .into_iter()
         .map(|x| x.to_owned())
-        .filter(|x| x != "")
+        .filter(|x| !x.is_empty())
         .collect();
     Ok(governors)
 }

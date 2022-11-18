@@ -244,9 +244,9 @@ impl fmt::Display for CPU {
             usage = format!("{:.2}%", scaled_cpus_cur_usage).purple();
         }
 
-        write!(
+        writeln!(
             f,
-            "{}:\t{}MHz\t{}MHz\t{}\t{}\t{}\t{}\n",
+            "{}:\t{}MHz\t{}MHz\t{}\t{}\t{}\t{}",
             self.name.bold(),
             self.max_freq / 1000,
             self.min_freq / 1000,

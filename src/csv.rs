@@ -1,3 +1,12 @@
+//! # CSV logging
+//! This file is reponsible for logging data about the running daemon.
+//! CSV Logging is by default disabled, however it can be enabled by passing a parameter to the
+//! daemon. Upon the daemon being initialized it will generate a CSVWriter object based on the
+//! settings passed in to the daemon.
+//!
+//! It is the responsibility of the implementation of the CSV logger to call the write and init
+//! methods in order to actually log data.
+
 use std::io::Write;
 use std::{
     fs::OpenOptions,

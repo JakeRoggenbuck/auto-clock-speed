@@ -261,6 +261,7 @@ impl fmt::Display for CPU {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::csv::Writable;
 
     #[test]
     fn cpu_random_unit_test() {

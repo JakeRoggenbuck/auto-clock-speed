@@ -15,7 +15,7 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
-use crate::settings::{self, Settings};
+use crate::settings::Settings;
 use crate::{
     cpu::CPU,
     logger::{self, Interface, Logger},

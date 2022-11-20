@@ -90,12 +90,13 @@ impl Writer for CSVWriter {
         let lines = writables.map(|c| c.to_csv()).collect::<String>();
 
         // Open file in append mode
-        // future additions may keep this file open
-        let mut file = OpenOptions::new()
-            .write(true)
-            .append(true) // This is needed to append to file
-            .open(&self.path)
-            .unwrap();
+        let mut file = match OpenOptions::new().write(true).append(true).open(&self.path) {
+            Ok(file) => file,
+            Err(..) => {
+                logger.log("Could not open file for writing.", logger::Severity::Error);
+                return;
+            }
+        };
 
         // If file is smaller than log_size_cutoff
         if file.metadata().unwrap().len() < (self.log_size_cutoff * 1_000_000) as u64 {

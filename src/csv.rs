@@ -7,17 +7,21 @@
 //! It is the responsibility of the implementation of the CSV logger to call the write and init
 //! methods in order to actually log data.
 
+use std::fs::File;
 use std::io::Write;
+use std::path::Path;
 use std::{
     fs::OpenOptions,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
-use crate::settings::Settings;
+use crate::settings::{self, Settings};
 use crate::{
     cpu::CPU,
     logger::{self, Interface, Logger},
 };
+
+pub const CSV_HEADER: &str = "epoch,name,number,max_freq,min_freq,cur_freq,cur_temp,cur_usage,gov";
 
 pub struct CSVWriter {
     log_size_cutoff: i32,
@@ -36,7 +40,7 @@ pub fn gen_writer(settings: &Settings) -> CSVWriter {
 
 pub trait Writer {
     fn write<'a>(&mut self, writables: impl Iterator<Item = &'a dyn Writable>, logger: &mut Logger);
-    fn init(&mut self, cpus: &[CPU], logger: &mut Logger);
+    fn init<'a>(&mut self, writables: impl Iterator<Item = &'a dyn Writable>, logger: &mut Logger);
 }
 
 /// A generic trait representing any object that can be converted into a CSV column
@@ -119,36 +123,42 @@ impl Writer for CSVWriter {
     ///
     /// The file will be created and the column titles will be filled in
     /// If an error occurs while generating a file it will be logged to the daemon
-    fn init(&mut self, cpus: &[CPU], logger: &mut Logger) {
+    fn init<'a>(&mut self, writables: impl Iterator<Item = &'a dyn Writable>, logger: &mut Logger) {
         if !self.enabled {
             return;
         }
-        let lines = cpus.iter().map(|c| c.to_csv()).collect::<String>();
-
-        // Open file in append mode
-        // future additions may keep this file open
-        let mut file = OpenOptions::new()
-            .write(true)
-            .append(true) // This is needed to append to file
-            .open(&self.path)
-            .unwrap();
-
-        // If file is smaller than log_size_cutoff
-        if file.metadata().unwrap().len() < (self.log_size_cutoff * 1_000_000) as u64 {
-            // Try to write the cpus
-            match write!(file, "{}", lines) {
-                Ok(_) => {}
-                Err(..) => {
-                    logger.log("Could not write to CSV file.", logger::Severity::Warning);
-                }
-            };
-        } else {
+        // If file does not exist
+        if Path::new(&self.path).exists() {
+            // File did exist, use it
             logger.log(
-                &format!("Max log file size reached of {}MB", self.log_size_cutoff),
+                &format!(
+                    "File \"{}\" already exists, continuing in append mode.",
+                    &self.path
+                ),
                 logger::Severity::Warning,
             );
-            // Deactivate csv logging after file size max
-            self.enabled = false;
+            return;
+        }
+
+        // Try to create file
+        match File::create(&self.path) {
+            Ok(a) => {
+                // Write header and show error if broken
+                match writeln!(&a, "{}", CSV_HEADER) {
+                    Ok(_) => {}
+                    Err(..) => {
+                        logger.log("Could not write to CSV file.", logger::Severity::Warning);
+                    }
+                };
+            }
+            // File did not get created
+            Err(..) => {
+                logger.log(
+                    "Could not create file. Turning csv log mode off and continuing.",
+                    logger::Severity::Warning,
+                );
+                self.enabled = false;
+            }
         }
     }
 }

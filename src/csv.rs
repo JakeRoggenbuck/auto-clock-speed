@@ -35,7 +35,7 @@ pub fn gen_writer(settings: &Settings) -> CSVWriter {
 }
 
 pub trait Writer {
-    fn write(&mut self, cpus: &[CPU], logger: &mut Logger);
+    fn write<'a>(&mut self, writables: impl Iterator<Item = &'a dyn Writable>, logger: &mut Logger);
     fn init(&mut self, cpus: &[CPU], logger: &mut Logger);
 }
 
@@ -74,12 +74,16 @@ impl Writer for CSVWriter {
     /// gets larger than `self.log_size_cutoff` MB it will cease logging.
     ///
     /// If an error occurs it will log the error to the daemon logger.
-    fn write(&mut self, cpus: &[CPU], logger: &mut Logger) {
+    fn write<'a>(
+        &mut self,
+        writables: impl Iterator<Item = &'a dyn Writable>,
+        logger: &mut Logger,
+    ) {
         if !self.enabled {
             return;
         }
 
-        let lines = cpus.iter().map(|c| c.to_csv()).collect::<String>();
+        let lines = writables.map(|c| c.to_csv()).collect::<String>();
 
         // Open file in append mode
         // future additions may keep this file open

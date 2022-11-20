@@ -251,7 +251,7 @@ impl Checker for Daemon {
         self.timeout = time::Duration::from_millis(self.settings.delay);
 
         self.csv_writer
-            .write(self.cpus.as_slice(), &mut self.logger);
+            .write(self.cpus.iter().map(|c| c as _), &mut self.logger);
 
         if inside_wsl() {
             self.logger
@@ -273,7 +273,8 @@ impl Checker for Daemon {
         self.lid_state = self.lid.read_lid_state()?;
         self.usage = calculate_average_usage(&self.cpus) * 100.0;
 
-        self.csv_writer.write(&self.cpus, &mut self.logger);
+        self.csv_writer
+            .write(self.cpus.iter().map(|c| c as _), &mut self.logger);
 
         Ok(())
     }

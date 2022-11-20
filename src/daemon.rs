@@ -250,8 +250,7 @@ impl Checker for Daemon {
         self.timeout_battery = time::Duration::from_millis(self.settings.delay_battery);
         self.timeout = time::Duration::from_millis(self.settings.delay);
 
-        self.csv_writer
-            .init(self.cpus.iter().map(|c| c as _), &mut self.logger);
+        self.csv_writer.init(&mut self.logger);
 
         if inside_wsl() {
             self.logger

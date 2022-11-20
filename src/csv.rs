@@ -40,7 +40,7 @@ pub fn gen_writer(settings: &Settings) -> CSVWriter {
 
 pub trait Writer {
     fn write<'a>(&mut self, writables: impl Iterator<Item = &'a dyn Writable>, logger: &mut Logger);
-    fn init<'a>(&mut self, writables: impl Iterator<Item = &'a dyn Writable>, logger: &mut Logger);
+    fn init<'a>(&mut self, logger: &mut Logger);
 }
 
 /// A generic trait representing any object that can be converted into a CSV column
@@ -123,7 +123,7 @@ impl Writer for CSVWriter {
     ///
     /// The file will be created and the column titles will be filled in
     /// If an error occurs while generating a file it will be logged to the daemon
-    fn init<'a>(&mut self, writables: impl Iterator<Item = &'a dyn Writable>, logger: &mut Logger) {
+    fn init<'a>(&mut self, logger: &mut Logger) {
         if !self.enabled {
             return;
         }

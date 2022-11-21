@@ -30,6 +30,7 @@ use log::debug;
 pub mod args;
 pub mod config;
 pub mod cpu;
+pub mod csv;
 pub mod daemon;
 pub mod display;
 pub mod error;

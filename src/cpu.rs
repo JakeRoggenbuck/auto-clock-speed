@@ -4,7 +4,6 @@ use std::fmt;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use super::system::{calculate_cpu_percent, read_int, read_str, ProcStat};
 use super::Error;
@@ -24,7 +23,6 @@ pub trait Speed {
     fn get_temp(&mut self) -> Result<(), Error>;
     fn get_gov(&mut self) -> Result<(), Error>;
     fn set_gov(&mut self, gov: String) -> Result<(), Error>;
-    fn to_csv(&self) -> String;
     fn random() -> CPU;
 }
 
@@ -213,24 +211,6 @@ impl Speed for CPU {
             },
         }
     }
-
-    fn to_csv(&self) -> String {
-        format!(
-            "{},{},{},{},{},{},{},{},{}\n",
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap_or(Duration::new(0_u64, 1_u32))
-                .as_secs(),
-            self.name,
-            self.number,
-            self.max_freq,
-            self.min_freq,
-            self.cur_freq,
-            self.cur_temp,
-            self.cur_usage,
-            self.gov
-        )
-    }
 }
 
 impl fmt::Display for CPU {
@@ -281,6 +261,7 @@ impl fmt::Display for CPU {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::csv::Writable;
 
     #[test]
     fn cpu_random_unit_test() {

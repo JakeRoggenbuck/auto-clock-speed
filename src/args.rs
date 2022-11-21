@@ -250,7 +250,8 @@ pub fn parse_args(config: config::Config) {
         graph: GraphType::Hidden,
         commit: false,
         testing: false,
-        csv_file: None,
+        csv_file: "".to_string(),
+        log_csv: false,
         log_size_cutoff: 20,
     };
 
@@ -335,7 +336,8 @@ pub fn parse_args(config: config::Config) {
                 graph: parsed_graph_type,
                 commit,
                 testing: false,
-                csv_file,
+                log_csv: csv_file.is_some(),
+                csv_file: csv_file.unwrap_or_else(|| "/tmp/acs/".to_string()),
                 log_size_cutoff,
             };
 
@@ -391,7 +393,8 @@ pub fn parse_args(config: config::Config) {
                 graph: parsed_graph_type,
                 commit,
                 testing: false,
-                csv_file,
+                log_csv: csv_file.is_some(),
+                csv_file: csv_file.unwrap_or_else(|| "/tmp/acs/".to_string()),
                 log_size_cutoff,
             };
 

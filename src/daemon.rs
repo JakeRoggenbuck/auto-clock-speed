@@ -213,7 +213,7 @@ impl Checker for Daemon {
                         .duration_since(last)
                         .expect("Could not compare times")
                         .as_secs()
-                        >= 15
+                        >= self.config.high_cpu_time_needed
                     {
                         state = State::CpuUsageHigh;
                     }

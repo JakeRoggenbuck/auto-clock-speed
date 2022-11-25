@@ -57,6 +57,7 @@ Auto clock speed has been tested to work on the following devices. If you have a
 | ------------- | ----------- |
 | Working | All parts of ACS are fully functional, the computer has enough data to make decisions on governor changes and can be run in edit mode |
 | Mostly Working | ACS is unable to understand some data from the computer however certain data (like battery life, battery condition, temperature etc) which is non essential in making governor decisions, is missing |
+| Partially Working | ACS is able to mostly work, although with one or more significant caveat (i.e. jailbreak on Apple devices or root access on Android) |
 | Barely Working | ACS is unable to be ran in edit mode due to missing data from the system, monit mode may still work however functionality is limited. If you have a system that falls under this category please open an issue |
 | Borked | ACS cannot find any useful data. Please open an issue |
 
@@ -71,6 +72,7 @@ Auto clock speed has been tested to work on the following devices. If you have a
 | ThinkPad X1 Extreme Gen 1 | Working | |
 | Thinkpad P1 Gen 4 (Intel Core) | Working | |
 | Thinkpad P14 Gen 2 (AMD) | Mostly Working | See [#443](https://github.com/JakeRoggenbuck/auto-clock-speed/issues/443) |
+| OnePlus 9 Pro (Snapdragon 888 SoC) | Partially Working | Needs root access; compile from source through termux |
 
 
 ## In Action

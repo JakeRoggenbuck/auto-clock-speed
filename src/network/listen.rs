@@ -148,6 +148,9 @@ pub fn handle_stream(stream: UnixStream, c_daemon_mutex: &Arc<Mutex<Daemon>>) {
                     write_packet!(writer, response);
                 }
                 Packet::DaemonStatusResponse(_) => todo!(),
+                Packet::DaemonLogRequest() => todo!(),
+                Packet::DaemonLogResponse(_) => todo!(),
+                Packet::DaemonLogEvent(_) => todo!(),
             };
         }
     });

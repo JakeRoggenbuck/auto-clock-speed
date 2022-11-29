@@ -1,3 +1,5 @@
+use crate::logger::Log;
+
 use super::daemon::Daemon;
 use super::logger;
 use super::logger::Interface;
@@ -9,6 +11,7 @@ use std::os::unix::net::UnixListener;
 use std::str::ParseBoolError;
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::time::SystemTime;
 
 pub mod hook;
 pub mod listen;
@@ -24,6 +27,9 @@ pub enum Packet {
     DaemonEnableResponse(bool),
     DaemonStatusRequest(),
     DaemonStatusResponse(bool),
+    DaemonLogRequest(),
+    DaemonLogResponse(Vec<Log>),
+    DaemonLogEvent(Log),
     Unknown,
 }
 
@@ -83,6 +89,21 @@ pub fn parse_packet(packet: &str) -> Result<Packet, PacketParseError> {
                 .ok_or(PacketParseError)?
                 .parse::<bool>()?,
         )),
+        "8" => Ok(Packet::DaemonLogRequest()),
+        "9" => Ok(Packet::DaemonLogResponse(
+            packet_split
+                .map(|x| {
+                    serde_json::from_str(x).unwrap_or(Log {
+                        message: "?".to_string(),
+                        severity: logger::Severity::Error,
+                        timestamp: SystemTime::now(),
+                    })
+                })
+                .collect(),
+        )),
+        "10" => Ok(Packet::DaemonLogEvent(
+            serde_json::from_str(packet_split.next().ok_or(PacketParseError)?).unwrap(),
+        )),
         _ => Err(PacketParseError),
     }
 }
@@ -98,7 +119,19 @@ impl Display for Packet {
             Packet::DaemonEnableResponse(data) => writeln!(f, "5|{}", data),
             Packet::DaemonStatusRequest() => writeln!(f, "6"),
             Packet::DaemonStatusResponse(data) => writeln!(f, "7|{}", data),
+            Packet::DaemonLogRequest() => writeln!(f, "8"),
+            Packet::DaemonLogResponse(data) => {
+                writeln!(
+                    f,
+                    "9|{}",
+                    data.iter()
+                        .map(|x| { serde_json::to_string(x).unwrap_or("?".to_string()) })
+                        .collect::<String>()
+                )
+            }
+
             Packet::Unknown => writeln!(f),
+            Packet::DaemonLogEvent(_) => todo!(),
         }
     }
 }

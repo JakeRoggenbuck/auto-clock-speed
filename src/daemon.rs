@@ -207,18 +207,15 @@ impl Checker for Daemon {
                 self.last_below_cpu_usage_percent = None;
             }
 
-            match self.last_below_cpu_usage_percent {
-                Some(last) => {
-                    if SystemTime::now()
-                        .duration_since(last)
-                        .expect("Could not compare times")
-                        .as_secs()
-                        >= self.config.high_cpu_time_needed
-                    {
-                        state = State::CpuUsageHigh;
-                    }
+            if let Some(last) = self.last_below_cpu_usage_percent {
+                if SystemTime::now()
+                    .duration_since(last)
+                    .expect("Could not compare times")
+                    .as_secs()
+                    >= self.config.high_cpu_time_needed
+                {
+                    state = State::CpuUsageHigh;
                 }
-                None => {}
             }
         }
 

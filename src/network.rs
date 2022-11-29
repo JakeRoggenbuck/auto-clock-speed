@@ -73,15 +73,3 @@ fn log_to_daemon(daemon: &Arc<Mutex<Daemon>>, message: &str, severity: logger::S
     let mut daemon = daemon.lock().unwrap();
     daemon.logger.log(message, severity);
 }
-
-#[cfg(test)]
-mod tests {
-    use crate::network::{parse_packet, Packet};
-
-    #[test]
-    fn parse_packet_test() {
-        assert!(parse_packet("0|test").unwrap() == Packet::Hello("test".to_string()));
-        assert!(parse_packet("1|test|5").unwrap() == Packet::HelloResponse("test".to_string(), 5));
-        assert!(parse_packet("0|test").unwrap() != Packet::HelloResponse("test".to_string(), 5));
-    }
-}

@@ -38,14 +38,14 @@ use serde::Serialize;
 
 use super::config::Config;
 use super::cpu::{Speed, CPU};
-use super::graph::{Graph, Grapher};
+use super::graph::{Graph, GraphType, Grapher};
 use super::logger;
 use super::logger::Interface;
 use super::network::{hook, listen};
 use super::power::battery::{has_battery, Battery};
 use super::power::lid::{Lid, LidRetriever, LidState};
 use super::power::{Power, PowerRetriever};
-use super::settings::{GraphType, Settings};
+use super::settings::Settings;
 use super::setup::{inside_docker_message, inside_wsl_message};
 use super::system::{
     check_available_governors, check_cpu_freq, check_cpu_temperature, check_cpu_usage,

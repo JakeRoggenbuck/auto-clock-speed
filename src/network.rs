@@ -1,3 +1,7 @@
+use serde::{Deserialize, Serialize};
+
+use crate::logger::Log;
+
 use super::daemon::Daemon;
 use super::logger;
 use super::logger::Interface;
@@ -14,7 +18,7 @@ pub mod hook;
 pub mod listen;
 pub mod send;
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum Packet {
     Hello(String),
     HelloResponse(String, u32),
@@ -24,6 +28,9 @@ pub enum Packet {
     DaemonEnableResponse(bool),
     DaemonStatusRequest(),
     DaemonStatusResponse(bool),
+    DaemonLogRequest(),
+    DaemonLogResponse(Vec<Log>),
+    DaemonLogEvent(Log),
     Unknown,
 }
 
@@ -49,73 +56,20 @@ impl From<ParseBoolError> for PacketParseError {
 }
 
 pub fn parse_packet(packet: &str) -> Result<Packet, PacketParseError> {
-    let mut packet_split = packet.split('|');
-    let packet_type = packet_split.next().ok_or(PacketParseError)?;
-    match packet_type {
-        "0" => Ok(Packet::Hello(
-            packet_split.next().ok_or(PacketParseError)?.to_string(),
-        )),
-        "1" => Ok(Packet::HelloResponse(
-            packet_split.next().ok_or(PacketParseError)?.to_string(),
-            packet_split
-                .next()
-                .ok_or(PacketParseError)?
-                .parse::<u32>()?,
-        )),
-        "2" => Ok(Packet::DaemonDisableRequest()),
-        "3" => Ok(Packet::DaemonDisableResponse(
-            packet_split
-                .next()
-                .ok_or(PacketParseError)?
-                .parse::<bool>()?,
-        )),
-        "4" => Ok(Packet::DaemonEnableRequest()),
-        "5" => Ok(Packet::DaemonEnableResponse(
-            packet_split
-                .next()
-                .ok_or(PacketParseError)?
-                .parse::<bool>()?,
-        )),
-        "6" => Ok(Packet::DaemonStatusRequest()),
-        "7" => Ok(Packet::DaemonStatusResponse(
-            packet_split
-                .next()
-                .ok_or(PacketParseError)?
-                .parse::<bool>()?,
-        )),
-        _ => Err(PacketParseError),
-    }
+    serde_json::from_str(packet).map_err(|_| PacketParseError)
 }
 
 impl Display for Packet {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        match self {
-            Packet::Hello(data) => writeln!(f, "0|{}", data),
-            Packet::HelloResponse(data, version) => writeln!(f, "1|{}|{}", data, version),
-            Packet::DaemonDisableRequest() => writeln!(f, "2"),
-            Packet::DaemonDisableResponse(data) => writeln!(f, "3|{}", data),
-            Packet::DaemonEnableRequest() => writeln!(f, "4"),
-            Packet::DaemonEnableResponse(data) => writeln!(f, "5|{}", data),
-            Packet::DaemonStatusRequest() => writeln!(f, "6"),
-            Packet::DaemonStatusResponse(data) => writeln!(f, "7|{}", data),
-            Packet::Unknown => writeln!(f),
-        }
+        writeln!(
+            f,
+            "{}",
+            serde_json::to_string(self).unwrap_or_else(|_| "?".to_string())
+        )
     }
 }
 
 fn log_to_daemon(daemon: &Arc<Mutex<Daemon>>, message: &str, severity: logger::Severity) {
     let mut daemon = daemon.lock().unwrap();
     daemon.logger.log(message, severity);
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::network::{parse_packet, Packet};
-
-    #[test]
-    fn parse_packet_test() {
-        assert!(parse_packet("0|test").unwrap() == Packet::Hello("test".to_string()));
-        assert!(parse_packet("1|test|5").unwrap() == Packet::HelloResponse("test".to_string(), 5));
-        assert!(parse_packet("0|test").unwrap() != Packet::HelloResponse("test".to_string(), 5));
-    }
 }

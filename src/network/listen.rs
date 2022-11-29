@@ -147,7 +147,10 @@ pub fn handle_stream(stream: UnixStream, c_daemon_mutex: &Arc<Mutex<Daemon>>) {
                     let mut writer = BufWriter::new(&stream);
                     write_packet!(writer, response);
                 }
-                Packet::DaemonStatusResponse(_) => todo!(),
+                Packet::DaemonStatusResponse(_) => {}
+                Packet::DaemonLogRequest() => {}
+                Packet::DaemonLogResponse(_) => {}
+                Packet::DaemonLogEvent(_) => {}
             };
         }
     });

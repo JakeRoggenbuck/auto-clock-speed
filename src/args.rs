@@ -308,16 +308,12 @@ pub fn parse_args(config: config::Config) {
             }
 
             let mut parsed_graph_type = GraphType::Hidden;
-
-            match graph_type {
-                Some(graph_name) => {
-                    parsed_graph_type = get_graph_type(&graph_name);
-                    if parsed_graph_type == GraphType::Unknown {
-                        warn_user!("Graph type does not exist! Can be freq, usage, or temp Continuing in 5 seconds...");
-                        thread::sleep(time::Duration::from_millis(5000));
-                    }
+            if let Some(gt) = graph_type {
+                parsed_graph_type = get_graph_type(&gt);
+                if parsed_graph_type == GraphType::Unknown {
+                    warn_user!("Graph type does not exist! Can be freq, usage, or temp Continuing in 5 seconds...");
+                    thread::sleep(time::Duration::from_millis(5000));
                 }
-                None => {}
             }
 
             let mut effective_delay_battery = delay_battery.unwrap_or(5000);
@@ -366,15 +362,12 @@ pub fn parse_args(config: config::Config) {
 
             let mut parsed_graph_type = GraphType::Hidden;
 
-            match graph_type {
-                Some(graph_name) => {
-                    parsed_graph_type = get_graph_type(&graph_name);
-                    if parsed_graph_type == GraphType::Unknown {
-                        warn_user!("Graph type does not exist! Can be freq, usage, or temp Continuing in 5 seconds...");
-                        thread::sleep(time::Duration::from_millis(5000));
-                    }
+            if let Some(gt) = graph_type {
+                parsed_graph_type = get_graph_type(&gt);
+                if parsed_graph_type == GraphType::Unknown {
+                    warn_user!("Graph type does not exist! Can be freq, usage, or temp Continuing in 5 seconds...");
+                    thread::sleep(time::Duration::from_millis(5000));
                 }
-                None => {}
             }
 
             let mut effective_delay_battery = delay_battery.unwrap_or(5000);

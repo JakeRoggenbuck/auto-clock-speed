@@ -149,8 +149,9 @@ pub fn handle_stream(stream: UnixStream, c_daemon_mutex: &Arc<Mutex<Daemon>>) {
                 }
                 Packet::DaemonStatusResponse(_) => {}
                 Packet::DaemonLogRequest() => {
-                    let response =
-                        Packet::DaemonLogResponse(inner_daemon_mutex.lock().unwrap().logger.logs);
+                    let response = Packet::DaemonLogResponse(
+                        inner_daemon_mutex.lock().unwrap().logger.logs.clone(),
+                    );
                     let mut writer = BufWriter::new(&stream);
                     write_packet!(writer, response);
                 }

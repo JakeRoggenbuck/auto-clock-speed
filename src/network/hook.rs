@@ -1,4 +1,6 @@
+use crate::network::send::query_one;
 use crate::network::{log_to_daemon, logger, Daemon, Packet};
+use crate::write_packet;
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::net::UnixStream;
 use std::sync::{Arc, Mutex};
@@ -28,7 +30,28 @@ pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
         // Read the response
         let mut reader = BufReader::new(&stream);
         let mut line = String::new();
-        reader.read_line(&mut line).unwrap();
+
+        match reader.read_line(&mut line) {
+            Ok(_) => {
+                log_to_daemon(
+                    &c_daemon_mutex,
+                    "Hooked into daemon, restoring logs",
+                    logger::Severity::Log,
+                );
+            }
+            Err(e) => {
+                log_to_daemon(
+                    &c_daemon_mutex,
+                    &format!(
+                        "Failed to connect to {} (is the daemon running?): {:?}",
+                        path, e
+                    ),
+                    logger::Severity::Error,
+                );
+                return;
+            }
+        }
+
         stream.shutdown(std::net::Shutdown::Both).unwrap();
     });
 }

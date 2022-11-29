@@ -8,7 +8,7 @@ use chrono::Utc;
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Severity {
     Error,
     Warning,
@@ -19,7 +19,7 @@ pub trait Interface {
     fn log(&mut self, msg: &str, sev: Severity);
 }
 
-#[derive(Debug, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Log {
     pub message: String,
     pub severity: Severity,

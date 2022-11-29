@@ -19,7 +19,7 @@ pub trait Interface {
     fn log(&mut self, msg: &str, sev: Severity);
 }
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Log {
     pub message: String,
     pub severity: Severity,

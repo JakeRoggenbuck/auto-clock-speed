@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::logger::Log;
+use crate::logger::{Log, Origin};
 
 use super::daemon::Daemon;
 use super::logger;
@@ -72,4 +72,14 @@ impl Display for Packet {
 fn log_to_daemon(daemon: &Arc<Mutex<Daemon>>, message: &str, severity: logger::Severity) {
     let mut daemon = daemon.lock().unwrap();
     daemon.logger.log(message, severity);
+}
+
+fn log_to_daemon_origin(
+    daemon: &Arc<Mutex<Daemon>>,
+    message: &str,
+    severity: logger::Severity,
+    origin: Origin,
+) {
+    let mut daemon = daemon.lock().unwrap();
+    daemon.logger.logo(message, severity, origin);
 }

@@ -1,7 +1,6 @@
 use crate::error::Error;
 use crate::logger::{Log, Origin};
-use crate::network::send::query_one;
-use crate::network::{log_to_daemon, logger, parse_packet, Daemon, Packet};
+use crate::network::{log_to_daemon, log_to_daemon_origin, logger, parse_packet, Daemon, Packet};
 use crate::write_packet;
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::net::UnixStream;
@@ -32,18 +31,20 @@ pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
 
         match reader.read_line(&mut line) {
             Ok(_) => {
-                log_to_daemon(
+                log_to_daemon_origin(
                     &c_daemon_mutex,
                     "Hooked into daemon, restoring logs",
                     logger::Severity::Log,
+                    logger::Origin::Client,
                 );
                 let daemon = &mut c_daemon_mutex.lock().unwrap();
                 match restore_logs(&mut stream, &mut daemon.logger.logs) {
                     Ok(_) => {}
-                    Err(e) => log_to_daemon(
+                    Err(e) => log_to_daemon_origin(
                         &c_daemon_mutex,
                         &format!("Failed to restore logs: {:?}", e),
                         logger::Severity::Error,
+                        logger::Origin::Client,
                     ),
                 }
             }

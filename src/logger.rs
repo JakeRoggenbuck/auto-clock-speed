@@ -24,6 +24,7 @@ pub enum Origin {
 
 pub trait Interface {
     fn log(&mut self, msg: &str, sev: Severity);
+    fn logo(&mut self, msg: &str, sev: Severity, origin: Origin);
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -42,8 +43,14 @@ impl fmt::Display for Log {
             Severity::Log => "notice:".bold().blue(),
         };
 
+        let origin = match &self.origin {
+            Origin::Unknown => "".blue(),
+            Origin::Daemon => "d: ".bold().purple(),
+            Origin::Client => "c: ".bold().green(),
+        };
+
         let time = DateTime::<Utc>::from(self.timestamp).format("%Y-%m-%d %H:%M:%S");
-        write!(f, "{} {} -> {}", severity, time, self.message)
+        write!(f, "{}{} {} -> {}", origin, severity, time, self.message)
     }
 }
 
@@ -54,13 +61,17 @@ pub struct Logger {
 impl Interface for Logger {
     /// Create a Log with the timestamp from message and severity
     fn log(&mut self, msg: &str, sev: Severity) {
+        self.logo(msg, sev, Origin::Unknown);
+    }
+
+    fn logo(&mut self, msg: &str, sev: Severity, origin: Origin) {
         let time = SystemTime::now();
 
         let loggable = Log {
             message: msg.to_string(),
             severity: sev,
             timestamp: time,
-            origin: Origin::Unknown,
+            origin,
         };
 
         self.logs.push(loggable);

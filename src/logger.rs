@@ -15,6 +15,13 @@ pub enum Severity {
     Log,
 }
 
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+pub enum Origin {
+    Unknown,
+    Daemon,
+    Client,
+}
+
 pub trait Interface {
     fn log(&mut self, msg: &str, sev: Severity);
 }
@@ -24,6 +31,7 @@ pub struct Log {
     pub message: String,
     pub severity: Severity,
     pub timestamp: SystemTime,
+    pub origin: Origin,
 }
 
 impl fmt::Display for Log {
@@ -52,6 +60,7 @@ impl Interface for Logger {
             message: msg.to_string(),
             severity: sev,
             timestamp: time,
+            origin: Origin::Unknown,
         };
 
         self.logs.push(loggable);

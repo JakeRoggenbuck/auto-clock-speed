@@ -1,5 +1,5 @@
 use crate::error::Error;
-use crate::logger::Log;
+use crate::logger::{Log, Origin};
 use crate::network::send::query_one;
 use crate::network::{log_to_daemon, logger, parse_packet, Daemon, Packet};
 use crate::write_packet;
@@ -76,8 +76,11 @@ fn restore_logs(stream: &mut UnixStream, logs: &mut Vec<Log>) -> Result<(), Erro
 
     match parse_packet(&line) {
         Ok(p) => match p {
-            Packet::DaemonLogResponse(mut new_logs) => {
-                logs.append(&mut new_logs);
+            Packet::DaemonLogResponse(new_logs) => {
+                for mut log in new_logs {
+                    log.origin = Origin::Daemon;
+                    logs.push(log)
+                }
                 Ok(())
             }
             _ => Err(Error::Parse),

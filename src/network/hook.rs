@@ -1,6 +1,7 @@
 use crate::error::Error;
+use crate::logger::Log;
 use crate::network::send::query_one;
-use crate::network::{log_to_daemon, logger, Daemon, Packet};
+use crate::network::{log_to_daemon, logger, parse_packet, Daemon, Packet};
 use crate::write_packet;
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::net::UnixStream;
@@ -36,7 +37,8 @@ pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
                     "Hooked into daemon, restoring logs",
                     logger::Severity::Log,
                 );
-                match restore_logs(&mut stream) {
+                let daemon = &mut c_daemon_mutex.lock().unwrap();
+                match restore_logs(&mut stream, &mut daemon.logger.logs) {
                     Ok(_) => {}
                     Err(e) => log_to_daemon(
                         &c_daemon_mutex,
@@ -63,7 +65,7 @@ pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
     });
 }
 
-fn restore_logs(stream: &mut UnixStream) -> Result<String, Error> {
+fn restore_logs(stream: &mut UnixStream, logs: &mut Vec<Log>) -> Result<(), Error> {
     let packet = Packet::DaemonLogRequest();
     write_packet!(stream, packet);
 
@@ -71,5 +73,15 @@ fn restore_logs(stream: &mut UnixStream) -> Result<String, Error> {
     let mut line = String::new();
 
     reader.read_line(&mut line)?;
-    Ok(line)
+
+    match parse_packet(&line) {
+        Ok(p) => match p {
+            Packet::DaemonLogResponse(mut new_logs) => {
+                logs.append(&mut new_logs);
+                Ok(())
+            }
+            _ => Err(Error::Parse),
+        },
+        Err(_) => Err(Error::Parse),
+    }
 }

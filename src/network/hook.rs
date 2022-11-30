@@ -44,42 +44,44 @@ pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
                 let mut reader = BufReader::new(&stream);
                 let mut line = String::new();
 
-                match reader.read_line(&mut line) {
-                    Ok(_) => {}
-                    Err(_) => {
-                        log_to_daemon_origin(
-                            &c_daemon_mutex,
-                            "Faied to read response from daemon",
-                            logger::Severity::Error,
-                            logger::Origin::Client,
-                        );
-                    }
-                };
-
-                match parse_packet(&line) {
-                    Ok(p) => match p {
-                        Packet::DaemonLogResponse(new_logs) => {
-                            for mut log in new_logs {
-                                log.origin = Origin::Daemon;
-                                daemon.logger.logs.push(log)
-                            }
-                        }
-                        _ => {
+                loop {
+                    match reader.read_line(&mut line) {
+                        Ok(_) => {}
+                        Err(_) => {
                             log_to_daemon_origin(
+                                &c_daemon_mutex,
+                                "Faied to read response from daemon",
+                                logger::Severity::Error,
+                                logger::Origin::Client,
+                            );
+                        }
+                    };
+
+                    match parse_packet(&line) {
+                        Ok(p) => match p {
+                            Packet::DaemonLogResponse(new_logs) => {
+                                for mut log in new_logs {
+                                    log.origin = Origin::Daemon;
+                                    daemon.logger.logs.push(log)
+                                }
+                            }
+                            _ => {
+                                log_to_daemon_origin(
                                 &c_daemon_mutex,
                                 "Unexpected response packet from daemon? Incorrect protocol version?",
                                 logger::Severity::Error,
                                 logger::Origin::Client,
                             );
+                            }
+                        },
+                        Err(_) => {
+                            log_to_daemon_origin(
+                                &c_daemon_mutex,
+                                "Failed to parse packet from daemon? Incorrect protocol version?",
+                                logger::Severity::Error,
+                                logger::Origin::Client,
+                            );
                         }
-                    },
-                    Err(_) => {
-                        log_to_daemon_origin(
-                            &c_daemon_mutex,
-                            "Failed to parse packet from daemon? Incorrect protocol version?",
-                            logger::Severity::Error,
-                            logger::Origin::Client,
-                        );
                     }
                 }
             }
@@ -92,10 +94,8 @@ pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
                     ),
                     logger::Severity::Error,
                 );
-
-                return;
             }
         }
-        stream.shutdown(std::net::Shutdown::Both).unwrap();
+        //stream.shutdown(std::net::Shutdown::Both).unwrap();
     });
 }

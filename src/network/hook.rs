@@ -37,7 +37,6 @@ pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
                     logger::Severity::Log,
                     logger::Origin::Client,
                 );
-                let daemon = &mut c_daemon_mutex.lock().unwrap();
                 let packet = Packet::DaemonLogRequest();
                 write_packet!(stream, packet);
 
@@ -62,8 +61,13 @@ pub fn hook(path: &'static str, c_daemon_mutex: Arc<Mutex<Daemon>>) {
                             Packet::DaemonLogResponse(new_logs) => {
                                 for mut log in new_logs {
                                     log.origin = Origin::Daemon;
+                                    let daemon = &mut c_daemon_mutex.lock().unwrap();
                                     daemon.logger.logs.push(log)
                                 }
+                            }
+                            Packet::DaemonLogEvent(log) => {
+                                let daemon = &mut c_daemon_mutex.lock().unwrap();
+                                daemon.logger.logs.push(log)
                             }
                             _ => {
                                 log_to_daemon_origin(

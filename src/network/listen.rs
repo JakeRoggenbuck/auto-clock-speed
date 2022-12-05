@@ -157,6 +157,7 @@ pub fn handle_stream(stream: UnixStream, c_daemon_mutex: &Arc<Mutex<Daemon>>) {
                 }
                 Packet::DaemonLogResponse(_) => {}
                 Packet::DaemonLogEvent(_) => {}
+                Packet::DaemonLogEventRequest() => {}
             };
         }
     });

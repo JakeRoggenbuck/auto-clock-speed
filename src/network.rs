@@ -31,6 +31,7 @@ pub enum Packet {
     DaemonLogRequest(),
     DaemonLogResponse(Vec<Log>),
     DaemonLogEvent(Log),
+    DaemonLogEventRequest(),
     Unknown,
 }
 

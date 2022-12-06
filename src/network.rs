@@ -13,6 +13,7 @@ use std::os::unix::net::UnixListener;
 use std::str::ParseBoolError;
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::time::SystemTime;
 
 pub mod hook;
 pub mod listen;
@@ -31,7 +32,7 @@ pub enum Packet {
     DaemonLogRequest(),
     DaemonLogResponse(Vec<Log>),
     DaemonLogEvent(Log),
-    DaemonLogEventRequest(),
+    DaemonLogEventRequest(SystemTime),
     Unknown,
 }
 

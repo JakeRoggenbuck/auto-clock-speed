@@ -6,9 +6,10 @@ use super::config::{config_dir_exists, init_config};
 use super::daemon;
 use super::daemon::daemon_init;
 use super::display::show_config;
+use super::graph::{get_graph_type, GraphType};
 use super::interactive::interactive;
 use super::interface::{DaemonControl, DaemonController, Get, Getter, Interface, Set, Setter};
-use super::settings::{get_graph_type, GraphType, Settings};
+use super::settings::Settings;
 use super::warn_user;
 
 #[derive(StructOpt)]

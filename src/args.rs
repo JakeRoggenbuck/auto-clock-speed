@@ -6,9 +6,10 @@ use super::config::{config_dir_exists, init_config};
 use super::daemon;
 use super::daemon::daemon_init;
 use super::display::show_config;
+use super::graph::{get_graph_type, GraphType};
 use super::interactive::interactive;
 use super::interface::{DaemonControl, DaemonController, Get, Getter, Interface, Set, Setter};
-use super::settings::{get_graph_type, GraphType, Settings};
+use super::settings::Settings;
 use super::warn_user;
 
 #[derive(StructOpt)]
@@ -44,6 +45,9 @@ enum GetType {
     Usage {
         #[structopt(short, long)]
         raw: bool,
+
+        #[structopt(short, long)]
+        delay: Option<u64>,
     },
 
     /// The overall frequency of your cpu
@@ -272,7 +276,7 @@ pub fn parse_args(config: config::Config) {
         ACSCommand::Get { get } => match get {
             GetType::Freq { raw } => int.get.freq(raw),
             GetType::Power { raw } => int.get.power(raw),
-            GetType::Usage { raw } => int.get.usage(raw),
+            GetType::Usage { raw, delay } => int.get.usage(raw, delay),
             GetType::Thermal { raw } => int.get.thermal(raw),
             GetType::Turbo { raw } => int.get.turbo(raw),
             GetType::AvailableGovs { raw } => int.get.available_govs(raw),

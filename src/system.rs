@@ -117,8 +117,13 @@ pub fn parse_proc_file(proc: String) -> Result<Vec<ProcStat>, Error> {
             if l.starts_with("cpu  ") {
                 columns.remove(0);
             }
-            let mut proc_struct: ProcStat = ProcStat::default();
-            proc_struct.cpu_name = columns[0].to_string();
+
+            let mut proc_struct: ProcStat = ProcStat {
+                cpu_name: columns[0].to_string(),
+                // fill in the rest of the values
+                ..Default::default()
+            };
+
             for col in &columns {
                 let parse = col.parse::<f32>();
                 if let Ok(num) = parse {

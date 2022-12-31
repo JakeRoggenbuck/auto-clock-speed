@@ -138,11 +138,13 @@ pub fn parse_proc_file(proc: String) -> Result<Vec<ProcStat>, Error> {
     Ok(procs)
 }
 
-pub fn get_cpu_percent() -> String {
+pub fn get_cpu_percent(delay: Option<u64>) -> String {
     let mut proc = read_proc_stat_file().unwrap();
     let avg_timing: &ProcStat = &parse_proc_file(proc).unwrap()[0];
 
-    thread::sleep(time::Duration::from_millis(1000));
+    let millis = if let Some(d) = delay { d * 1000 } else { 1000 };
+
+    thread::sleep(time::Duration::from_millis(millis));
     proc = read_proc_stat_file().unwrap();
 
     let avg_timing_2: &ProcStat = &parse_proc_file(proc).unwrap()[0];

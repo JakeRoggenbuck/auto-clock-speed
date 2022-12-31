@@ -77,7 +77,7 @@ pub fn interactive() {
                     "help" => help(),
                     "get freq" => int.get.freq(false),
                     "get power" => int.get.power(false),
-                    "get usage" => int.get.usage(false),
+                    "get usage" => int.get.usage(false, None),
                     "get turbo" => int.get.turbo(false),
                     "get available_governors" => int.get.available_govs(false),
                     "get cpus" => int.get.cpus(false),

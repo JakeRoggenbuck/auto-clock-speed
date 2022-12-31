@@ -451,7 +451,7 @@ mod tests {
 
     #[test]
     fn test_parse_proc_stat_file() {
-        let cpu_percent = get_cpu_percent().parse::<f32>().unwrap();
+        let cpu_percent = get_cpu_percent(None).parse::<f32>().unwrap();
         assert_eq!(type_of(cpu_percent), type_of(0.0_f32));
         assert!(cpu_percent > 0.0 && cpu_percent < 100.0);
     }

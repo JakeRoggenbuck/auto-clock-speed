@@ -328,7 +328,7 @@ impl Checker for Daemon {
             }
         }
 
-        let cur_proc = parse_proc_file(read_proc_stat_file()?)?;
+        let cur_proc = parse_proc_file(read_proc_stat_file()?);
         for cpu in self.cpus.iter_mut() {
             cpu.update()?;
             for (i, proc) in self.last_proc.iter().enumerate() {

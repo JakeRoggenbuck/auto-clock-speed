@@ -148,9 +148,27 @@ pub fn handle_stream(stream: UnixStream, c_daemon_mutex: &Arc<Mutex<Daemon>>) {
                     write_packet!(writer, response);
                 }
                 Packet::DaemonStatusResponse(_) => {}
-                Packet::DaemonLogRequest() => {}
+                Packet::DaemonLogRequest() => {
+                    let response = Packet::DaemonLogResponse(
+                        inner_daemon_mutex.lock().unwrap().logger.logs.clone(),
+                    );
+                    let mut writer = BufWriter::new(&stream);
+                    write_packet!(writer, response);
+                }
                 Packet::DaemonLogResponse(_) => {}
                 Packet::DaemonLogEvent(_) => {}
+                Packet::DaemonLogEventRequest(time) => {
+                    let daemon = inner_daemon_mutex.lock().unwrap();
+                    let mut new_logs = vec![];
+                    for log in &daemon.logger.logs {
+                        if log.timestamp.gt(&time) {
+                            new_logs.push(log.clone());
+                        }
+                    }
+                    let response = Packet::DaemonLogResponse(new_logs);
+                    let mut writer = BufWriter::new(&stream);
+                    write_packet!(writer, response);
+                }
             };
         }
     });

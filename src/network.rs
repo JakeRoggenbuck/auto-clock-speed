@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::logger::Log;
+use crate::logger::{Log, Origin};
 
 use super::daemon::Daemon;
 use super::logger;
@@ -13,6 +13,7 @@ use std::os::unix::net::UnixListener;
 use std::str::ParseBoolError;
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::time::SystemTime;
 
 pub mod hook;
 pub mod listen;
@@ -31,6 +32,7 @@ pub enum Packet {
     DaemonLogRequest(),
     DaemonLogResponse(Vec<Log>),
     DaemonLogEvent(Log),
+    DaemonLogEventRequest(SystemTime),
     Unknown,
 }
 
@@ -72,4 +74,14 @@ impl Display for Packet {
 fn log_to_daemon(daemon: &Arc<Mutex<Daemon>>, message: &str, severity: logger::Severity) {
     let mut daemon = daemon.lock().unwrap();
     daemon.logger.log(message, severity);
+}
+
+fn log_to_daemon_origin(
+    daemon: &Arc<Mutex<Daemon>>,
+    message: &str,
+    severity: logger::Severity,
+    origin: Origin,
+) {
+    let mut daemon = daemon.lock().unwrap();
+    daemon.logger.logo(message, severity, origin);
 }

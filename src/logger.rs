@@ -21,8 +21,6 @@ use serde::{Deserialize, Serialize};
 /// - `Log` represents a log message that contains information about the program execution.
 ///
 ///  This enum is used in the log function of the Logger struct to specify the severity level of the log message when creating a new log. It also used in the fmt function of the Log struct, where it is matched to colorize the output based on the severity level of the log message.
-///
-/// It's worth noticing that the Severity enum is also decorated with #[derive(Debug, Eq, PartialEq, Serialize, Deserialize)] which is a procedural macro that automatically implements certain traits for the Severity enum. These traits allow the enum to be printed in a human-readable format, be compared for equality and partial equality, and be serialized and deserialized.
 pub enum Severity {
     Error,
     Warning,

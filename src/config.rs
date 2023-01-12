@@ -103,7 +103,9 @@ pub fn init_config_file() {
 
 #[derive(Debug, Serialize)]
 pub struct Config {
+    /// ACS in edit mode will activate powersave if the battery percentage is under this value
     pub powersave_under: i8,
+    /// ACS in edit mode will activate powersave if the temperature reaches this value
     pub overheat_threshold: i8,
     pub high_cpu_threshold: i8,
     pub high_cpu_time_needed: u64,

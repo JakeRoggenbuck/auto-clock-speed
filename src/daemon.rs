@@ -147,11 +147,14 @@ pub struct Daemon {
     pub last_below_cpu_usage_percent: Option<SystemTime>,
     pub graph: String,
     pub temp_max: i8,
+    /// The hash that is gathered at build time - used for testing versions
     pub commit_hash: String,
     pub paused: bool,
     pub do_update_battery: bool,
     pub csv_writer: CSVWriter,
+    /// How often to timeout per cycle when plugged in
     pub timeout: time::Duration,
+    /// How often to timeout per cycle when on battery
     pub timeout_battery: time::Duration,
 }
 
@@ -176,7 +179,7 @@ fn calculate_average_usage(cpus: &Vec<CPU>) -> f32 {
     for cpu in cpus {
         sum += cpu.cur_usage;
     }
-    (sum / (cpus.len() as f32)) as f32
+    sum / (cpus.len() as f32)
 }
 
 impl Checker for Daemon {
@@ -238,6 +241,7 @@ impl Checker for Daemon {
         state
     }
 
+    /// Things to be done only at the start of auto clock speed daemon
     fn init(&mut self) {
         // Get the commit hash from the compile time env variable
         if self.settings.commit {
@@ -282,6 +286,7 @@ impl Checker for Daemon {
         }
     }
 
+    /// One iteration of auto clock speed in edit mode
     fn single_edit(&mut self) -> Result<(), Error> {
         self.start_loop()?;
 
@@ -306,6 +311,7 @@ impl Checker for Daemon {
         Ok(())
     }
 
+    /// One iteration of auto clock speed in monitor mode
     fn single_monit(&mut self) -> Result<(), Error> {
         self.start_loop()?;
         self.end_loop();
@@ -358,6 +364,9 @@ impl Checker for Daemon {
         Ok(())
     }
 
+    /// All text is rendered before anything is printed
+    /// This method of rendering text reduces lag and fixes a flickering problem from before 0.1.8
+    /// This section is just a chunk of the text that gets rendered
     fn preprint_render(&mut self) -> String {
         let message = format!("{}\n", self.message);
         let title = "Name\tMax\tMin\tFreq\tTemp\tUsage\tGovernor\n".bold();
@@ -374,6 +383,9 @@ impl Checker for Daemon {
         )
     }
 
+    /// All text is rendered before anything is printed
+    /// This method of rendering text reduces lag and fixes a flickering problem from before 0.1.8
+    /// This section is just a chunk of the text that gets rendered
     fn postprint_render(&mut self) -> String {
         // Display the current graph type
         let graph_type = if self.settings.graph != GraphType::Hidden {
@@ -484,6 +496,7 @@ impl Checker for Daemon {
     }
 }
 
+/// Message at the header of autoclockspeed - rendered before auto clock speed loop starts
 fn format_message(
     edit: bool,
     started_as_edit: bool,

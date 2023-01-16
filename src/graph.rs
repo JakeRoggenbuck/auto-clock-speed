@@ -1,4 +1,5 @@
 use rasciigraph::{plot, Config};
+use std::fmt;
 
 pub trait Grapher {
     fn update_all(&mut self);
@@ -32,5 +33,37 @@ impl Grapher for Graph {
             "\n{}",
             plot(nums, Config::default().with_offset(10).with_height(10))
         )
+    }
+}
+
+#[derive(PartialEq, Eq, Clone)]
+pub enum GraphType {
+    Hidden,
+    Frequency,
+    Usage,
+    Temperature,
+    Unknown,
+}
+
+impl fmt::Display for GraphType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            GraphType::Hidden => write!(f, "hidden"),
+            GraphType::Frequency => write!(f, "frequency"),
+            GraphType::Usage => write!(f, "usage"),
+            GraphType::Temperature => write!(f, "temperature"),
+            GraphType::Unknown => write!(f, "unknown"),
+        }
+    }
+}
+
+/// Parse from graph_type parameter which type of graph will be displayed
+pub fn get_graph_type(graph_type: &str) -> GraphType {
+    match graph_type.to_lowercase().as_str() {
+        "hidden" => GraphType::Hidden,
+        "freq" => GraphType::Frequency,
+        "usage" => GraphType::Usage,
+        "temp" => GraphType::Temperature,
+        _ => GraphType::Unknown,
     }
 }

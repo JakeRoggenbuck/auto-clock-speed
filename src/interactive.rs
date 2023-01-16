@@ -1,6 +1,7 @@
 use super::config::{get_config, Config};
+use super::graph::GraphType;
 use super::interface::{DaemonControl, DaemonController, Get, Getter, Interface, Set, Setter};
-use super::settings::{GraphType, Settings};
+use super::settings::Settings;
 use colored::Colorize;
 use std::io::{stdin, stdout, Write};
 
@@ -77,7 +78,7 @@ pub fn interactive() {
                     "help" => help(),
                     "get freq" => int.get.freq(false),
                     "get power" => int.get.power(false),
-                    "get usage" => int.get.usage(false),
+                    "get usage" => int.get.usage(false, None),
                     "get turbo" => int.get.turbo(false),
                     "get available_governors" => int.get.available_govs(false),
                     "get cpus" => int.get.cpus(false),

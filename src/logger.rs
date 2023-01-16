@@ -1,3 +1,8 @@
+//! This file contains a logging system for the Auto Clock Speed (ACS) project.
+//!
+//! It allows the program to log messages with different severity levels (error, warning, log) and display them in a human-readable format.
+//!
+//! The log messages contain a timestamp, a severity level and the message. The logs are stored in a vector and are serializable and deserializable. The logs can also be displayed in a human-readable format.
 extern crate chrono;
 
 use std::fmt;
@@ -6,7 +11,16 @@ use std::time::SystemTime;
 use chrono::prelude::DateTime;
 use chrono::Utc;
 use colored::Colorize;
+use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
+/// The Severity enum is used to represent the different levels of severity of a log message. It has three possible values:
+///
+/// - `Error` represents an error message that indicates that something went wrong.
+/// - `Warning` represents a warning message that indicates that something unexpected happened but the program can still continue to run.
+/// - `Log` represents a log message that contains information about the program execution.
+///
+///  This enum is used in the log function of the Logger struct to specify the severity level of the log message when creating a new log. It also used in the fmt function of the Log struct, where it is matched to colorize the output based on the severity level of the log message.
 pub enum Severity {
     Error,
     Warning,
@@ -17,6 +31,7 @@ pub trait Interface {
     fn log(&mut self, msg: &str, sev: Severity);
 }
 
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Log {
     pub message: String,
     pub severity: Severity,

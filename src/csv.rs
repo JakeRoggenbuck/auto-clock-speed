@@ -6,6 +6,9 @@
 //!
 //! It is the responsibility of the implementation of the CSV logger to call the write and init
 //! methods in order to actually log data.
+//!
+//! csv.rs logs system data the the state of each cpu to a csv file, not to be confused with
+//! logger.rs which write operation logs to the screen during usage.
 
 use std::fs::File;
 use std::io::Write;
@@ -24,8 +27,11 @@ use crate::{
 pub const CSV_HEADER: &str = "epoch,name,number,max_freq,min_freq,cur_freq,cur_temp,cur_usage,gov";
 
 pub struct CSVWriter {
+    /// The max amount of file space the csv logger will take up in MB
     log_size_cutoff: i32,
+    /// The path to be logged to
     path: String,
+    /// If the cpu writer is on
     enabled: bool,
 }
 
@@ -50,6 +56,7 @@ pub trait Writable {
 }
 
 impl Writable for CPU {
+    /// Format the csv row
     fn to_csv(&self) -> String {
         format!(
             "{},{},{},{},{},{},{},{},{}\n",

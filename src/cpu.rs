@@ -5,6 +5,7 @@ use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
 
+use super::gov::Gov;
 use super::system::{calculate_cpu_percent, read_int, read_str, ProcStat};
 use super::Error;
 
@@ -22,7 +23,7 @@ pub trait Speed {
     fn get_cur(&mut self);
     fn get_temp(&mut self) -> Result<(), Error>;
     fn get_gov(&mut self) -> Result<(), Error>;
-    fn set_gov(&mut self, gov: String) -> Result<(), Error>;
+    fn set_gov(&mut self, gov: Gov) -> Result<(), Error>;
     fn random() -> CPU;
 }
 
@@ -187,8 +188,8 @@ impl Speed for CPU {
     }
 
     /// Set the governor
-    fn set_gov(&mut self, gov: String) -> Result<(), Error> {
-        self.gov = gov;
+    fn set_gov(&mut self, gov: Gov) -> Result<(), Error> {
+        self.gov = format!("{gov}");
         self.write_value(WritableValue::Gov)?;
         Ok(())
     }

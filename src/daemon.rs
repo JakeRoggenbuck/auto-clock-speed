@@ -38,6 +38,7 @@ use serde::Serialize;
 
 use super::config::Config;
 use super::cpu::{Speed, CPU};
+use super::gov::Gov;
 use super::graph::{Graph, Grapher};
 use super::logger;
 use super::logger::Interface;
@@ -156,17 +157,17 @@ pub struct Daemon {
 }
 
 fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
-    cpu.set_gov("powersave".to_string())?;
+    cpu.set_gov(Gov::Powersave)?;
     Ok(())
 }
 
 fn make_gov_performance(cpu: &mut CPU) -> Result<(), Error> {
-    cpu.set_gov("performance".to_string())?;
+    cpu.set_gov(Gov::Performance)?;
     Ok(())
 }
 
 fn make_gov_schedutil(cpu: &mut CPU) -> Result<(), Error> {
-    cpu.set_gov("schedutil".to_string())?;
+    cpu.set_gov(Gov::Schedutil)?;
     Ok(())
 }
 

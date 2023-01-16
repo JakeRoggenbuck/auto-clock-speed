@@ -177,6 +177,10 @@ enum ACSCommand {
         #[structopt(short, long)]
         quiet: bool,
 
+        /// Output the settings and quit
+        #[structopt(short, long)]
+        show_settings: bool,
+
         /// Milliseconds between update
         #[structopt(short, long)]
         delay: Option<u64>,
@@ -221,6 +225,10 @@ enum ACSCommand {
         #[structopt(short, long)]
         no_animation: bool,
 
+        /// Output the settings and quit
+        #[structopt(short, long)]
+        show_settings: bool,
+
         /// Hook
         #[structopt(short = "h", long = "--hook")]
         hook: bool,
@@ -257,6 +265,7 @@ pub fn parse_args(config: config::Config) {
         csv_file: "".to_string(),
         log_csv: false,
         log_size_cutoff: 20,
+        show_settings: false,
     };
 
     let int = Interface {
@@ -305,6 +314,7 @@ pub fn parse_args(config: config::Config) {
             commit,
             csv_file,
             log_size_cutoff,
+            show_settings,
         } => {
             if !config_dir_exists() {
                 warn_user!("Config directory '/etc/acs' does not exist!");
@@ -339,6 +349,7 @@ pub fn parse_args(config: config::Config) {
                 log_csv: csv_file.is_some(),
                 csv_file: csv_file.unwrap_or_else(|| "/tmp/acs/".to_string()),
                 log_size_cutoff,
+                show_settings,
             };
 
             match daemon_init(settings, config) {
@@ -359,6 +370,7 @@ pub fn parse_args(config: config::Config) {
             commit,
             csv_file,
             log_size_cutoff,
+            show_settings,
         } => {
             if !config_dir_exists() {
                 warn_user!("Config directory '/etc/acs' does not exist!");
@@ -393,6 +405,7 @@ pub fn parse_args(config: config::Config) {
                 log_csv: csv_file.is_some(),
                 csv_file: csv_file.unwrap_or_else(|| "/tmp/acs/".to_string()),
                 log_size_cutoff,
+                show_settings,
             };
 
             match daemon_init(settings, config) {

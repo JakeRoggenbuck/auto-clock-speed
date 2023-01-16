@@ -28,6 +28,7 @@
 //! When enabled by the user the daemon will log all of the cpu data to a csv file.
 
 use std::convert::TryInto;
+use std::process::exit;
 use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
 use std::{thread, time};
@@ -569,6 +570,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         csv_file: settings.csv_file.clone(),
         log_csv: settings.log_csv,
         log_size_cutoff: settings.log_size_cutoff,
+        show_settings: settings.show_settings,
     };
 
     // Attempt to create battery object
@@ -681,6 +683,11 @@ pub fn run(daemon_mutex: Arc<Mutex<Daemon>>) -> Result<(), Error> {
         // Before runnig the loop drop the lock and aquire it again later within the loop
         let mode = daemon.settings.edit;
 
+        if daemon.settings.show_settings {
+            println!("{:#?}", daemon.settings);
+            exit(0);
+        }
+
         drop(daemon);
 
         // Choose which mode acs runs in
@@ -734,6 +741,7 @@ mod tests {
             csv_file: "".to_string(),
             log_csv: false,
             log_size_cutoff: 20,
+            show_settings: false,
         };
 
         let config = default_config();
@@ -765,6 +773,7 @@ mod tests {
             csv_file: "".to_string(),
             log_csv: false,
             log_size_cutoff: 20,
+            show_settings: false,
         };
 
         let config = default_config();
@@ -799,6 +808,7 @@ mod tests {
             csv_file: "".to_string(),
             log_csv: false,
             log_size_cutoff: 20,
+            show_settings: false,
         };
 
         let config = default_config();

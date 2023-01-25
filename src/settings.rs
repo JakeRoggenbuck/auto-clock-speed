@@ -1,6 +1,6 @@
 use super::graph::GraphType;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Settings {
     pub verbose: bool,
     pub delay: u64,
@@ -14,4 +14,5 @@ pub struct Settings {
     pub csv_file: String,
     pub log_csv: bool,
     pub log_size_cutoff: i32,
+    pub show_settings: bool,
 }

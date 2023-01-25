@@ -36,7 +36,7 @@ impl Grapher for Graph {
     }
 }
 
-#[derive(PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub enum GraphType {
     Hidden,
     Frequency,

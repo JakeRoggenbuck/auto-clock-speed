@@ -62,6 +62,7 @@ pub fn interactive() {
         csv_file: "".to_string(),
         log_csv: false,
         log_size_cutoff: 20,
+        show_settings: false,
     };
 
     loop {

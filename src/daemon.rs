@@ -79,6 +79,8 @@ pub enum State {
     /// The cpu usage has been high for a certain amount of time
     /// The cpu will enter performance mode until the usage goes down
     CpuUsageHigh,
+    /// Cpu temp is too high
+    Overheating,
     /// We down know what state the system is in
     Unknown,
 }
@@ -94,6 +96,7 @@ fn get_governor(current_state: &State) -> &'static str {
         State::LidClosed => "powersave",
         State::Charging => "performance",
         State::CpuUsageHigh => "performance",
+        State::Overheating => "powersave",
         State::Unknown => "powersave",
     }
 }
@@ -146,6 +149,7 @@ pub struct Daemon {
     pub usage: f32,
     pub last_below_cpu_usage_percent: Option<SystemTime>,
     pub graph: String,
+    /// Highest temperature seen last update cycle (highest of any cpu core)
     pub temp_max: i8,
     /// The hash that is gathered at build time - used for testing versions
     pub commit_hash: String,
@@ -220,6 +224,10 @@ impl Checker for Daemon {
                     state = State::CpuUsageHigh;
                 }
             }
+        }
+
+        if self.temp_max > self.config.overheat_threshold {
+            state = State::Overheating;
         }
 
         if self.config.active_rules.contains(&State::LidClosed)

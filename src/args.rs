@@ -210,7 +210,7 @@ enum ACSCommand {
         log_size_cutoff: i32,
     },
 
-    /// Monitor each cpu, it's min, max, and current speed, along with the governor
+    /// Monitor each cpu, its min, max, and current speed, along with the governor
     #[structopt(name = "monitor", alias = "monit")]
     Monitor {
         /// Milliseconds between update
@@ -233,7 +233,7 @@ enum ACSCommand {
         #[structopt(short = "h", long = "--hook")]
         hook: bool,
 
-        /// Graph
+        /// Graph "freq", "usage", or "temp"
         #[structopt(short = "g", long = "--graph")]
         graph_type: Option<String>,
 

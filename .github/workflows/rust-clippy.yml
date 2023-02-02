@@ -46,8 +46,8 @@ jobs:
       - name: Run rust-clippy
         run:
           cargo clippy
-          -- -A clippy::uninlined_format_args
           --message-format=json | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
+          -- -A clippy::uninlined_format_args
         continue-on-error: true
 
       - name: Upload analysis results to GitHub

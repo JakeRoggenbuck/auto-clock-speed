@@ -42,18 +42,13 @@ jobs:
 
       - name: Install required cargo
         run: cargo install clippy-sarif sarif-fmt
-        
-      - name: Run rust-clippy while allowing args
-        run:
-          cargo clippy
-          -- -A clippy::uninlined_format_args
-        continue-on-error: true 
 
       - name: Run rust-clippy
         run:
           cargo clippy
           --all-features
           --message-format=json | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
+          -- -A clippy::allow-uninlined_format_args
         continue-on-error: true
 
       - name: Upload analysis results to GitHub

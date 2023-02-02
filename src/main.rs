@@ -22,6 +22,8 @@
 // https://crates.io/crates/autoclockspeed
 // https://github.com/autoclockspeed
 
+#![allow(clippy::uninlined_format_args)]
+
 use args::parse_args;
 use config::get_config;
 use error::Error;

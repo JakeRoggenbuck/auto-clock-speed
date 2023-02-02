@@ -22,7 +22,6 @@
 // https://crates.io/crates/autoclockspeed
 // https://github.com/autoclockspeed
 
-#![clippy::msrv = "1.30.0"]
 #![allow(clippy::uninlined_format_args)]
 
 use args::parse_args;

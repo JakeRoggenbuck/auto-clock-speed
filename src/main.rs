@@ -41,7 +41,11 @@ pub mod graph;
 pub mod interactive;
 pub mod interface;
 pub mod logger;
+<<<<<<< HEAD
 pub mod network;
+=======
+pub mod msr;
+>>>>>>> ef4c35dc9cff0abe0ecdee2e2cf30a5c23e2e422
 pub mod power;
 pub mod settings;
 pub mod setup;

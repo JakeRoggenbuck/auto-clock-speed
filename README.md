@@ -1,7 +1,7 @@
 ![Auto Clock Speed Banner Logo](https://user-images.githubusercontent.com/35516367/169680198-99d02746-22f7-433d-a9a1-d8858edef512.png)
-![Rust](https://img.shields.io/github/actions/workflow/status/jakeroggenbuck/auto-clock-speed/rust.yml?branch=main&style=for-the-badge)
-![Crates Version](https://img.shields.io/crates/v/autoclockspeed?style=for-the-badge)
-![Downloads](https://img.shields.io/crates/d/autoclockspeed?style=for-the-badge)
+[![Rust](https://img.shields.io/github/actions/workflow/status/jakeroggenbuck/auto-clock-speed/rust.yml?branch=main&style=for-the-badge)](https://github.com/JakeRoggenbuck/auto-clock-speed/actions)
+[![Crates Version](https://img.shields.io/crates/v/autoclockspeed?style=for-the-badge)](https://crates.io/crates/autoclockspeed)
+[![Downloads](https://img.shields.io/crates/d/autoclockspeed?style=for-the-badge)](https://crates.io/crates/autoclockspeed)
 
 #### [ACS Upstream](https://github.com/jakeroggenbuck/auto-clock-speed) - [autoclockspeed.org](https://autoclockspeed.org) - [Our crates.io](https://crates.io/crates/autoclockspeed) - [ACS Github Org](https://github.com/autoclockspeed)
 
@@ -67,12 +67,15 @@ Auto clock speed has been tested to work on the following devices. If you have a
 | Dell Latitude 7480 | Working | |
 | Steam Deck | Working | Edit mode not neccessary (use built in governor switcher) |
 | Thinkpad T400 | Working | |
+| Thinkpad T460 | Working | |
 | Thinkpad X230 | Working | |
+| Thinkpad X301 | Working | |
 | Thinkpad W540 | Working | |
 | ThinkPad X1 Extreme Gen 1 | Working | |
 | Thinkpad P1 Gen 4 (Intel Core) | Working | |
 | Thinkpad P14 Gen 2 (AMD) | Mostly Working | See [#443](https://github.com/JakeRoggenbuck/auto-clock-speed/issues/443) |
 | OnePlus 9 Pro (Snapdragon 888 SoC) | Partially Working | Needs root access; compile from source through termux |
+| iPad Pro Gen 6 | Barely Working | Compiles with iSH, but cannot access any data |
 
 
 ## In Action

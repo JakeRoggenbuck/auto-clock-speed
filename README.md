@@ -67,12 +67,15 @@ Auto clock speed has been tested to work on the following devices. If you have a
 | Dell Latitude 7480 | Working | |
 | Steam Deck | Working | Edit mode not neccessary (use built in governor switcher) |
 | Thinkpad T400 | Working | |
+| Thinkpad T460 | Working | |
 | Thinkpad X230 | Working | |
+| Thinkpad X301 | Working | |
 | Thinkpad W540 | Working | |
 | ThinkPad X1 Extreme Gen 1 | Working | |
 | Thinkpad P1 Gen 4 (Intel Core) | Working | |
 | Thinkpad P14 Gen 2 (AMD) | Mostly Working | See [#443](https://github.com/JakeRoggenbuck/auto-clock-speed/issues/443) |
 | OnePlus 9 Pro (Snapdragon 888 SoC) | Partially Working | Needs root access; compile from source through termux |
+| iPad Pro Gen 6 | Barely Working | Compiles with iSH, but cannot access any data |
 
 
 ## In Action

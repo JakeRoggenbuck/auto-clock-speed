@@ -8,9 +8,9 @@ extern crate time;
 use std::fmt;
 use std::time::SystemTime;
 
-use time::OffsetDateTime;
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
+use time::OffsetDateTime;
 
 #[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
 /// The Severity enum is used to represent the different levels of severity of a log message. It has three possible values:

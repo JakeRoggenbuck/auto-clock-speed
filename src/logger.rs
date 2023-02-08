@@ -57,8 +57,6 @@ impl fmt::Display for Log {
                 .expect("IndeterminateOffset")
                 .format(&date_time_fmt)
                 .unwrap();
-        } else {
-            eprintln!("Failed to get local time offset");
         }
 
         write!(f, "{} {} -> {}", severity, time, self.message)

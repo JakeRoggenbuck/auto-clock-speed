@@ -45,14 +45,18 @@ impl fmt::Display for Log {
             Severity::Log => "notice:".bold().blue(),
         };
 
-        let date_time_fmt = format_description::parse(
-            "[year]-[month]-[day] [hour]:[minute]:[second]",
-        ).unwrap();
+        let date_time_fmt =
+            format_description::parse("[year]-[month]-[day] [hour]:[minute]:[second]").unwrap();
 
-        let mut time = OffsetDateTime::from(self.timestamp).format(&date_time_fmt).unwrap();
+        let mut time = OffsetDateTime::from(self.timestamp)
+            .format(&date_time_fmt)
+            .unwrap();
 
         if OffsetDateTime::now_local().is_ok() {
-            time = OffsetDateTime::now_local().expect("IndeterminateOffset").format(&date_time_fmt).unwrap();
+            time = OffsetDateTime::now_local()
+                .expect("IndeterminateOffset")
+                .format(&date_time_fmt)
+                .unwrap();
         } else {
             eprintln!("Failed to get local time offset");
         }

@@ -10,7 +10,7 @@ use std::time::SystemTime;
 
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
-use time::OffsetDateTime;
+use time::{format_description, OffsetDateTime};
 
 #[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
 /// The Severity enum is used to represent the different levels of severity of a log message. It has three possible values:
@@ -45,7 +45,18 @@ impl fmt::Display for Log {
             Severity::Log => "notice:".bold().blue(),
         };
 
-        let time = OffsetDateTime::from(self.timestamp);
+        let date_time_fmt = format_description::parse(
+            "[year]-[month]-[day] [hour]:[minute]:[second]",
+        ).unwrap();
+
+        let mut time = OffsetDateTime::from(self.timestamp).format(&date_time_fmt).unwrap();
+
+        if OffsetDateTime::now_local().is_ok() {
+            time = OffsetDateTime::now_local().expect("IndeterminateOffset").format(&date_time_fmt).unwrap();
+        } else {
+            eprintln!("Failed to get local time offset");
+        }
+
         write!(f, "{} {} -> {}", severity, time, self.message)
     }
 }

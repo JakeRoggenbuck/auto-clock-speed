@@ -9,7 +9,6 @@ use std::fmt;
 use std::time::SystemTime;
 
 use time::OffsetDateTime;
-use time::UtcOffset;
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
 
@@ -46,8 +45,7 @@ impl fmt::Display for Log {
             Severity::Log => "notice:".bold().blue(),
         };
 
-
-        let time = OffsetDateTime::from_unix_timestamp(self.timestamp).format("%Y-%m-%d %H:%M:%S");
+        let time = OffsetDateTime::from(self.timestamp);
         write!(f, "{} {} -> {}", severity, time, self.message)
     }
 }

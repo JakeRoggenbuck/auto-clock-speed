@@ -1,6 +1,6 @@
 [package]
 name = "autoclockspeed"
-version = "0.1.10"
+version = "0.1.11"
 edition = "2021"
 license = "MIT OR MPL-2.0"
 description = "A utility to check stats about your CPU, and auto regulate clock speeds to help with either performance or battery life."

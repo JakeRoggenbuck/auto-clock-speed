@@ -74,7 +74,7 @@ pub fn init_config_dir() {
 
 /// Initialize the config file at /etc/acs/acs.toml
 pub fn init_config_file() {
-    let config_file = File::create(&config_path());
+    let config_file = File::create(config_path());
     let mut config = match config_file {
         Ok(file) => file,
         Err(error) => match error.kind() {

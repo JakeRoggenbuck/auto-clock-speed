@@ -22,7 +22,9 @@ fn set_best_path() -> Option<&'static str> {
 
     // Find if any AC power path exists
 
-    LID_STATUS_PATH.iter().find(|&path| Path::new(path).exists());
+    LID_STATUS_PATH
+        .iter()
+        .find(|&path| Path::new(path).exists());
 
     None
 }

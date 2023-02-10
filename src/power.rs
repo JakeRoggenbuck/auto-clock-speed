@@ -17,7 +17,9 @@ fn set_best_path() -> Option<&'static str> {
     ];
 
     // Find if any AC power path exists
-    POWER_SOURCE_PATH.into_iter().find(|&path| Path::new(path).exists());
+    POWER_SOURCE_PATH
+        .into_iter()
+        .find(|&path| Path::new(path).exists());
 
     None
 }

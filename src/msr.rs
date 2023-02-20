@@ -1,8 +1,3 @@
-#[link(name = "libmsrtools", kind = "static")]
-extern "C" {
-    fn rdmsr_on_cpu(reg: u32, cpu: i8) -> u32;
-}
-
 // MSR Dictionary
 /// Platform Information, CPU Multiplier
 pub const MSR_PLATFORM_INFO: u32 = 0xCE;
@@ -94,11 +89,9 @@ Atom Moorefield / Annidale 	    6 	90 	        ? 	? 	? 	? 	N 	3.19 (74af752e4895
 Atom Silvermont / Valleyview 	6 	55 	        ? 	? 	? 	? 	N 	3.13 (ed93b71492d) 	no 	no
  */
 
-/// Reads u64 from MSR
-///
-/// CPL 0 Required
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-#[allow(unused_mut)]
-pub unsafe fn msr_read(reg: u32, cpuid: i8) -> u32 {     // TODO make cpuid optional
-    return unsafe { rdmsr_on_cpu(reg, cpuid)};
-}
+// Reads u64 from MSR
+//
+// CPL 0 Required
+//#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+//pub unsafe fn msr_read(reg: u32, cpuid: i8) -> u32 {     // TODO make cpuid optional
+//}

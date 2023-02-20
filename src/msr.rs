@@ -1,3 +1,5 @@
+use std::arch::asm;
+
 // MSR Dictionary
 /// Platform Information, CPU Multiplier
 pub const MSR_PLATFORM_INFO: u32 = 0xCE;
@@ -89,9 +91,14 @@ Atom Moorefield / Annidale 	    6 	90 	        ? 	? 	? 	? 	N 	3.19 (74af752e4895
 Atom Silvermont / Valleyview 	6 	55 	        ? 	? 	? 	? 	N 	3.13 (ed93b71492d) 	no 	no
  */
 
-// Reads u64 from MSR
-//
-// CPL 0 Required
-//#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-//pub unsafe fn msr_read(reg: u32, cpuid: i8) -> u32 {     // TODO make cpuid optional
-//}
+/// Read 64 bits msr register.
+///
+/// # Safety
+/// Needs CPL 0.
+#[allow(unused_mut)]
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub unsafe fn rdmsr(msr: u32) -> u64 {
+    let (high, low): (u32, u32);
+    asm!("rdmsr", out("eax") low, out("edx") high, in("ecx") msr);
+    ((high as u64) << 32) | (low as u64)
+}

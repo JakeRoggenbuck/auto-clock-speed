@@ -2,7 +2,7 @@ use std::fs::read_to_string;
 
 use crate::error::Error;
 
-/// Containss data about each cpu's timing read from the `/proc/stat` file
+/// Contains data about each cpu's timing read from the `/proc/stat` file
 #[derive(Debug)]
 pub struct ProcStat {
     pub cpu_name: String,

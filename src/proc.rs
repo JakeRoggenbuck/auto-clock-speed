@@ -1,3 +1,7 @@
+use std::fs::read_to_string;
+
+use crate::error::Error;
+
 #[derive(Debug)]
 pub struct ProcStat {
     pub cpu_name: String,
@@ -13,6 +17,12 @@ impl Default for ProcStat {
             cpu_idle: 0.0,
         }
     }
+}
+
+pub fn read_proc_stat_file() -> Result<String, Error> {
+    let proc_stat_path: &str = "/proc/stat";
+    let proc_stat_content = read_to_string(proc_stat_path)?;
+    Ok(proc_stat_content)
 }
 
 /// Parse the /proc/stat file that contains the usage

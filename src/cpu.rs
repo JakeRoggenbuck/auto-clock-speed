@@ -5,8 +5,10 @@ use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
 
+use crate::proc::ProcStat;
+
 use super::gov::Gov;
-use super::system::{calculate_cpu_percent, read_int, read_str, ProcStat};
+use super::system::{calculate_cpu_percent, read_int, read_str};
 use super::Error;
 
 /// Any trait relating to a CPU Core

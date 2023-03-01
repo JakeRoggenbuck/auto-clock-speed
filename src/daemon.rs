@@ -51,13 +51,13 @@ use super::settings::Settings;
 use super::setup::{inside_docker_message, inside_wsl_message};
 use super::system::{
     check_available_governors, check_cpu_freq, check_cpu_temperature, check_cpu_usage,
-    get_highest_temp, inside_docker, inside_wsl, list_cpus, parse_proc_file, read_proc_stat_file,
-    ProcStat,
+    get_highest_temp, inside_docker, inside_wsl, list_cpus,
 };
 use super::terminal::terminal_width;
 use super::Error;
 use crate::csv::{gen_writer, CSVWriter, Writer};
 use crate::display::{print_battery_status, print_turbo_status};
+use crate::proc::{parse_proc_file, read_proc_stat_file, ProcStat};
 use crate::warn_user;
 
 /// Describes the state of the machine

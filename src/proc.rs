@@ -2,6 +2,7 @@ use std::fs::read_to_string;
 
 use crate::error::Error;
 
+/// Containss data about each cpu's timing read from the `/proc/stat` file
 #[derive(Debug)]
 pub struct ProcStat {
     pub cpu_name: String,
@@ -19,13 +20,14 @@ impl Default for ProcStat {
     }
 }
 
+/// Reads the raw proc stat data from the `/proc/stat` file
 pub fn read_proc_stat_file() -> Result<String, Error> {
     let proc_stat_path: &str = "/proc/stat";
     let proc_stat_content = read_to_string(proc_stat_path)?;
     Ok(proc_stat_content)
 }
 
-/// Parse the /proc/stat file that contains the usage
+/// Parse the `/proc/stat` into a list of `ProcStat` structs for each CPU core
 pub fn parse_proc_file(proc: String) -> Vec<ProcStat> {
     let lines: Vec<_> = proc.lines().collect();
     let mut procs: Vec<ProcStat> = Vec::<ProcStat>::new();

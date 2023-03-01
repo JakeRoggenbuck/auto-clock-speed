@@ -43,6 +43,7 @@ pub mod interface;
 pub mod logger;
 pub mod network;
 pub mod power;
+pub mod proc;
 pub mod settings;
 pub mod setup;
 pub mod sysfs;

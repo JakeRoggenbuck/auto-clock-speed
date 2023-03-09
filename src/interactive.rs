@@ -1,8 +1,8 @@
 use super::config::{get_config, Config};
 use super::graph::GraphType;
 use super::interface::{DaemonControl, DaemonController, Get, Getter, Interface, Set, Setter};
-use efcl::{color, Color};
 use super::settings::Settings;
+use efcl::{color, Color};
 use std::io::{stdin, stdout, Write};
 
 pub fn help() {

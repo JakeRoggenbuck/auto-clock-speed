@@ -6,9 +6,9 @@
 extern crate time;
 
 use efcl::{color, Color};
+use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::time::SystemTime;
-use serde::{Deserialize, Serialize};
 use time::{format_description, OffsetDateTime};
 
 #[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]

@@ -1,4 +1,4 @@
-use efcl::{color, Color, bold};
+use efcl::{bold, color, Color};
 use rand::Rng;
 use std::fmt;
 use std::fs::{self, File};

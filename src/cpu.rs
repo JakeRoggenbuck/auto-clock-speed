@@ -1,4 +1,4 @@
-use colored::Colorize;
+use efcl::{bold, color, Color};
 use rand::Rng;
 use std::fmt;
 use std::fs::{self, File};
@@ -219,41 +219,56 @@ impl Speed for CPU {
 impl fmt::Display for CPU {
     /// Display any information about the cpu in a human readable and simple format
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let temp: colored::ColoredString;
+        let temp: String;
         let reduced_cpu_cur_temp = self.cur_temp / 1000;
 
         if reduced_cpu_cur_temp > 60 {
-            temp = format!("{}C", reduced_cpu_cur_temp).red();
+            temp = color!(Color::RED, format!("{}C", reduced_cpu_cur_temp).as_str());
         } else if reduced_cpu_cur_temp > 40 {
-            temp = format!("{}C", reduced_cpu_cur_temp).yellow();
+            temp = color!(Color::YELLOW, format!("{}C", reduced_cpu_cur_temp).as_str());
         } else if reduced_cpu_cur_temp == 1 || reduced_cpu_cur_temp == 0 {
-            temp = format!("{}C*", reduced_cpu_cur_temp).white();
+            temp = format!("{}C*", reduced_cpu_cur_temp);
         } else {
-            temp = format!("{}C", reduced_cpu_cur_temp).green();
+            temp = color!(Color::GREEN, format!("{}C", reduced_cpu_cur_temp).as_str());
         }
 
-        let usage: colored::ColoredString;
+        let usage: String;
         let scaled_cpus_cur_usage = self.cur_usage * 100.0;
 
         if self.cur_usage > 0.9 {
-            usage = format!("{:.2}%", scaled_cpus_cur_usage).red();
+            usage = color!(
+                Color::RED,
+                format!("{:.2}%", scaled_cpus_cur_usage).as_str()
+            );
         } else if self.cur_usage > 0.5 {
-            usage = format!("{:.2}%", scaled_cpus_cur_usage).yellow();
+            usage = color!(
+                Color::YELLOW,
+                format!("{:.2}%", scaled_cpus_cur_usage).as_str()
+            );
         } else if self.cur_usage > 0.2 {
-            usage = format!("{:.2}%", scaled_cpus_cur_usage).white();
+            usage = format!("{:.2}%", scaled_cpus_cur_usage);
         } else if self.cur_usage > 0.0000 {
-            usage = format!("{:.2}%", scaled_cpus_cur_usage).green();
+            usage = color!(
+                Color::GREEN,
+                format!("{:.2}%", scaled_cpus_cur_usage).as_str()
+            );
         } else {
-            usage = format!("{:.2}%", scaled_cpus_cur_usage).purple();
+            usage = color!(
+                Color::PURPLE,
+                format!("{:.2}%", scaled_cpus_cur_usage).as_str()
+            );
         }
 
         writeln!(
             f,
             "{}:\t{}MHz\t{}MHz\t{}\t{}\t{}\t{}",
-            self.name.bold(),
+            bold!(&self.name),
             self.max_freq / 1000,
             self.min_freq / 1000,
-            format!("{}MHz", self.cur_freq / 1000).green(),
+            color!(
+                Color::GREEN,
+                format!("{}MHz", self.cur_freq / 1000).as_str()
+            ),
             temp,
             usage,
             self.gov,

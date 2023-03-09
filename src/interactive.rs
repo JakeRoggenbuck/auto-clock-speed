@@ -2,7 +2,7 @@ use super::config::{get_config, Config};
 use super::graph::GraphType;
 use super::interface::{DaemonControl, DaemonController, Get, Getter, Interface, Set, Setter};
 use super::settings::Settings;
-use colored::Colorize;
+use efcl::{bold, color, Color};
 use std::io::{stdin, stdout, Write};
 
 pub fn help() {
@@ -33,8 +33,7 @@ pub fn help() {
 E.g. 'get cpus'
     ";
 
-    println!("{}\n", "Help:".bold().green());
-    println!("{HELP_TEXT}")
+    println!("{}{HELP_TEXT}", color!(Color::GREEN, "Help:\n"));
 }
 
 pub fn interactive() {
@@ -46,8 +45,8 @@ pub fn interactive() {
 
     let mut input;
 
-    println!("{}", "Auto Clock Speed".bold());
-    println!("{}", "Interactive Mode".bold().blue());
+    println!("{}", bold!("Auto Clock Speed"));
+    println!("{}", color!(Color::BLUE, "Interactive Mode"));
 
     let set_settings = Settings {
         verbose: true,
@@ -66,7 +65,7 @@ pub fn interactive() {
     };
 
     loop {
-        print!("{}", "\n> ".bold().green());
+        print!("{}", color!(Color::GREEN, "\n> "));
         stdout().flush().expect("Failed to flush stdout");
 
         input = String::new();
@@ -112,7 +111,10 @@ pub fn interactive() {
                     }
                     _ => println!(
                         "{}",
-                        format!("Command '{}' not found. Use 'help'.", new).red()
+                        color!(
+                            Color::RED,
+                            format!("Command '{}' not found. Use 'help'.", new).as_str()
+                        )
                     ),
                 };
             }

@@ -5,11 +5,10 @@
 //! The log messages contain a timestamp, a severity level and the message. The logs are stored in a vector and are serializable and deserializable. The logs can also be displayed in a human-readable format.
 extern crate time;
 
+use efcl::{color, Color};
+use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::time::SystemTime;
-
-use colored::Colorize;
-use serde::{Deserialize, Serialize};
 use time::{format_description, OffsetDateTime};
 
 #[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -40,9 +39,9 @@ pub struct Log {
 impl fmt::Display for Log {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let severity = match &self.severity {
-            Severity::Error => "error:".bold().red(),
-            Severity::Warning => "warn:".bold().yellow(),
-            Severity::Log => "notice:".bold().blue(),
+            Severity::Error => color!(Color::RED, "error:"),
+            Severity::Warning => color!(Color::YELLOW, "warn:"),
+            Severity::Log => color!(Color::BLUE, "notice:"),
         };
 
         let date_time_fmt =

@@ -25,14 +25,10 @@ pub struct Log {
 
 impl fmt::Display for Log {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        const ERORR_TEXT: String = color!(Color::RED, "error:");
-        const WARNING_TEXT: String = color!(Color::YELLOW, "warn:");
-        const LOG_TEXT: String = color!(Color::BLUE, "notice:");
-
         let severity = match &self.severity {
-            Severity::Error => ERORR_TEXT,
-            Severity::Warning => WARNING_TEXT,
-            Severity::Log => LOG_TEXT,
+            Severity::Error => color!(Color::RED, "error:"),
+            Severity::Warning => color!(Color::YELLOW, "warn:"),
+            Severity::Log => color!(Color::BLUE, "notice:"),
         };
 
         let time = DateTime::<Utc>::from(self.timestamp).format("%Y-%m-%d %H:%M:%S");

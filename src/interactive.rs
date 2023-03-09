@@ -32,8 +32,7 @@ pub fn help() {
 E.g. 'get cpus'
     ";
 
-    const HELP_TITLE: String = color!(Color::GREEN, "Help:\n");
-    println!("{HELP_TITLE}{HELP_TEXT}");
+    println!("{}{HELP_TEXT}", color!(Color::GREEN, "Help:\n"));
 }
 
 pub fn interactive() {
@@ -45,9 +44,8 @@ pub fn interactive() {
 
     let mut input;
 
-    const INT_MODE: String = color!(Color::BLUE, "Interactive Mode");
     println!("{}", "Auto Clock Speed");
-    println!("{}", INT_MODE);
+    println!("{}", color!(Color::BLUE, "Interactive Mode"));
 
     let set_settings = Settings {
         verbose: true,
@@ -63,9 +61,8 @@ pub fn interactive() {
         log_size_cutoff: 20,
     };
 
-    const PROMPT: String = color!(Color::GREEN, "\n> ");
     loop {
-        print!("{}", PROMPT);
+        print!("{}", color!(Color::GREEN, "\n> "));
         stdout().flush().expect("Failed to flush stdout");
 
         input = String::new();

@@ -2,7 +2,7 @@ use super::config::{get_config, Config};
 use super::graph::GraphType;
 use super::interface::{DaemonControl, DaemonController, Get, Getter, Interface, Set, Setter};
 use super::settings::Settings;
-use efcl::{color, Color};
+use efcl::{bold, color, Color};
 use std::io::{stdin, stdout, Write};
 
 pub fn help() {
@@ -45,7 +45,7 @@ pub fn interactive() {
 
     let mut input;
 
-    println!("{}", "Auto Clock Speed");
+    println!("{}", bold!("Auto Clock Speed"));
     println!("{}", color!(Color::BLUE, "Interactive Mode"));
 
     let set_settings = Settings {

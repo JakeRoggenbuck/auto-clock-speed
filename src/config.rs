@@ -29,6 +29,7 @@ pub fn default_config() -> Config {
         powersave_under: 20,
         overheat_threshold: 80,
         high_cpu_threshold: 50,
+        high_cpu_time_needed: 15,
         active_rules: vec![
             State::BatteryLow,
             State::LidClosed,
@@ -102,9 +103,12 @@ pub fn init_config_file() {
 
 #[derive(Debug, Serialize)]
 pub struct Config {
+    /// ACS in edit mode will activate powersave if the battery percentage is under this value
     pub powersave_under: i8,
+    /// ACS in edit mode will activate powersave if the temperature reaches this value
     pub overheat_threshold: i8,
     pub high_cpu_threshold: i8,
+    pub high_cpu_time_needed: u64,
     pub active_rules: Vec<State>,
 }
 
@@ -113,6 +117,7 @@ pub struct SafeConfig {
     pub powersave_under: Option<i8>,
     pub overheat_threshold: Option<i8>,
     pub high_cpu_threshold: Option<i8>,
+    pub high_cpu_time_needed: Option<u64>,
     pub active_rules: Option<Vec<String>>,
 }
 
@@ -147,6 +152,10 @@ impl SafeFillConfig for SafeConfig {
 
         if let Some(hc) = self.high_cpu_threshold {
             base.high_cpu_threshold = hc;
+        }
+
+        if let Some(ht) = self.high_cpu_time_needed {
+            base.high_cpu_time_needed = ht;
         }
 
         if let Some(ars) = &self.active_rules {
@@ -189,6 +198,7 @@ fn parse_as_toml(config: String) -> Config {
             powersave_under: None,
             overheat_threshold: None,
             high_cpu_threshold: None,
+            high_cpu_time_needed: None,
             active_rules: None,
         });
 
@@ -197,7 +207,7 @@ fn parse_as_toml(config: String) -> Config {
 
 pub fn open_config() -> Result<Config, std::io::Error> {
     let conf_path = config_path();
-    let mut config_file: File = File::open(&conf_path)?;
+    let mut config_file: File = File::open(conf_path)?;
     let config_string = read_as_string(&mut config_file);
     let config_toml = parse_as_toml(config_string);
 

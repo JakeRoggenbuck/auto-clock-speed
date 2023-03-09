@@ -121,7 +121,7 @@ pub struct Get {}
 pub trait Getter {
     fn freq(&self, raw: bool);
     fn power(&self, raw: bool);
-    fn usage(&self, raw: bool);
+    fn usage(&self, raw: bool, delay: Option<u64>);
     fn thermal(&self, raw: bool);
     fn turbo(&self, raw: bool);
     fn available_govs(&self, raw: bool);
@@ -175,11 +175,14 @@ impl Getter for Get {
         print_power(lid, battery.capacity, plugged, raw);
     }
 
-    fn usage(&self, raw: bool) {
+    fn usage(&self, raw: bool, delay: Option<u64>) {
         if !raw {
-            println!("Calculating cpu percentage over 1 second.");
+            println!(
+                "Calculating cpu percentage over {} second.",
+                delay.unwrap_or(1)
+            );
         }
-        let percent = get_cpu_percent();
+        let percent = get_cpu_percent(delay);
 
         if raw {
             println!("{}", percent)

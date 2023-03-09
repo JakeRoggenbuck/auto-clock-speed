@@ -44,15 +44,15 @@ pub trait LidRetriever {
 impl LidRetriever for Lid {
     fn new() -> Self {
         if let Some(lid) = set_best_path() {
-            return Lid {
+            Lid {
                 best_path: lid,
                 found_path: true,
-            };
+            }
         } else {
-            return Lid {
+            Lid {
                 best_path: "",
                 found_path: false,
-            };
+            }
         }
     }
 

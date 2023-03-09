@@ -22,6 +22,8 @@
 // https://crates.io/crates/autoclockspeed
 // https://github.com/autoclockspeed
 
+#![allow(clippy::uninlined_format_args)]
+
 use args::parse_args;
 use config::get_config;
 use error::Error;
@@ -30,15 +32,18 @@ use log::debug;
 pub mod args;
 pub mod config;
 pub mod cpu;
+pub mod csv;
 pub mod daemon;
 pub mod display;
 pub mod error;
+pub mod gov;
 pub mod graph;
 pub mod interactive;
 pub mod interface;
 pub mod logger;
 pub mod network;
 pub mod power;
+pub mod proc;
 pub mod settings;
 pub mod setup;
 pub mod sysfs;

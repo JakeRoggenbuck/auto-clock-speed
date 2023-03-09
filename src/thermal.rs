@@ -56,12 +56,12 @@ pub fn read_thermal_zones() -> Result<Vec<ThermalZone>, Error> {
             continue;
         }
 
-        let mut zone = ThermalZone::default();
-
-        zone.temp = read_int(&[&path_string, "/temp"].concat())?;
-        zone.name = read_str(&[&path_string, "/type"].concat())?;
-        zone.enabled = read_str(&[&path_string, "/mode"].concat())? == "enabled";
-        zone.path = path_string;
+        let zone = ThermalZone {
+            temp: read_int(&[&path_string, "/temp"].concat())?,
+            name: read_str(&[&path_string, "/type"].concat())?,
+            enabled: read_str(&[&path_string, "/mode"].concat())? == "enabled",
+            path: path_string,
+        };
 
         zones.push(zone);
     }

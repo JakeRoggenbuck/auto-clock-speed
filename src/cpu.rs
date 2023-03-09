@@ -1,12 +1,14 @@
-use efcl::{color, Color};
+use efcl::{color, Color, bold};
 use rand::Rng;
 use std::fmt;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use super::system::{calculate_cpu_percent, read_int, read_str, ProcStat};
+use crate::proc::ProcStat;
+
+use super::gov::Gov;
+use super::system::{calculate_cpu_percent, read_int, read_str};
 use super::Error;
 
 /// Any trait relating to a CPU Core
@@ -23,8 +25,7 @@ pub trait Speed {
     fn get_cur(&mut self);
     fn get_temp(&mut self) -> Result<(), Error>;
     fn get_gov(&mut self) -> Result<(), Error>;
-    fn set_gov(&mut self, gov: String) -> Result<(), Error>;
-    fn to_csv(&self) -> String;
+    fn set_gov(&mut self, gov: Gov) -> Result<(), Error>;
     fn random() -> CPU;
 }
 
@@ -189,8 +190,8 @@ impl Speed for CPU {
     }
 
     /// Set the governor
-    fn set_gov(&mut self, gov: String) -> Result<(), Error> {
-        self.gov = gov;
+    fn set_gov(&mut self, gov: Gov) -> Result<(), Error> {
+        self.gov = format!("{gov}");
         self.write_value(WritableValue::Gov)?;
         Ok(())
     }
@@ -212,24 +213,6 @@ impl Speed for CPU {
                 "performance".to_string()
             },
         }
-    }
-
-    fn to_csv(&self) -> String {
-        format!(
-            "{},{},{},{},{},{},{},{},{}\n",
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap_or(Duration::new(0 as u64, 1 as u32))
-                .as_secs(),
-            self.name,
-            self.number,
-            self.max_freq,
-            self.min_freq,
-            self.cur_freq,
-            self.cur_temp,
-            self.cur_usage,
-            self.gov
-        )
     }
 }
 
@@ -276,10 +259,10 @@ impl fmt::Display for CPU {
             );
         }
 
-        write!(
+        writeln!(
             f,
-            "{}:\t{}MHz\t{}MHz\t{}\t{}\t{}\t{}\n",
-            self.name,
+            "{}:\t{}MHz\t{}MHz\t{}\t{}\t{}\t{}",
+            bold!(&self.name),
             self.max_freq / 1000,
             self.min_freq / 1000,
             color!(
@@ -296,6 +279,7 @@ impl fmt::Display for CPU {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::csv::Writable;
 
     #[test]
     fn cpu_random_unit_test() {

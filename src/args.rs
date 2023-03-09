@@ -6,9 +6,10 @@ use super::config::{config_dir_exists, init_config};
 use super::daemon;
 use super::daemon::daemon_init;
 use super::display::show_config;
+use super::graph::{get_graph_type, GraphType};
 use super::interactive::interactive;
 use super::interface::{DaemonControl, DaemonController, Get, Getter, Interface, Set, Setter};
-use super::settings::{get_graph_type, GraphType, Settings};
+use super::settings::Settings;
 use super::warn_user;
 
 #[derive(StructOpt)]
@@ -44,6 +45,9 @@ enum GetType {
     Usage {
         #[structopt(short, long)]
         raw: bool,
+
+        #[structopt(short, long)]
+        delay: Option<u64>,
     },
 
     /// The overall frequency of your cpu
@@ -173,6 +177,10 @@ enum ACSCommand {
         #[structopt(short, long)]
         quiet: bool,
 
+        /// Output the settings and quit
+        #[structopt(short, long)]
+        show_settings: bool,
+
         /// Milliseconds between update
         #[structopt(short, long)]
         delay: Option<u64>,
@@ -202,7 +210,7 @@ enum ACSCommand {
         log_size_cutoff: i32,
     },
 
-    /// Monitor each cpu, it's min, max, and current speed, along with the governor
+    /// Monitor each cpu, its min, max, and current speed, along with the governor
     #[structopt(name = "monitor", alias = "monit")]
     Monitor {
         /// Milliseconds between update
@@ -217,11 +225,15 @@ enum ACSCommand {
         #[structopt(short, long)]
         no_animation: bool,
 
+        /// Output the settings and quit
+        #[structopt(short, long)]
+        show_settings: bool,
+
         /// Hook
         #[structopt(short = "h", long = "--hook")]
         hook: bool,
 
-        /// Graph
+        /// Graph "freq", "usage", or "temp"
         #[structopt(short = "g", long = "--graph")]
         graph_type: Option<String>,
 
@@ -250,8 +262,10 @@ pub fn parse_args(config: config::Config) {
         graph: GraphType::Hidden,
         commit: false,
         testing: false,
-        csv_file: None,
+        csv_file: "".to_string(),
+        log_csv: false,
         log_size_cutoff: 20,
+        show_settings: false,
     };
 
     let int = Interface {
@@ -271,7 +285,7 @@ pub fn parse_args(config: config::Config) {
         ACSCommand::Get { get } => match get {
             GetType::Freq { raw } => int.get.freq(raw),
             GetType::Power { raw } => int.get.power(raw),
-            GetType::Usage { raw } => int.get.usage(raw),
+            GetType::Usage { raw, delay } => int.get.usage(raw, delay),
             GetType::Thermal { raw } => int.get.thermal(raw),
             GetType::Turbo { raw } => int.get.turbo(raw),
             GetType::AvailableGovs { raw } => int.get.available_govs(raw),
@@ -300,6 +314,7 @@ pub fn parse_args(config: config::Config) {
             commit,
             csv_file,
             log_size_cutoff,
+            show_settings,
         } => {
             if !config_dir_exists() {
                 warn_user!("Config directory '/etc/acs' does not exist!");
@@ -307,16 +322,12 @@ pub fn parse_args(config: config::Config) {
             }
 
             let mut parsed_graph_type = GraphType::Hidden;
-
-            match graph_type {
-                Some(graph_name) => {
-                    parsed_graph_type = get_graph_type(&graph_name);
-                    if parsed_graph_type == GraphType::Unknown {
-                        warn_user!("Graph type does not exist! Can be freq, usage, or temp Continuing in 5 seconds...");
-                        thread::sleep(time::Duration::from_millis(5000));
-                    }
+            if let Some(gt) = graph_type {
+                parsed_graph_type = get_graph_type(&gt);
+                if parsed_graph_type == GraphType::Unknown {
+                    warn_user!("Graph type does not exist! Can be freq, usage, or temp Continuing in 5 seconds...");
+                    thread::sleep(time::Duration::from_millis(5000));
                 }
-                None => {}
             }
 
             let mut effective_delay_battery = delay_battery.unwrap_or(5000);
@@ -335,8 +346,10 @@ pub fn parse_args(config: config::Config) {
                 graph: parsed_graph_type,
                 commit,
                 testing: false,
-                csv_file,
+                log_csv: csv_file.is_some(),
+                csv_file: csv_file.unwrap_or_else(|| "/tmp/acs/".to_string()),
                 log_size_cutoff,
+                show_settings,
             };
 
             match daemon_init(settings, config) {
@@ -357,6 +370,7 @@ pub fn parse_args(config: config::Config) {
             commit,
             csv_file,
             log_size_cutoff,
+            show_settings,
         } => {
             if !config_dir_exists() {
                 warn_user!("Config directory '/etc/acs' does not exist!");
@@ -364,15 +378,12 @@ pub fn parse_args(config: config::Config) {
 
             let mut parsed_graph_type = GraphType::Hidden;
 
-            match graph_type {
-                Some(graph_name) => {
-                    parsed_graph_type = get_graph_type(&graph_name);
-                    if parsed_graph_type == GraphType::Unknown {
-                        warn_user!("Graph type does not exist! Can be freq, usage, or temp Continuing in 5 seconds...");
-                        thread::sleep(time::Duration::from_millis(5000));
-                    }
+            if let Some(gt) = graph_type {
+                parsed_graph_type = get_graph_type(&gt);
+                if parsed_graph_type == GraphType::Unknown {
+                    warn_user!("Graph type does not exist! Can be freq, usage, or temp Continuing in 5 seconds...");
+                    thread::sleep(time::Duration::from_millis(5000));
                 }
-                None => {}
             }
 
             let mut effective_delay_battery = delay_battery.unwrap_or(5000);
@@ -391,8 +402,10 @@ pub fn parse_args(config: config::Config) {
                 graph: parsed_graph_type,
                 commit,
                 testing: false,
-                csv_file,
+                log_csv: csv_file.is_some(),
+                csv_file: csv_file.unwrap_or_else(|| "/tmp/acs/".to_string()),
                 log_size_cutoff,
+                show_settings,
             };
 
             match daemon_init(settings, config) {

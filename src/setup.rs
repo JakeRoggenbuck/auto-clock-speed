@@ -4,8 +4,8 @@ use super::warn_user;
 pub fn inside_wsl_message() -> String {
     String::from(
         "ACS is intended to run on an actual linux distribution, \
-        the program will NOT work inside of Windows Subsystem for Linux \
-        Please install an actual distribution of Linux.",
+        the program will NOT work inside of Windows Subsystem for Linux, \
+        please install an actual distribution of Linux.",
     )
 }
 

@@ -28,9 +28,7 @@
 //! When enabled by the user the daemon will log all of the cpu data to a csv file.
 
 use std::convert::TryInto;
-use std::fs::{File, OpenOptions};
-use std::io::Write;
-use std::path::Path;
+use std::process::exit;
 use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
 use std::{thread, time};
@@ -41,23 +39,25 @@ use serde::Serialize;
 
 use super::config::Config;
 use super::cpu::{Speed, CPU};
-use super::graph::{Graph, Grapher};
+use super::gov::Gov;
+use super::graph::{Graph, GraphType, Grapher};
 use super::logger;
 use super::logger::Interface;
 use super::network::{hook, listen};
 use super::power::battery::{has_battery, Battery};
 use super::power::lid::{Lid, LidRetriever, LidState};
 use super::power::{Power, PowerRetriever};
-use super::settings::{GraphType, Settings};
+use super::settings::Settings;
 use super::setup::{inside_docker_message, inside_wsl_message};
 use super::system::{
     check_available_governors, check_cpu_freq, check_cpu_temperature, check_cpu_usage,
-    get_highest_temp, inside_docker, inside_wsl, list_cpus, parse_proc_file, read_proc_stat_file,
-    ProcStat,
+    get_highest_temp, inside_docker, inside_wsl, list_cpus,
 };
 use super::terminal::terminal_width;
 use super::Error;
+use crate::csv::{gen_writer, CSVWriter, Writer};
 use crate::display::{print_battery_status, print_turbo_status};
+use crate::proc::{parse_proc_file, read_proc_stat_file, ProcStat};
 use crate::warn_user;
 
 /// Describes the state of the machine
@@ -81,6 +81,8 @@ pub enum State {
     /// The cpu usage has been high for a certain amount of time
     /// The cpu will enter performance mode until the usage goes down
     CpuUsageHigh,
+    /// Cpu temp is too high
+    Overheating,
     /// We down know what state the system is in
     Unknown,
 }
@@ -96,6 +98,7 @@ fn get_governor(current_state: &State) -> &'static str {
         State::LidClosed => "powersave",
         State::Charging => "performance",
         State::CpuUsageHigh => "performance",
+        State::Overheating => "powersave",
         State::Unknown => "powersave",
     }
 }
@@ -107,7 +110,6 @@ pub trait Checker {
     ) -> Result<(), Error>;
 
     fn init(&mut self);
-    fn setup_csv_logging(&mut self);
 
     fn start_loop(&mut self) -> Result<(), Error>;
     fn end_loop(&mut self);
@@ -118,7 +120,6 @@ pub trait Checker {
     fn update_all(&mut self) -> Result<(), Error>;
 
     fn run_state_machine(&mut self) -> State;
-    fn write_csv(&mut self);
 
     fn preprint_render(&mut self) -> String;
     fn postprint_render(&mut self) -> String;
@@ -150,27 +151,31 @@ pub struct Daemon {
     pub usage: f32,
     pub last_below_cpu_usage_percent: Option<SystemTime>,
     pub graph: String,
+    /// Highest temperature seen last update cycle (highest of any cpu core)
     pub temp_max: i8,
+    /// The hash that is gathered at build time - used for testing versions
     pub commit_hash: String,
     pub paused: bool,
     pub do_update_battery: bool,
-
+    pub csv_writer: CSVWriter,
+    /// How often to timeout per cycle when plugged in
     pub timeout: time::Duration,
+    /// How often to timeout per cycle when on battery
     pub timeout_battery: time::Duration,
 }
 
 fn make_gov_powersave(cpu: &mut CPU) -> Result<(), Error> {
-    cpu.set_gov("powersave".to_string())?;
+    cpu.set_gov(Gov::Powersave)?;
     Ok(())
 }
 
 fn make_gov_performance(cpu: &mut CPU) -> Result<(), Error> {
-    cpu.set_gov("performance".to_string())?;
+    cpu.set_gov(Gov::Performance)?;
     Ok(())
 }
 
 fn make_gov_schedutil(cpu: &mut CPU) -> Result<(), Error> {
-    cpu.set_gov("schedutil".to_string())?;
+    cpu.set_gov(Gov::Schedutil)?;
     Ok(())
 }
 
@@ -180,7 +185,7 @@ fn calculate_average_usage(cpus: &Vec<CPU>) -> f32 {
     for cpu in cpus {
         sum += cpu.cur_usage;
     }
-    (sum / (cpus.len() as f32)) as f32
+    sum / (cpus.len() as f32)
 }
 
 impl Checker for Daemon {
@@ -211,19 +216,20 @@ impl Checker for Daemon {
                 self.last_below_cpu_usage_percent = None;
             }
 
-            match self.last_below_cpu_usage_percent {
-                Some(last) => {
-                    if SystemTime::now()
-                        .duration_since(last)
-                        .expect("Could not compare times")
-                        .as_secs()
-                        >= 15
-                    {
-                        state = State::CpuUsageHigh;
-                    }
+            if let Some(last) = self.last_below_cpu_usage_percent {
+                if SystemTime::now()
+                    .duration_since(last)
+                    .expect("Could not compare times")
+                    .as_secs()
+                    >= self.config.high_cpu_time_needed
+                {
+                    state = State::CpuUsageHigh;
                 }
-                None => {}
             }
+        }
+
+        if self.temp_max > self.config.overheat_threshold {
+            state = State::Overheating;
         }
 
         if self.config.active_rules.contains(&State::LidClosed)
@@ -245,100 +251,7 @@ impl Checker for Daemon {
         state
     }
 
-    /// Writes out all the cpu data from the daemon to the csv file
-    ///
-    /// This method gets called every `daemon.settings.delay` millis or every `daemon.settings.delay_battery` millis when on battery
-    ///
-    /// Each time this method gets called it creates a new row in the csv file. If the csv file
-    /// gets larger than `self.settings.log_size_cutoff` MB it will cease logging.
-    ///
-    /// If an error occurs it will log the error to the daemon logger.
-    fn write_csv(&mut self) {
-        let lines = &self.cpus.iter().map(|c| c.to_csv()).collect::<String>();
-
-        if let Some(name) = &self.settings.csv_file {
-            // Open file in append mode
-            // future additions may keep this file open
-            let mut file = OpenOptions::new()
-                .write(true)
-                .append(true) // This is needed to append to file
-                .open(name)
-                .unwrap();
-
-            // If file is smaller than log_size_cutoff
-            if file.metadata().unwrap().len() < (self.settings.log_size_cutoff * 1000_000) as u64 {
-                // Try to write the cpus
-                match write!(file, "{}", lines) {
-                    Ok(_) => {}
-                    Err(..) => {
-                        self.logger
-                            .log("Could not write to CSV file.", logger::Severity::Warning);
-                    }
-                };
-            } else {
-                self.logger.log(
-                    &format!(
-                        "Max log file size reached of {}MB",
-                        self.settings.log_size_cutoff
-                    ),
-                    logger::Severity::Warning,
-                );
-                // Deactivate csv logging after file size max
-                self.settings.csv_file = None;
-            }
-        }
-    }
-
-    /// Initializes a new csv file. If ones currently exists it will keep it. If not it will
-    /// generate a new file.
-    ///
-    /// # Generating a new file
-    ///
-    /// The file will be created and the column titles will be filled in
-    /// If an error occurs while generating a file it will be logged to the daemon
-    fn setup_csv_logging(&mut self) {
-        // If csv log mode is on
-        if let Some(name) = &self.settings.csv_file {
-            // If file does not exist
-            if !Path::new(name).exists() {
-                // Try to create file
-                match File::create(name) {
-                    Ok(a) => {
-                        // Write header and show error if broken
-                        match write!(
-                            &a,
-                            "epoch,name,number,max_freq,min_freq,cur_freq,cur_temp,cur_usage,gov\n"
-                        ) {
-                            Ok(_) => {}
-                            Err(..) => {
-                                self.logger
-                                    .log("Could not write to CSV file.", logger::Severity::Warning);
-                            }
-                        };
-                    }
-                    // File did not get created
-                    Err(..) => {
-                        self.logger.log(
-                            "Could not create file. Turning csv log mode off and continuing.",
-                            logger::Severity::Warning,
-                        );
-                        // Turn log mode off
-                        self.settings.csv_file = None;
-                    }
-                }
-            } else {
-                // File did exist, use it
-                self.logger.log(
-                    &format!(
-                        "File \"{}\" already exists, continuing in append mode.",
-                        name
-                    ),
-                    logger::Severity::Warning,
-                );
-            }
-        }
-    }
-
+    /// Things to be done only at the start of auto clock speed daemon
     fn init(&mut self) {
         // Get the commit hash from the compile time env variable
         if self.settings.commit {
@@ -348,7 +261,7 @@ impl Checker for Daemon {
         self.timeout_battery = time::Duration::from_millis(self.settings.delay_battery);
         self.timeout = time::Duration::from_millis(self.settings.delay);
 
-        self.setup_csv_logging();
+        self.csv_writer.init(&mut self.logger);
 
         if inside_wsl() {
             self.logger
@@ -370,7 +283,8 @@ impl Checker for Daemon {
         self.lid_state = self.lid.read_lid_state()?;
         self.usage = calculate_average_usage(&self.cpus) * 100.0;
 
-        self.write_csv();
+        self.csv_writer
+            .write(self.cpus.iter().map(|c| c as _), &mut self.logger);
 
         Ok(())
     }
@@ -382,6 +296,7 @@ impl Checker for Daemon {
         }
     }
 
+    /// One iteration of auto clock speed in edit mode
     fn single_edit(&mut self) -> Result<(), Error> {
         self.start_loop()?;
 
@@ -406,6 +321,7 @@ impl Checker for Daemon {
         Ok(())
     }
 
+    /// One iteration of auto clock speed in monitor mode
     fn single_monit(&mut self) -> Result<(), Error> {
         self.start_loop()?;
         self.end_loop();
@@ -428,7 +344,7 @@ impl Checker for Daemon {
             }
         }
 
-        let cur_proc = parse_proc_file(read_proc_stat_file()?)?;
+        let cur_proc = parse_proc_file(read_proc_stat_file()?);
         for cpu in self.cpus.iter_mut() {
             cpu.update()?;
             for (i, proc) in self.last_proc.iter().enumerate() {
@@ -458,6 +374,9 @@ impl Checker for Daemon {
         Ok(())
     }
 
+    /// All text is rendered before anything is printed
+    /// This method of rendering text reduces lag and fixes a flickering problem from before 0.1.8
+    /// This section is just a chunk of the text that gets rendered
     fn preprint_render(&mut self) -> String {
         let message = format!("{}\n", self.message);
         let title = "Name\tMax\tMin\tFreq\tTemp\tUsage\tGovernor\n";
@@ -474,6 +393,9 @@ impl Checker for Daemon {
         )
     }
 
+    /// All text is rendered before anything is printed
+    /// This method of rendering text reduces lag and fixes a flickering problem from before 0.1.8
+    /// This section is just a chunk of the text that gets rendered
     fn postprint_render(&mut self) -> String {
         // Display the current graph type
         let graph_type = if self.settings.graph != GraphType::Hidden {
@@ -584,6 +506,7 @@ impl Checker for Daemon {
     }
 }
 
+/// Message at the header of autoclockspeed - rendered before auto clock speed loop starts
 fn format_message(
     edit: bool,
     started_as_edit: bool,
@@ -650,11 +573,13 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         edit, // Use new edit for new settings
         no_animation: settings.no_animation,
         hook: settings.hook,
-        graph: settings.graph,
+        graph: settings.graph.clone(),
         commit: settings.commit,
         testing: settings.testing,
-        csv_file: settings.csv_file,
+        csv_file: settings.csv_file.clone(),
+        log_csv: settings.log_csv,
         log_size_cutoff: settings.log_size_cutoff,
+        show_settings: settings.show_settings,
     };
 
     // Attempt to create battery object
@@ -703,6 +628,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         settings: new_settings,
         paused: false,
         do_update_battery: true,
+        csv_writer: gen_writer(&settings),
     };
 
     if !battery_present {
@@ -766,6 +692,11 @@ pub fn run(daemon_mutex: Arc<Mutex<Daemon>>) -> Result<(), Error> {
         // Before runnig the loop drop the lock and aquire it again later within the loop
         let mode = daemon.settings.edit;
 
+        if daemon.settings.show_settings {
+            println!("{:#?}", daemon.settings);
+            exit(0);
+        }
+
         drop(daemon);
 
         // Choose which mode acs runs in
@@ -816,8 +747,10 @@ mod tests {
             graph: GraphType::Hidden,
             commit: false,
             testing: true,
-            csv_file: None,
+            csv_file: "".to_string(),
+            log_csv: false,
             log_size_cutoff: 20,
+            show_settings: false,
         };
 
         let config = default_config();
@@ -846,8 +779,10 @@ mod tests {
             graph: GraphType::Hidden,
             commit: false,
             testing: true,
-            csv_file: None,
+            csv_file: "".to_string(),
+            log_csv: false,
             log_size_cutoff: 20,
+            show_settings: false,
         };
 
         let config = default_config();
@@ -879,8 +814,10 @@ mod tests {
             graph: GraphType::Hidden,
             commit: false,
             testing: true,
-            csv_file: None,
+            csv_file: "".to_string(),
+            log_csv: false,
             log_size_cutoff: 20,
+            show_settings: false,
         };
 
         let config = default_config();

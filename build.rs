@@ -1,8 +1,10 @@
+#![allow(clippy::uninlined_format_args)]
+
 use std::process::Command;
 
 fn main() {
     let output = Command::new("git")
-        .args(&["rev-parse", "HEAD"])
+        .args(["rev-parse", "HEAD"])
         .output()
         .unwrap();
 

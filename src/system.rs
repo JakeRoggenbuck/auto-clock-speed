@@ -6,11 +6,18 @@ use std::{thread, time};
 
 use crate::cpu::Speed;
 use crate::debug;
+use crate::proc::{parse_proc_file, read_proc_stat_file, ProcStat};
 
 use super::cpu::CPU;
 use super::Error;
 
 /// Find the average frequency of all cores
+///
+/// ```
+/// let cpus: &[CPU] = &[CPU::default(), CPU::default()];
+/// let avg = check_cpu_freq(cpus);
+/// assert_eq!(avg, 0.0);
+/// ```
 pub fn check_cpu_freq(cpus: &[CPU]) -> f32 {
     let freqs: Vec<i32> = cpus.iter().map(|x| x.cur_freq).collect();
     let sum: i32 = Iterator::sum(freqs.iter());
@@ -31,6 +38,13 @@ pub fn check_cpu_temperature(cpus: &[CPU]) -> f32 {
     sum as f32 / usage.len() as f32
 }
 
+/// Get the max temp from the cpus
+///
+/// ```
+/// let cpus: &[CPU] = &[CPU::random(), CPU::random()];
+/// let max = get_highest_temp(cpus);
+/// assert_ne!(max, 0);
+/// ```
 pub fn get_highest_temp(cpus: &[CPU]) -> i32 {
     let mut temp_max: i32 = 0;
     for cpu in cpus {
@@ -58,10 +72,14 @@ pub fn inside_wsl() -> bool {
     false
 }
 
+/// Return the /proc/cpuinfo file as a string
 fn open_cpu_info() -> Result<String, Error> {
     Ok(fs::read_to_string("/proc/cpuinfo")?)
 }
 
+/// Get the name of the cpu
+///
+/// For instance, my cpu's name is 'Intel(R) Core(TM) i5-7600K CPU @ 3.80GHz'
 fn get_name_from_cpu_info(cpu_info: String) -> Result<String, Error> {
     // Find all lines that begin with cpu MHz
     let find_cpu_mhz = cpu_info
@@ -76,79 +94,23 @@ fn get_name_from_cpu_info(cpu_info: String) -> Result<String, Error> {
         .ok_or(Error::Unknown)
 }
 
+/// Output the name of the cpu
 pub fn check_cpu_name() -> Result<String, Error> {
     let cpu_info: String = open_cpu_info()?;
     let name: String = get_name_from_cpu_info(cpu_info)?;
     Ok(name)
 }
 
-pub fn read_proc_stat_file() -> Result<String, Error> {
-    let proc_stat_path: &str = "/proc/stat";
-    let proc_stat_content = fs::read_to_string(proc_stat_path)?;
-    Ok(proc_stat_content)
-}
+pub fn get_cpu_percent(delay: Option<u64>) -> String {
+    let mut proc = read_proc_stat_file().expect("/proc/stat file should exist.");
+    let avg_timing: &ProcStat = &parse_proc_file(proc)[0];
 
-#[derive(Debug)]
-pub struct ProcStat {
-    pub cpu_name: String,
-    pub cpu_sum: f32,
-    pub cpu_idle: f32,
-}
+    let millis = if let Some(d) = delay { d * 1000 } else { 1000 };
 
-impl Default for ProcStat {
-    fn default() -> ProcStat {
-        ProcStat {
-            cpu_name: "cpu".to_string(),
-            cpu_sum: 0.0,
-            cpu_idle: 0.0,
-        }
-    }
-}
-
-pub fn parse_proc_file(proc: String) -> Result<Vec<ProcStat>, Error> {
-    let lines: Vec<_> = proc.lines().collect();
-    let mut procs: Vec<ProcStat> = Vec::<ProcStat>::new();
-    for l in lines {
-        if l.starts_with("cpu") {
-            let mut columns: Vec<_> = l.split(' ').collect();
-
-            // Remove first index if cpu starts with "cpu  " because the two spaces count as a
-            // column
-            if l.starts_with("cpu  ") {
-                columns.remove(0);
-            }
-            let mut proc_struct: ProcStat = ProcStat::default();
-            proc_struct.cpu_name = columns[0].to_string();
-            for col in &columns {
-                let parse = col.parse::<f32>();
-                match parse {
-                    Ok(num) => {
-                        proc_struct.cpu_sum += num;
-                    }
-                    Err(_) => {}
-                }
-            }
-
-            match columns[4].parse::<f32>() {
-                Ok(num) => {
-                    proc_struct.cpu_idle = num;
-                }
-                Err(_) => {}
-            }
-            procs.push(proc_struct);
-        }
-    }
-    Ok(procs)
-}
-
-pub fn get_cpu_percent() -> String {
-    let mut proc = read_proc_stat_file().unwrap();
-    let avg_timing: &ProcStat = &parse_proc_file(proc).unwrap()[0];
-
-    thread::sleep(time::Duration::from_millis(1000));
+    thread::sleep(time::Duration::from_millis(millis));
     proc = read_proc_stat_file().unwrap();
 
-    let avg_timing_2: &ProcStat = &parse_proc_file(proc).unwrap()[0];
+    let avg_timing_2: &ProcStat = &parse_proc_file(proc)[0];
 
     format!(
         "{}",
@@ -207,7 +169,7 @@ fn interpret_govs(governors_string: &mut String) -> Result<Vec<String>, Error> {
         .split(' ')
         .into_iter()
         .map(|x| x.to_owned())
-        .filter(|x| x != "")
+        .filter(|x| !x.is_empty())
         .collect();
     Ok(governors)
 }
@@ -452,7 +414,7 @@ mod tests {
 
     #[test]
     fn test_parse_proc_stat_file() {
-        let cpu_percent = get_cpu_percent().parse::<f32>().unwrap();
+        let cpu_percent = get_cpu_percent(None).parse::<f32>().unwrap();
         assert_eq!(type_of(cpu_percent), type_of(0.0_f32));
         assert!(cpu_percent > 0.0 && cpu_percent < 100.0);
     }

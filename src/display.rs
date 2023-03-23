@@ -25,6 +25,14 @@ macro_rules! print_error {
 }
 
 #[macro_export]
+macro_rules! print_done {
+    ($a:expr) => {{
+        use efcl::{color, Color};
+        println!("{}: {}", color!(Color::GREEN, "DONE"), $a,);
+    }};
+}
+
+#[macro_export]
 macro_rules! create_issue {
     ($a:expr) => {{
         eprintln!(

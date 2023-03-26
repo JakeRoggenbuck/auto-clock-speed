@@ -1,5 +1,5 @@
 use super::daemon::State;
-use super::warn_user;
+use super::{print_done, warn_user};
 use crate::print_error;
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -98,7 +98,7 @@ pub fn init_config_file() {
             &config_path()
         )
     });
-    println!("Created config file at '/etc/acs/acs.toml'");
+    print_done!("Created config file at '/etc/acs/acs.toml'");
 }
 
 #[derive(Debug, Serialize)]

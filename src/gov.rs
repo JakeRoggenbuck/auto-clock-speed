@@ -1,5 +1,8 @@
 use std::fmt;
 
+/// Governor
+///
+/// https://www.kernel.org/doc/html/v4.14/admin-guide/pm/cpufreq.html#generic-scaling-governors
 pub enum Gov {
     Powersave,
     Performance,

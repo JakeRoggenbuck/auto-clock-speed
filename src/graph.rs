@@ -1,4 +1,5 @@
 use rasciigraph::{plot, Config};
+use std::default::Default;
 use std::fmt;
 
 pub trait Grapher {
@@ -43,6 +44,12 @@ pub enum GraphType {
     Usage,
     Temperature,
     Unknown,
+}
+
+impl Default for GraphType {
+    fn default() -> GraphType {
+        GraphType::Hidden
+    }
 }
 
 impl fmt::Display for GraphType {

@@ -733,27 +733,12 @@ pub fn run(daemon_mutex: Arc<Mutex<Daemon>>) -> Result<(), Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::default_config;
+    use crate::settings::DefaultTesting;
 
     #[test]
     fn daemon_init_force_to_monit_integration_test() {
-        let settings = Settings {
-            verbose: true,
-            delay: 1,
-            delay_battery: 2,
-            hook: false,
-            edit: true,
-            no_animation: false,
-            graph: GraphType::Hidden,
-            commit: false,
-            testing: true,
-            csv_file: "".to_string(),
-            log_csv: false,
-            log_size_cutoff: 20,
-            show_settings: false,
-        };
-
-        let config = default_config();
+        let settings = Settings::default_testing();
+        let config = Config::default();
 
         let daemon_mutex = daemon_init(settings, config).unwrap();
         let daemon = daemon_mutex.lock().unwrap();
@@ -769,23 +754,8 @@ mod tests {
     fn preprint_render_test_edit_integration_test() {
         // It should be possible to skip tests ):<
         // https://github.com/Camerooooon/dev-log/blob/main/logs/2022-06-13.md
-        let settings = Settings {
-            verbose: true,
-            delay: 1,
-            delay_battery: 2,
-            hook: false,
-            edit: true,
-            no_animation: false,
-            graph: GraphType::Hidden,
-            commit: false,
-            testing: true,
-            csv_file: "".to_string(),
-            log_csv: false,
-            log_size_cutoff: 20,
-            show_settings: false,
-        };
-
-        let config = default_config();
+        let settings = Settings::default_testing();
+        let config = Config::default();
 
         let daemon_mutex = daemon_init(settings, config).unwrap();
         let mut daemon = daemon_mutex.lock().unwrap();
@@ -804,23 +774,8 @@ mod tests {
 
     #[test]
     fn preprint_render_test_monit_integration_test() {
-        let settings = Settings {
-            verbose: true,
-            delay: 1,
-            delay_battery: 2,
-            hook: false,
-            edit: false,
-            no_animation: false,
-            graph: GraphType::Hidden,
-            commit: false,
-            testing: true,
-            csv_file: "".to_string(),
-            log_csv: false,
-            log_size_cutoff: 20,
-            show_settings: false,
-        };
-
-        let config = default_config();
+        let settings = Settings::default_testing();
+        let config = Config::default();
 
         let daemon_mutex = daemon_init(settings, config).unwrap();
         let mut daemon = daemon_mutex.lock().unwrap();

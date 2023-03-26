@@ -252,21 +252,7 @@ enum ACSCommand {
 }
 
 pub fn parse_args(config: config::Config) {
-    let set_settings = Settings {
-        verbose: true,
-        delay_battery: 0,
-        delay: 0,
-        edit: false,
-        hook: false,
-        no_animation: false,
-        graph: GraphType::Hidden,
-        commit: false,
-        testing: false,
-        csv_file: "".to_string(),
-        log_csv: false,
-        log_size_cutoff: 20,
-        show_settings: false,
-    };
+    let set_settings = Settings::default();
 
     let int = Interface {
         set: Set {},

@@ -1,6 +1,6 @@
+use super::config::config_dir_exists;
 use super::system::{inside_docker, inside_wsl};
 use super::warn_user;
-use super::config::config_dir_exists;
 use std::{thread, time};
 
 pub fn inside_wsl_message() -> String {

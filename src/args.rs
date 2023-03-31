@@ -338,12 +338,8 @@ pub fn parse_args(config: config::Config) {
                 show_settings,
             };
 
-            match daemon_init(settings, config) {
-                Ok(d) => {
-                    daemon::run(d).expect("Daemon did not run successfully.");
-                }
-                Err(_) => eprint!("Could not run daemon in edit mode"),
-            }
+            let d = daemon_init(settings, config);
+            daemon::run(d).expect("Daemon did not run successfully.");
         }
 
         // Monitor command
@@ -394,12 +390,8 @@ pub fn parse_args(config: config::Config) {
                 show_settings,
             };
 
-            match daemon_init(settings, config) {
-                Ok(d) => {
-                    daemon::run(d).expect("Daemon did not run successfully.");
-                }
-                Err(_) => eprint!("Could not run daemon in monitor mode"),
-            }
+            let d = daemon_init(settings, config);
+            daemon::run(d).expect("Daemon did not run successfully.");
         }
     }
 }

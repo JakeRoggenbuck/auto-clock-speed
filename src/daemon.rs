@@ -529,7 +529,7 @@ fn format_message(
     )
 }
 
-pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemon>>, Error> {
+pub fn daemon_init(settings: Settings, config: Config) -> Arc<Mutex<Daemon>> {
     let started_as_edit: bool = settings.edit;
     let mut edit = settings.edit;
     let mut forced_reason: String = String::new();
@@ -662,7 +662,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         }
     }
 
-    Ok(daemon_mutex)
+    daemon_mutex
 }
 
 pub fn run(daemon_mutex: Arc<Mutex<Daemon>>) -> Result<(), Error> {
@@ -738,7 +738,7 @@ mod tests {
         let settings = Settings::default_testing();
         let config = Config::default();
 
-        let daemon_mutex = daemon_init(settings, config).unwrap();
+        let daemon_mutex = daemon_init(settings, config);
         let daemon = daemon_mutex.lock().unwrap();
 
         if Uid::effective().is_root() {
@@ -755,7 +755,7 @@ mod tests {
         let settings = Settings::default_testing();
         let config = Config::default();
 
-        let daemon_mutex = daemon_init(settings, config).unwrap();
+        let daemon_mutex = daemon_init(settings, config);
         let mut daemon = daemon_mutex.lock().unwrap();
         let preprint = daemon.preprint_render();
         if Uid::effective().is_root() {
@@ -775,7 +775,7 @@ mod tests {
         let settings = Settings::default_testing();
         let config = Config::default();
 
-        let daemon_mutex = daemon_init(settings, config).unwrap();
+        let daemon_mutex = daemon_init(settings, config);
         let mut daemon = daemon_mutex.lock().unwrap();
         let preprint = daemon.preprint_render();
         assert!(preprint.contains("Auto Clock Speed daemon has been initialized in \u{1b}[33mmonitor\u{1b}[0m mode with a delay of 1ms normally and 2ms when on battery\n"));

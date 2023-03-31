@@ -617,9 +617,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Result<Arc<Mutex<Daemo
         config,
         last_below_cpu_usage_percent: None,
         graph: String::new(),
-        grapher: Graph {
-            vals: Vec::<f64>::new(),
-        },
+        grapher: Graph::new(),
         temp_max: 0,
         commit_hash: String::new(),
         timeout: time::Duration::from_millis(1),

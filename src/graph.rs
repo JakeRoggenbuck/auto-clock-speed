@@ -6,10 +6,13 @@ pub trait Grapher {
     fn update_one(&self, vec: &mut Vec<f64>) -> String;
     fn clear_before(&self, vec: &mut Vec<f64>);
     fn plot(&self, nums: Vec<f64>) -> String;
+    fn new() -> Self;
 }
 
 pub struct Graph {
+    /// The values that get graphed
     pub vals: Vec<f64>,
+    max: usize,
 }
 
 impl Grapher for Graph {
@@ -23,7 +26,7 @@ impl Grapher for Graph {
     }
 
     fn clear_before(&self, vec: &mut Vec<f64>) {
-        while vec.len() > 40 {
+        while vec.len() > self.max {
             vec.remove(0);
         }
     }
@@ -33,6 +36,13 @@ impl Grapher for Graph {
             "\n{}",
             plot(nums, Config::default().with_offset(10).with_height(10))
         )
+    }
+
+    fn new() -> Self {
+        Graph {
+            vals: Vec::<f64>::new(),
+            max: 40,
+        }
     }
 }
 

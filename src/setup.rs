@@ -1,5 +1,7 @@
 use super::system::{inside_docker, inside_wsl};
 use super::warn_user;
+use super::config::config_dir_exists;
+use std::{thread, time};
 
 pub fn inside_wsl_message() -> String {
     String::from(
@@ -19,5 +21,12 @@ pub fn setup() {
     }
     if inside_docker() {
         warn_user!(inside_docker_message());
+    }
+}
+
+pub fn check_config_dir_exists() {
+    if !config_dir_exists() {
+        warn_user!("Config directory '/etc/acs' does not exist!");
+        thread::sleep(time::Duration::from_millis(5000));
     }
 }

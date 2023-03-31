@@ -2,7 +2,7 @@ use std::{thread, time};
 use structopt::StructOpt;
 
 use super::config;
-use super::config::{config_dir_exists, init_config};
+use super::config::init_config;
 use super::daemon;
 use super::daemon::daemon_init;
 use super::display::show_config;
@@ -10,6 +10,7 @@ use super::graph::{get_graph_type, GraphType};
 use super::interactive::interactive;
 use super::interface::{DaemonControl, DaemonController, Get, Getter, Interface, Set, Setter};
 use super::settings::Settings;
+use super::setup::check_config_dir_exists;
 use super::warn_user;
 
 #[derive(StructOpt)]
@@ -302,10 +303,7 @@ pub fn parse_args(config: config::Config) {
             log_size_cutoff,
             show_settings,
         } => {
-            if !config_dir_exists() {
-                warn_user!("Config directory '/etc/acs' does not exist!");
-                thread::sleep(time::Duration::from_millis(5000));
-            }
+            check_config_dir_exists();
 
             let mut parsed_graph_type = GraphType::Hidden;
             if let Some(gt) = graph_type {
@@ -358,9 +356,7 @@ pub fn parse_args(config: config::Config) {
             log_size_cutoff,
             show_settings,
         } => {
-            if !config_dir_exists() {
-                warn_user!("Config directory '/etc/acs' does not exist!");
-            }
+            check_config_dir_exists();
 
             let mut parsed_graph_type = GraphType::Hidden;
 

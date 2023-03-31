@@ -45,7 +45,8 @@ impl fmt::Display for Log {
         };
 
         let date_time_fmt =
-            format_description::parse("[year]-[month]-[day] [hour]:[minute]:[second]").unwrap();
+            format_description::parse("[year]-[month]-[day] [hour]:[minute]:[second]")
+                .expect("Invalid time format.");
 
         let mut time = OffsetDateTime::from(self.timestamp)
             .format(&date_time_fmt)

@@ -266,13 +266,11 @@ pub trait Setter {
 impl Setter for Set {
     fn gov(&self, value: String, config: Config, settings: Settings) {
         // Create the daemon to set the gov
-        match daemon_init(settings, config) {
-            Ok(d) => match d.lock().unwrap().set_govs(value) {
-                Ok(_) => {}
-                Err(e) => eprint!("Could not set gov, {:?}", e),
-            },
-            Err(_) => eprint!("Could not run daemon in edit mode"),
-        }
+        let d = daemon_init(settings, config);
+        match d.lock().unwrap().set_govs(value) {
+            Ok(_) => {}
+            Err(e) => eprint!("Could not set gov, {:?}", e),
+        };
     }
 }
 

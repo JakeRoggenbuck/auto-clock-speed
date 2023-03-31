@@ -1,5 +1,4 @@
 use super::config::{get_config, Config};
-use super::graph::GraphType;
 use super::interface::{DaemonControl, DaemonController, Get, Getter, Interface, Set, Setter};
 use super::settings::Settings;
 use efcl::{bold, color, Color};
@@ -48,21 +47,7 @@ pub fn interactive() {
     println!("{}", bold!("Auto Clock Speed"));
     println!("{}", color!(Color::BLUE, "Interactive Mode"));
 
-    let set_settings = Settings {
-        verbose: true,
-        delay_battery: 0,
-        delay: 0,
-        edit: false,
-        hook: false,
-        no_animation: false,
-        graph: GraphType::Hidden,
-        commit: false,
-        testing: false,
-        csv_file: "".to_string(),
-        log_csv: false,
-        log_size_cutoff: 20,
-        show_settings: false,
-    };
+    let set_settings = Settings::default();
 
     loop {
         print!("{}", color!(Color::GREEN, "\n> "));

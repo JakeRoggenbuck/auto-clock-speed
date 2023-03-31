@@ -2,6 +2,7 @@ use super::daemon::State;
 use super::{print_done, warn_user};
 use crate::print_error;
 use serde::{Deserialize, Serialize};
+use std::default::Default;
 use std::fmt;
 use std::fs::File;
 use std::io::{ErrorKind, Read, Write};
@@ -24,18 +25,20 @@ pub fn config_dir_exists() -> bool {
     Path::new("/etc/acs/").exists()
 }
 
-pub fn default_config() -> Config {
-    Config {
-        powersave_under: 20,
-        overheat_threshold: 80,
-        high_cpu_threshold: 50,
-        high_cpu_time_needed: 15,
-        active_rules: vec![
-            State::BatteryLow,
-            State::LidClosed,
-            State::Charging,
-            State::CpuUsageHigh,
-        ],
+impl Default for Config {
+    fn default() -> Config {
+        Config {
+            powersave_under: 20,
+            overheat_threshold: 80,
+            high_cpu_threshold: 50,
+            high_cpu_time_needed: 15,
+            active_rules: vec![
+                State::BatteryLow,
+                State::LidClosed,
+                State::Charging,
+                State::CpuUsageHigh,
+            ],
+        }
     }
 }
 
@@ -89,7 +92,7 @@ pub fn init_config_file() {
         },
     };
 
-    let default_config = default_config();
+    let default_config = Config::default();
     let serialized = toml::to_string(&default_config).expect("Could not serialize default config");
 
     config.write_all(serialized.as_bytes()).unwrap_or_else(|_| {
@@ -140,7 +143,7 @@ impl SafeFillConfig for SafeConfig {
         // This approach coincidentally happens to be more efficient when more than half
         // of the values are not defined. This means that if no config is present, then no work
         // will be done to modify base.
-        let mut base = default_config();
+        let mut base = Config::default();
 
         if let Some(pu) = self.powersave_under {
             base.powersave_under = pu;
@@ -221,7 +224,7 @@ pub fn get_config() -> Config {
         Err(_) => {
             warn_user!("Using default config. Create file '/etc/acs/acs.toml' for custom config or run 'acs initconfig' to setup default config automatically.");
             // Use default config as config
-            default_config()
+            Config::default()
         }
     }
 }
@@ -232,7 +235,7 @@ mod tests {
 
     #[test]
     fn default_config_unit_test() {
-        let config: Config = default_config();
+        let config: Config = Config::default();
         assert!(config.powersave_under > 0 && config.powersave_under < 100);
     }
 

@@ -43,6 +43,9 @@ If you have cargo on your machine, skip to step 3
    # This is needed to have the root version of acs match the local installed version
    sudo cp ~/.cargo/bin/acs /usr/bin/acs
    ```
+   
+   Note: If you recieve error `linker 'cc' not found`, then you need to install a C compiler (gcc, cmake, etc.) first.
+   
 <hr>
 
 Note: The latest release of acs can also be installed locally with the following

@@ -210,9 +210,7 @@ impl Checker for Daemon {
                 && self.last_below_cpu_usage_percent.is_none()
             {
                 self.last_below_cpu_usage_percent = Some(SystemTime::now());
-            }
-
-            if self.usage <= self.config.high_cpu_threshold.into() {
+            } else {
                 self.last_below_cpu_usage_percent = None;
             }
 

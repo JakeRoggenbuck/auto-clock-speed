@@ -77,7 +77,7 @@ pub fn init_config_dir() {
 
 /// Initialize the config file at /etc/acs/acs.toml
 pub fn init_config_file() {
-    let config_file = File::create(&config_path());
+    let config_file = File::create(config_path());
     let mut config = match config_file {
         Ok(file) => file,
         Err(error) => match error.kind() {
@@ -98,7 +98,7 @@ pub fn init_config_file() {
     config.write_all(serialized.as_bytes()).unwrap_or_else(|_| {
         panic!(
             "Could not write serialized output to file {}",
-            &config_path()
+            config_path()
         )
     });
     print_done!("Created config file at '/etc/acs/acs.toml'");

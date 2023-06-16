@@ -182,11 +182,11 @@ enum ACSCommand {
         #[structopt(short, long)]
         show_settings: bool,
 
-        /// Milliseconds between update
+        /// Milliseconds between update (when charging)
         #[structopt(short, long)]
         delay: Option<u64>,
 
-        /// Milliseconds between update
+        /// Milliseconds between update (when on battery)
         #[structopt(short = "b", long = "delay-battery")]
         delay_battery: Option<u64>,
 

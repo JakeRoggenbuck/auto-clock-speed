@@ -194,11 +194,11 @@ enum ACSCommand {
         #[structopt(short, long)]
         no_animation: bool,
 
-        /// Graph
-        #[structopt(short = "g", long = "graph")]
+        /// Graph "freq", "usage", or "temp"
+        #[structopt(short = "g", long = "--graph")]
         graph_type: Option<String>,
 
-        /// Commit hash
+        /// Show commit hash
         #[structopt(short, long)]
         commit: bool,
 
@@ -206,7 +206,7 @@ enum ACSCommand {
         #[structopt(long = "csv")]
         csv_file: Option<String>,
 
-        /// Log file size cutoff in MB
+        /// Log CSV file size cutoff in MB
         #[structopt(long = "log-size-cutoff", default_value = "20")]
         log_size_cutoff: i32,
     },
@@ -230,7 +230,7 @@ enum ACSCommand {
         #[structopt(short, long)]
         show_settings: bool,
 
-        /// Hook
+        /// Hook to other instance of ACS running as root to view live data
         #[structopt(short = "h", long = "--hook")]
         hook: bool,
 
@@ -238,7 +238,7 @@ enum ACSCommand {
         #[structopt(short = "g", long = "--graph")]
         graph_type: Option<String>,
 
-        /// Commit hash
+        /// Show commit hash
         #[structopt(short, long)]
         commit: bool,
 
@@ -246,7 +246,7 @@ enum ACSCommand {
         #[structopt(long = "csv")]
         csv_file: Option<String>,
 
-        /// Log file size cutoff in MB
+        /// Log CSV file size cutoff in MB
         #[structopt(long = "log-size-cutoff", default_value = "20")]
         log_size_cutoff: i32,
     },

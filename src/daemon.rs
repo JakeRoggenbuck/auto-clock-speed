@@ -473,12 +473,7 @@ impl Checker for Daemon {
         // Print all pre-rendered items
         print!("{}", preprint);
 
-        print_turbo_status(
-            cores,
-            self.settings.animation,
-            term_width,
-            delay_in_millis,
-        );
+        print_turbo_status(cores, self.settings.animation, term_width, delay_in_millis);
 
         // Print more pre-rendered items
         print!("{}", postprint);

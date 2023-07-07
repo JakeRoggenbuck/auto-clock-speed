@@ -118,7 +118,7 @@ pub fn print_turbo_animation(cpu: usize, y_pos: usize, delay: u64) {
     });
 }
 
-pub fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize, delay: u64) {
+pub fn print_turbo_status(cores: usize, animation: bool, term_width: usize, delay: u64) {
     let mut turbo_y_pos: usize = 8;
     let title_width = 94;
 
@@ -128,12 +128,13 @@ pub fn print_turbo_status(cores: usize, no_animation: bool, term_width: usize, d
 
     match check_turbo_enabled() {
         Ok(turbo) => {
-            let enabled_message = if turbo { "yes" } else { "no" };
+            let enabled_message = if turbo { "enabled" } else { "disabled" };
 
-            println!("  Turbo: {}", enabled_message);
-
-            if !no_animation {
+            if animation {
+                println!("  Turbo: {}", enabled_message);
                 print_turbo_animation(cores, turbo_y_pos, delay);
+            } else {
+                println!("Turbo: {}", enabled_message);
             }
         }
         Err(..) => eprintln!("Could not check turbo. Expected for AMD.\n"),

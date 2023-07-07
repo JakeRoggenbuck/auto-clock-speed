@@ -190,9 +190,9 @@ enum ACSCommand {
         #[structopt(short = "b", long = "delay-battery")]
         delay_battery: Option<u64>,
 
-        /// No animations, for systemctl updating issue
+        /// Animations, for systemctl updating issue
         #[structopt(short, long)]
-        no_animation: bool,
+        animation: bool,
 
         /// Graph "freq", "usage", or "temp"
         #[structopt(short = "g", long = "--graph")]
@@ -222,9 +222,9 @@ enum ACSCommand {
         #[structopt(short = "b", long = "delay-battery")]
         delay_battery: Option<u64>,
 
-        /// No animations, for systemctl updating issue
+        /// Animations, for systemctl updating issue
         #[structopt(short, long)]
-        no_animation: bool,
+        animation: bool,
 
         /// Output the settings and quit
         #[structopt(short, long)]
@@ -296,7 +296,7 @@ pub fn parse_args(config: config::Config) {
             quiet,
             delay,
             delay_battery,
-            no_animation,
+            animation,
             graph_type,
             commit,
             csv_file,
@@ -325,7 +325,7 @@ pub fn parse_args(config: config::Config) {
                 delay_battery: effective_delay_battery,
                 delay: regular_delay,
                 edit: true,
-                no_animation,
+                animation,
                 hook: false,
                 graph: parsed_graph_type,
                 commit,
@@ -344,7 +344,7 @@ pub fn parse_args(config: config::Config) {
         ACSCommand::Monitor {
             delay,
             delay_battery,
-            no_animation,
+            animation,
             graph_type,
             hook,
             commit,
@@ -376,7 +376,7 @@ pub fn parse_args(config: config::Config) {
                 delay_battery: effective_delay_battery,
                 edit: false,
                 hook,
-                no_animation,
+                animation,
                 graph: parsed_graph_type,
                 commit,
                 testing: false,

@@ -219,7 +219,6 @@ impl Speed for CPU {
 impl fmt::Display for CPU {
     /// Display any information about the cpu in a human readable and simple format
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let temp: String;
         let reduced_cpu_cur_temp = self.cur_temp / 1000;
 
         // Pick color based on temp
@@ -233,9 +232,8 @@ impl fmt::Display for CPU {
             Color::GREEN
         };
 
-        temp = color!(temp_color, format!("{}C", reduced_cpu_cur_temp).as_str());
+        let temp: String = color!(temp_color, format!("{}C", reduced_cpu_cur_temp).as_str());
 
-        let usage: String;
         let scaled_cpus_cur_usage = self.cur_usage * 100.0;
 
         // Pick color based on usage
@@ -249,7 +247,7 @@ impl fmt::Display for CPU {
             Color::LIGHTGRAY
         };
 
-        usage = color!(
+        let usage: String = color!(
             usage_color,
             format!("{:.2}%", scaled_cpus_cur_usage).as_str()
         );

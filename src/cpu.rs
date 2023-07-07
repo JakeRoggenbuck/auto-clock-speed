@@ -235,29 +235,20 @@ impl fmt::Display for CPU {
         let usage: String;
         let scaled_cpus_cur_usage = self.cur_usage * 100.0;
 
-        if self.cur_usage > 0.9 {
-            usage = color!(
-                Color::RED,
-                format!("{:.2}%", scaled_cpus_cur_usage).as_str()
-            );
+        let usage_color = if self.cur_usage > 0.9 {
+            Color::RED
         } else if self.cur_usage > 0.5 {
-            usage = color!(
-                Color::YELLOW,
-                format!("{:.2}%", scaled_cpus_cur_usage).as_str()
-            );
-        } else if self.cur_usage > 0.2 {
-            usage = format!("{:.2}%", scaled_cpus_cur_usage);
+            Color::YELLOW
         } else if self.cur_usage > 0.0000 {
-            usage = color!(
-                Color::GREEN,
-                format!("{:.2}%", scaled_cpus_cur_usage).as_str()
-            );
+            Color::GREEN
         } else {
-            usage = color!(
-                Color::PURPLE,
-                format!("{:.2}%", scaled_cpus_cur_usage).as_str()
-            );
-        }
+            Color::LIGHTGRAY
+        };
+
+        usage = color!(
+            usage_color,
+            format!("{:.2}%", scaled_cpus_cur_usage).as_str()
+        );
 
         writeln!(
             f,

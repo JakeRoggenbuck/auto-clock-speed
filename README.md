@@ -2,6 +2,7 @@
 [![Rust](https://img.shields.io/github/actions/workflow/status/jakeroggenbuck/auto-clock-speed/rust.yml?branch=main&style=for-the-badge)](https://github.com/JakeRoggenbuck/auto-clock-speed/actions)
 [![Crates Version](https://img.shields.io/crates/v/autoclockspeed?style=for-the-badge)](https://crates.io/crates/autoclockspeed)
 [![Downloads](https://img.shields.io/crates/d/autoclockspeed?style=for-the-badge)](https://crates.io/crates/autoclockspeed)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/jakeroggenbuck/auto-clock-speed?style=for-the-badge)
 
 #### [ACS Upstream](https://github.com/jakeroggenbuck/auto-clock-speed) - [autoclockspeed.org](https://autoclockspeed.org) - [Our crates.io](https://crates.io/crates/autoclockspeed) - [ACS Github Org](https://github.com/autoclockspeed)
 

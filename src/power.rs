@@ -7,6 +7,7 @@ pub mod battery;
 pub mod lid;
 
 /// Called once at the start of read_power_source
+/// Discover the path to the AC power_supply
 fn set_best_path() -> Option<&'static str> {
     // Only loaded once
     static POWER_SOURCE_PATH: [&str; 4] = [
@@ -39,6 +40,9 @@ pub trait PowerRetriever {
 
 impl PowerRetriever for Power {
     fn new() -> Self {
+        // If a path for the AC power_supply is found
+        // store it as found_path so that it does not have to be found
+        // multiple times
         if let Some(path) = set_best_path() {
             Power {
                 best_path: path,

@@ -473,12 +473,7 @@ impl Checker for Daemon {
         // Print all pre-rendered items
         print!("{}", preprint);
 
-        print_turbo_status(
-            cores,
-            self.settings.no_animation,
-            term_width,
-            delay_in_millis,
-        );
+        print_turbo_status(cores, self.settings.animation, term_width, delay_in_millis);
 
         // Print more pre-rendered items
         print!("{}", postprint);
@@ -571,7 +566,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Arc<Mutex<Daemon>> {
         delay: settings.delay,
         delay_battery: settings.delay_battery,
         edit, // Use new edit for new settings
-        no_animation: settings.no_animation,
+        animation: settings.animation,
         hook: settings.hook,
         graph: settings.graph.clone(),
         commit: settings.commit,

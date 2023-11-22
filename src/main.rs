@@ -41,6 +41,7 @@ pub mod graph;
 pub mod interactive;
 pub mod interface;
 pub mod logger;
+pub mod msr;
 pub mod network;
 pub mod power;
 pub mod proc;

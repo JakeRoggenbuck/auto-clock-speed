@@ -7,7 +7,7 @@ pub mod battery;
 pub mod lid;
 
 /// Called once at the start of read_power_source
-fn set_best_path() -> Option<&'static str> {
+pub fn set_best_path() -> Option<&'static str> {
     // Only loaded once
     static POWER_SOURCE_PATH: [&str; 4] = [
         "/sys/class/power_supply/AC/online",

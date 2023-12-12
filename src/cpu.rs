@@ -7,9 +7,9 @@ use std::path::Path;
 
 use crate::proc::ProcStat;
 
+use crate::error::Error;
 use crate::gov::Gov;
 use crate::system::{calculate_cpu_percent, read_int, read_str};
-use crate::error::Error;
 
 /// Any trait relating to a CPU Core
 pub trait Speed {

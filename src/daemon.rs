@@ -39,6 +39,9 @@ use serde::Serialize;
 
 use crate::config::Config;
 use crate::cpu::{Speed, CPU};
+use crate::csv::{gen_writer, CSVWriter, Writer};
+use crate::display::{print_battery_status, print_turbo_status};
+use crate::error::Error;
 use crate::gov::Gov;
 use crate::graph::{Graph, GraphType, Grapher};
 use crate::logger;
@@ -47,6 +50,7 @@ use crate::network::{hook, listen};
 use crate::power::battery::{has_battery, Battery};
 use crate::power::lid::{Lid, LidRetriever, LidState};
 use crate::power::{Power, PowerRetriever};
+use crate::proc::{parse_proc_file, read_proc_stat_file, ProcStat};
 use crate::settings::Settings;
 use crate::setup::{inside_docker_message, inside_wsl_message};
 use crate::system::{
@@ -54,10 +58,6 @@ use crate::system::{
     get_highest_temp, inside_docker, inside_wsl, list_cpus,
 };
 use crate::terminal::terminal_width;
-use crate::error::Error;
-use crate::csv::{gen_writer, CSVWriter, Writer};
-use crate::display::{print_battery_status, print_turbo_status};
-use crate::proc::{parse_proc_file, read_proc_stat_file, ProcStat};
 use crate::warn_user;
 
 /// Describes the state of the machine

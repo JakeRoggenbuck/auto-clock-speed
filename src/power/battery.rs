@@ -1,5 +1,5 @@
-use crate::sysfs;
 use crate::error::Error;
+use crate::sysfs;
 use std::any::Any;
 use std::fs::read_dir;
 use std::path::{Path, PathBuf};

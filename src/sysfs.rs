@@ -1,4 +1,4 @@
-use crate::Error;
+use crate::error::Error;
 use globset::Glob;
 use std::fs;
 use std::path::{Path, PathBuf};

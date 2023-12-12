@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::Path;
 
-use super::Error;
+use crate::error::Error;
 
 pub mod battery;
 pub mod lid;

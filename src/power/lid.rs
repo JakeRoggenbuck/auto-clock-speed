@@ -63,14 +63,11 @@ impl LidRetriever for Lid {
 
         let lid_str = fs::read_to_string(self.best_path)?;
 
-        let state = if lid_str.contains("open") {
-            LidState::Open
-        } else if lid_str.contains("closed") {
-            LidState::Closed
-        } else {
-            LidState::Unknown
-        };
-        Ok(state)
+        Ok(match lid_str.split_whitespace().last().unwrap() {
+            "open" => LidState::Open,
+            "closed" => LidState::Closed,
+            _ => LidState::Unknown,
+        })
     }
 }
 

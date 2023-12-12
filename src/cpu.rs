@@ -219,45 +219,38 @@ impl Speed for CPU {
 impl fmt::Display for CPU {
     /// Display any information about the cpu in a human readable and simple format
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let temp: String;
         let reduced_cpu_cur_temp = self.cur_temp / 1000;
 
-        if reduced_cpu_cur_temp > 60 {
-            temp = color!(Color::RED, format!("{}C", reduced_cpu_cur_temp).as_str());
+        // Pick color based on temp
+        let temp_color = if reduced_cpu_cur_temp > 60 {
+            Color::RED
         } else if reduced_cpu_cur_temp > 40 {
-            temp = color!(Color::YELLOW, format!("{}C", reduced_cpu_cur_temp).as_str());
+            Color::YELLOW
         } else if reduced_cpu_cur_temp == 1 || reduced_cpu_cur_temp == 0 {
-            temp = format!("{}C*", reduced_cpu_cur_temp);
+            Color::LIGHTGRAY
         } else {
-            temp = color!(Color::GREEN, format!("{}C", reduced_cpu_cur_temp).as_str());
-        }
+            Color::GREEN
+        };
 
-        let usage: String;
+        let temp: String = color!(temp_color, format!("{}C", reduced_cpu_cur_temp).as_str());
+
         let scaled_cpus_cur_usage = self.cur_usage * 100.0;
 
-        if self.cur_usage > 0.9 {
-            usage = color!(
-                Color::RED,
-                format!("{:.2}%", scaled_cpus_cur_usage).as_str()
-            );
+        // Pick color based on usage
+        let usage_color = if self.cur_usage > 0.9 {
+            Color::RED
         } else if self.cur_usage > 0.5 {
-            usage = color!(
-                Color::YELLOW,
-                format!("{:.2}%", scaled_cpus_cur_usage).as_str()
-            );
-        } else if self.cur_usage > 0.2 {
-            usage = format!("{:.2}%", scaled_cpus_cur_usage);
+            Color::YELLOW
         } else if self.cur_usage > 0.0000 {
-            usage = color!(
-                Color::GREEN,
-                format!("{:.2}%", scaled_cpus_cur_usage).as_str()
-            );
+            Color::GREEN
         } else {
-            usage = color!(
-                Color::PURPLE,
-                format!("{:.2}%", scaled_cpus_cur_usage).as_str()
-            );
-        }
+            Color::LIGHTGRAY
+        };
+
+        let usage: String = color!(
+            usage_color,
+            format!("{:.2}%", scaled_cpus_cur_usage).as_str()
+        );
 
         writeln!(
             f,

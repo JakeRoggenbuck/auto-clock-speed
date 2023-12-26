@@ -1,6 +1,6 @@
 [package]
 name = "autoclockspeed"
-version = "0.1.11"
+version = "0.1.12"
 edition = "2021"
 license = "MIT OR MPL-2.0"
 description = "A utility to check stats about your CPU, and auto regulate clock speeds to help with either performance or battery life."
@@ -27,6 +27,14 @@ rand = "0.8.5"
 globset = "0.4"
 time = { version = "0.3", features = ["local-offset", "formatting"]}
 
+[dev-dependencies]
+criterion = { version = "0.4", features = ["html_reports"] }
+
 [[bin]]
 name = "acs"
-path = "src/main.rs"
+path = "src/bin/main.rs"
+
+
+[[bench]]
+name = "system_benchmark"
+harness = false

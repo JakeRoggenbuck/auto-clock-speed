@@ -1,4 +1,4 @@
-use crate::Error;
+use crate::error::Error;
 use std::cmp::PartialEq;
 use std::fmt;
 use std::fs;

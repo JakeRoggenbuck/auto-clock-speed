@@ -5,11 +5,11 @@ use std::string::String;
 use std::{thread, time};
 
 use crate::cpu::Speed;
-use crate::debug;
 use crate::proc::{parse_proc_file, read_proc_stat_file, ProcStat};
+use log::debug;
 
-use super::cpu::CPU;
-use super::Error;
+use crate::cpu::CPU;
+use crate::error::Error;
 
 /// Find the average frequency of all cores
 ///

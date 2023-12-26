@@ -24,39 +24,15 @@
 
 #![allow(clippy::uninlined_format_args)]
 
-use args::parse_args;
-use config::get_config;
-use error::Error;
-use log::debug;
-
-pub mod args;
-pub mod config;
-pub mod cpu;
-pub mod csv;
-pub mod daemon;
-pub mod display;
-pub mod error;
-pub mod gov;
-pub mod graph;
-pub mod interactive;
-pub mod interface;
-pub mod logger;
-pub mod network;
-pub mod power;
-pub mod proc;
-pub mod settings;
-pub mod setup;
-pub mod sysfs;
-pub mod system;
-pub mod terminal;
-pub mod thermal;
+use autoclockspeed::args::parse_args;
+use autoclockspeed::config::get_config;
 
 fn main() {
     env_logger::init();
 
-    setup::setup();
+    autoclockspeed::setup::setup();
 
-    let config: config::Config = get_config();
+    let config: autoclockspeed::config::Config = get_config();
 
     parse_args(config);
 }

@@ -1,14 +1,14 @@
 use std::fs;
 use std::path::Path;
 
-use super::Error;
+use crate::error::Error;
 
 pub mod battery;
 pub mod lid;
 
 /// Called once at the start of read_power_source
 /// Discover the path to the AC power_supply
-fn set_best_path() -> Option<&'static str> {
+pub fn set_best_path() -> Option<&'static str> {
     // Only loaded once
     static POWER_SOURCE_PATH: [&str; 4] = [
         "/sys/class/power_supply/AC/online",

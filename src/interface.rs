@@ -1,3 +1,10 @@
+///! The interface creates an API for getting and setting values with ACS
+///!
+///! Note: this is not an API for all of the functions in ACS, it's only the ones that get used in
+///! the command line tools made available in the ACS binary ('acs') and defined in src/args.rs
+///!
+///! This file offloads a lot of the work that was in src/args.rs but was too repetitive.
+///!
 use super::config::Config;
 use super::daemon::{daemon_init, Checker};
 use super::display::{

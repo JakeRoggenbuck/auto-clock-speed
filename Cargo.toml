@@ -38,3 +38,7 @@ path = "src/bin/main.rs"
 [[bench]]
 name = "system_benchmark"
 harness = false
+
+[[bench]]
+name = "graph_benchmark"
+harness = false

@@ -26,4 +26,5 @@ criterion_group!(
     list_cpus_benchmark,
     set_best_path_benchmark
 );
+
 criterion_main!(benches);

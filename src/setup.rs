@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 use super::config::config_dir_exists;
 use super::system::{inside_docker, inside_wsl};
 use super::warn_user;

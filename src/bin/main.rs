@@ -23,6 +23,7 @@
 // https://github.com/autoclockspeed
 
 #![allow(clippy::uninlined_format_args)]
+#![forbid(unsafe_code)]
 
 use autoclockspeed::args::parse_args;
 use autoclockspeed::config::get_config;

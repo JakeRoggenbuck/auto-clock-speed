@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 use cached::proc_macro::once;
 use std::fs::{self, read_dir};
 use std::path::Path;

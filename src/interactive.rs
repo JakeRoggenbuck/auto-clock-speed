@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 use super::config::{get_config, Config};
 use super::interface::{DaemonControl, DaemonController, Get, Getter, Interface, Set, Setter};
 use super::settings::Settings;

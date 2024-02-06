@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 use crate::error::Error;
 use std::cmp::PartialEq;
 use std::fmt;

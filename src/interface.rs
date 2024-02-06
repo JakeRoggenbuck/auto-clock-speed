@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 ///! The interface creates an API for getting and setting values with ACS
 ///!
 ///! Note: this is not an API for all of the functions in ACS, it's only the ones that get used in

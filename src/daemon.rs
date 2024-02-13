@@ -35,6 +35,7 @@ use std::{thread, time};
 
 use efcl::{color, Color};
 use nix::unistd::Uid;
+use notify_rust::Notification;
 use serde::Serialize;
 
 use crate::config::Config;
@@ -256,6 +257,13 @@ impl Checker for Daemon {
         // Get the commit hash from the compile time env variable
         if self.settings.commit {
             self.commit_hash = env!("GIT_HASH").to_string();
+        }
+
+        if let Some(msg) = &self.config.daemon_online_notification {
+            match Notification::new().appname("Auto Clock Speed").summary(&msg.replace("{mode}", if self.settings.edit { "edit" } else { "monitor" })).urgency(notify_rust::Urgency::Normal).timeout(1000).show() {
+                Ok(_) => {},
+                Err(e) => self.logger.log(&format!("Could not send notification: {:?}", e), logger::Severity::Warning), // TODO: Will be an error if run as sudo
+            };
         }
 
         self.timeout_battery = time::Duration::from_millis(self.settings.delay_battery);

@@ -38,6 +38,8 @@ impl Default for Config {
                 State::Charging,
                 State::CpuUsageHigh,
             ],
+            daemon_switch_governor_notification: Some("Power governor switched to {governor}".to_string()),
+            daemon_online_notification: Some("Auto clock speed has started in {mode} mode".to_string()),
         }
     }
 }
@@ -113,6 +115,8 @@ pub struct Config {
     pub high_cpu_threshold: i8,
     pub high_cpu_time_needed: u64,
     pub active_rules: Vec<State>,
+    pub daemon_switch_governor_notification: Option<String>,
+    pub daemon_online_notification: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -122,6 +126,8 @@ pub struct SafeConfig {
     pub high_cpu_threshold: Option<i8>,
     pub high_cpu_time_needed: Option<u64>,
     pub active_rules: Option<Vec<String>>,
+    pub daemon_switch_governor_notification: Option<String>,
+    pub daemon_online_notification: Option<String>,
 }
 
 trait SafeFillConfig {
@@ -174,6 +180,9 @@ impl SafeFillConfig for SafeConfig {
             }
         }
 
+        base.daemon_online_notification = self.daemon_online_notification.clone();
+        base.daemon_switch_governor_notification = self.daemon_switch_governor_notification.clone();
+
         base
     }
 }
@@ -203,6 +212,8 @@ fn parse_as_toml(config: String) -> Config {
             high_cpu_threshold: None,
             high_cpu_time_needed: None,
             active_rules: None,
+            daemon_switch_governor_notification: None,
+            daemon_online_notification: None,
         });
 
     safe_config.safe_fill_config()

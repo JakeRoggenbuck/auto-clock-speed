@@ -182,8 +182,7 @@ pub fn check_available_governors() -> Result<Vec<String>, Error> {
 }
 
 /// Get all the cpus (cores), returns cpus from 0 to the (amount of cores -1) the machine has
-#[once]
-pub fn list_cpus() -> Vec<CPU> {
+pub fn list_cpus() -> Result<Vec<CPU>, Error> {
     let mut cpus: Vec<String> = Vec::<String>::new();
 
     // Get each item in the cpu directory
@@ -228,30 +227,30 @@ pub fn list_cpus() -> Vec<CPU> {
             gov: "Unknown".to_string(),
         };
 
-        new.init_cpu().unwrap();
+        new.init_cpu()?;
 
-        new.update().unwrap();
+        new.update()?;
 
         to_return.push(new)
     }
 
     to_return.sort_by(|a, b| a.number.cmp(&b.number));
-    to_return
+    Ok(to_return)
 }
 
 /// Get a vector of speeds reported from each cpu from list_cpus
-pub fn list_cpu_speeds() -> Vec<i32> {
-    list_cpus().into_iter().map(|x| x.cur_freq).collect()
+pub fn list_cpu_speeds() -> Result<Vec<i32>, Error> {
+    Ok(list_cpus()?.into_iter().map(|x| x.cur_freq).collect())
 }
 
 /// Get a vector of temperatures reported from each cpu from list_cpus
-pub fn list_cpu_temp() -> Vec<i32> {
-    list_cpus().into_iter().map(|x| x.cur_temp).collect()
+pub fn list_cpu_temp() -> Result<Vec<i32>, Error> {
+    Ok(list_cpus()?.into_iter().map(|x| x.cur_temp).collect())
 }
 
 /// Get a vector of the governors that the cpus from list_cpus
-pub fn list_cpu_governors() -> Vec<String> {
-    list_cpus().into_iter().map(|x| x.gov).collect()
+pub fn list_cpu_governors() -> Result<Vec<String>, Error> {
+    Ok(list_cpus()?.into_iter().map(|x| x.gov).collect())
 }
 
 pub fn read_int(path: &str) -> Result<i32, Error> {

@@ -281,7 +281,7 @@ mod tests {
 
     #[test]
     fn check_cpu_freq_acs_test() {
-        assert!(check_cpu_freq(&list_cpus()) > 0.0);
+        assert!(check_cpu_freq(&list_cpus().unwrap()) > 0.0);
     }
 
     #[test]

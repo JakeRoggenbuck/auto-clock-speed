@@ -141,8 +141,15 @@ pub trait Getter {
 
 impl Getter for Get {
     fn freq(&self, raw: bool) {
-        let f = check_cpu_freq(&list_cpus());
-        print_freq(f, raw);
+        match list_cpus() {
+            Ok(cpus) => {
+                let f = check_cpu_freq(&cpus);
+                print_freq(f, raw);
+            },
+            Err(e) => {
+                eprint!("Failed to get cpu information, an error occured: {:?}", e);
+            },
+        }
     }
 
     fn power(&self, raw: bool) {
@@ -230,26 +237,54 @@ impl Getter for Get {
     }
 
     fn cpus(&self, raw: bool) {
-        let cpus = list_cpus();
-        match check_cpu_name() {
-            Ok(name) => print_cpus(cpus, name, raw),
-            Err(_) => println!("Failed get list of cpus"),
-        };
+        let cpus_result = list_cpus();
+        match cpus_result {
+            Ok(cpus) => {
+                match check_cpu_name() {
+                    Ok(name) => print_cpus(cpus, name, raw),
+                    Err(_) => println!("Failed get list of cpus"),
+                };
+            },
+            Err(e) => {
+                eprintln!("Failed to get cpu information, an error occured: {:?}", e);
+            },
+        }
     }
 
     fn speeds(&self, raw: bool) {
-        let speeds = list_cpu_speeds();
-        print_cpu_speeds(speeds, raw);
+        let speeds_result = list_cpu_speeds();
+        match speeds_result {
+            Ok(speeds) => {
+                print_cpu_speeds(speeds, raw);
+            },
+            Err(e) => {
+                eprintln!("Failed to get cpu speed information, an error occured: {:?}", e);
+            },
+        }
     }
 
     fn temp(&self, raw: bool) {
-        let cpu_temp = list_cpu_temp();
-        print_cpu_temp(cpu_temp, raw);
+        let cpu_temp_result = list_cpu_temp();
+        match cpu_temp_result {
+            Ok(cpu_temp) => {
+                print_cpu_temp(cpu_temp, raw);
+            },
+            Err(e) => {
+                eprintln!("Failed to get cpu temperature information, an error occured: {:?}", e);
+            },
+        }
     }
 
     fn govs(&self, raw: bool) {
-        let govs = list_cpu_governors();
-        print_cpu_governors(govs, raw);
+        let govs_result = list_cpu_governors();
+        match govs_result {
+            Ok(govs) => {
+                print_cpu_governors(govs, raw);
+            },
+            Err(e) => {
+                eprintln!("Failed to get cpu governor information, an error occured: {:?}", e);
+            },
+        }
     }
 
     fn bat_cond(&self, raw: bool) {

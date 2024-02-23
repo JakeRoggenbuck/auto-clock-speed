@@ -1,4 +1,3 @@
-use cached::proc_macro::once;
 use std::fs::{self, read_dir};
 use std::path::Path;
 use std::string::String;
@@ -182,8 +181,7 @@ pub fn check_available_governors() -> Result<Vec<String>, Error> {
 }
 
 /// Get all the cpus (cores), returns cpus from 0 to the (amount of cores -1) the machine has
-#[once]
-pub fn list_cpus() -> Vec<CPU> {
+pub fn list_cpus() -> Result<Vec<CPU>, Error> {
     let mut cpus: Vec<String> = Vec::<String>::new();
 
     // Get each item in the cpu directory
@@ -228,30 +226,30 @@ pub fn list_cpus() -> Vec<CPU> {
             gov: "Unknown".to_string(),
         };
 
-        new.init_cpu().unwrap();
+        new.init_cpu()?;
 
-        new.update().unwrap();
+        new.update()?;
 
         to_return.push(new)
     }
 
     to_return.sort_by(|a, b| a.number.cmp(&b.number));
-    to_return
+    Ok(to_return)
 }
 
 /// Get a vector of speeds reported from each cpu from list_cpus
-pub fn list_cpu_speeds() -> Vec<i32> {
-    list_cpus().into_iter().map(|x| x.cur_freq).collect()
+pub fn list_cpu_speeds() -> Result<Vec<i32>, Error> {
+    Ok(list_cpus()?.into_iter().map(|x| x.cur_freq).collect())
 }
 
 /// Get a vector of temperatures reported from each cpu from list_cpus
-pub fn list_cpu_temp() -> Vec<i32> {
-    list_cpus().into_iter().map(|x| x.cur_temp).collect()
+pub fn list_cpu_temp() -> Result<Vec<i32>, Error> {
+    Ok(list_cpus()?.into_iter().map(|x| x.cur_temp).collect())
 }
 
 /// Get a vector of the governors that the cpus from list_cpus
-pub fn list_cpu_governors() -> Vec<String> {
-    list_cpus().into_iter().map(|x| x.gov).collect()
+pub fn list_cpu_governors() -> Result<Vec<String>, Error> {
+    Ok(list_cpus()?.into_iter().map(|x| x.gov).collect())
 }
 
 pub fn read_int(path: &str) -> Result<i32, Error> {
@@ -282,7 +280,7 @@ mod tests {
 
     #[test]
     fn check_cpu_freq_acs_test() {
-        assert!(check_cpu_freq(&list_cpus()) > 0.0);
+        assert!(check_cpu_freq(&list_cpus().unwrap()) > 0.0);
     }
 
     #[test]
@@ -521,9 +519,9 @@ microcode	: 0xea
 
     #[test]
     fn list_cpus_acs_test() {
-        assert_eq!(type_of(list_cpus()), type_of(Vec::<CPU>::new()));
+        assert_eq!(type_of(list_cpus().unwrap()), type_of(Vec::<CPU>::new()));
 
-        for x in list_cpus() {
+        for x in list_cpus().unwrap() {
             assert!(!x.name.is_empty());
             assert!(x.max_freq > 0);
             assert!(x.min_freq > 0);
@@ -538,9 +536,12 @@ microcode	: 0xea
     #[test]
     fn list_cpu_speeds_acs_test() -> Result<(), Error> {
         // Type check
-        assert_eq!(type_of(list_cpu_speeds()), type_of(Vec::<i32>::new()));
+        assert_eq!(
+            type_of(list_cpu_speeds().unwrap()),
+            type_of(Vec::<i32>::new())
+        );
 
-        for x in list_cpu_speeds() {
+        for x in list_cpu_speeds().unwrap() {
             assert!(x > 0);
         }
         Ok(())
@@ -549,9 +550,12 @@ microcode	: 0xea
     #[test]
     fn list_cpu_temp_acs_test() {
         // Type check
-        assert_eq!(type_of(list_cpu_temp()), type_of(Vec::<i32>::new()));
+        assert_eq!(
+            type_of(list_cpu_temp().unwrap()),
+            type_of(Vec::<i32>::new())
+        );
 
-        for x in list_cpu_temp() {
+        for x in list_cpu_temp().unwrap() {
             assert!(x > -100);
         }
     }
@@ -559,9 +563,12 @@ microcode	: 0xea
     #[test]
     fn list_cpu_governors_acs_test() {
         // Type check
-        assert_eq!(type_of(list_cpu_governors()), type_of(Vec::<String>::new()));
+        assert_eq!(
+            type_of(list_cpu_governors().unwrap()),
+            type_of(Vec::<String>::new())
+        );
 
-        for x in list_cpu_governors() {
+        for x in list_cpu_governors().unwrap() {
             assert!(x == "powersave" || x == "performance" || x == "schedutil");
         }
     }

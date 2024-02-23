@@ -642,17 +642,14 @@ pub fn daemon_init(settings: Settings, config: Config) -> Arc<Mutex<Daemon>> {
     // Make a cpu struct for each cpu listed
     match list_cpus() {
         Ok(cpus) => {
-
             for cpu in cpus {
                 daemon.cpus.push(cpu);
             }
-
-        },
-        Err(e) => {
-
-            daemon.logger.log(&format!("Failed to read from CPUs: {:?}", e), logger::Severity::Error)
-
-        },
+        }
+        Err(e) => daemon.logger.log(
+            &format!("Failed to read from CPUs: {:?}", e),
+            logger::Severity::Error,
+        ),
     }
 
     let daemon_mutex = Arc::new(Mutex::new(daemon));

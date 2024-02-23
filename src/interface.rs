@@ -145,10 +145,10 @@ impl Getter for Get {
             Ok(cpus) => {
                 let f = check_cpu_freq(&cpus);
                 print_freq(f, raw);
-            },
+            }
             Err(e) => {
                 eprint!("Failed to get cpu information, an error occured: {:?}", e);
-            },
+            }
         }
     }
 
@@ -244,10 +244,10 @@ impl Getter for Get {
                     Ok(name) => print_cpus(cpus, name, raw),
                     Err(_) => println!("Failed get list of cpus"),
                 };
-            },
+            }
             Err(e) => {
                 eprintln!("Failed to get cpu information, an error occured: {:?}", e);
-            },
+            }
         }
     }
 
@@ -256,10 +256,13 @@ impl Getter for Get {
         match speeds_result {
             Ok(speeds) => {
                 print_cpu_speeds(speeds, raw);
-            },
+            }
             Err(e) => {
-                eprintln!("Failed to get cpu speed information, an error occured: {:?}", e);
-            },
+                eprintln!(
+                    "Failed to get cpu speed information, an error occured: {:?}",
+                    e
+                );
+            }
         }
     }
 
@@ -268,10 +271,13 @@ impl Getter for Get {
         match cpu_temp_result {
             Ok(cpu_temp) => {
                 print_cpu_temp(cpu_temp, raw);
-            },
+            }
             Err(e) => {
-                eprintln!("Failed to get cpu temperature information, an error occured: {:?}", e);
-            },
+                eprintln!(
+                    "Failed to get cpu temperature information, an error occured: {:?}",
+                    e
+                );
+            }
         }
     }
 
@@ -280,10 +286,13 @@ impl Getter for Get {
         match govs_result {
             Ok(govs) => {
                 print_cpu_governors(govs, raw);
-            },
+            }
             Err(e) => {
-                eprintln!("Failed to get cpu governor information, an error occured: {:?}", e);
-            },
+                eprintln!(
+                    "Failed to get cpu governor information, an error occured: {:?}",
+                    e
+                );
+            }
         }
     }
 

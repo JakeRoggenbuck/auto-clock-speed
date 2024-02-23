@@ -536,7 +536,10 @@ microcode	: 0xea
     #[test]
     fn list_cpu_speeds_acs_test() -> Result<(), Error> {
         // Type check
-        assert_eq!(type_of(list_cpu_speeds().unwrap()), type_of(Vec::<i32>::new()));
+        assert_eq!(
+            type_of(list_cpu_speeds().unwrap()),
+            type_of(Vec::<i32>::new())
+        );
 
         for x in list_cpu_speeds().unwrap() {
             assert!(x > 0);
@@ -547,7 +550,10 @@ microcode	: 0xea
     #[test]
     fn list_cpu_temp_acs_test() {
         // Type check
-        assert_eq!(type_of(list_cpu_temp().unwrap()), type_of(Vec::<i32>::new()));
+        assert_eq!(
+            type_of(list_cpu_temp().unwrap()),
+            type_of(Vec::<i32>::new())
+        );
 
         for x in list_cpu_temp().unwrap() {
             assert!(x > -100);
@@ -557,7 +563,10 @@ microcode	: 0xea
     #[test]
     fn list_cpu_governors_acs_test() {
         // Type check
-        assert_eq!(type_of(list_cpu_governors().unwrap()), type_of(Vec::<String>::new()));
+        assert_eq!(
+            type_of(list_cpu_governors().unwrap()),
+            type_of(Vec::<String>::new())
+        );
 
         for x in list_cpu_governors().unwrap() {
             assert!(x == "powersave" || x == "performance" || x == "schedutil");

@@ -1,4 +1,3 @@
-use cached::proc_macro::once;
 use std::fs::{self, read_dir};
 use std::path::Path;
 use std::string::String;
@@ -520,9 +519,9 @@ microcode	: 0xea
 
     #[test]
     fn list_cpus_acs_test() {
-        assert_eq!(type_of(list_cpus()), type_of(Vec::<CPU>::new()));
+        assert_eq!(type_of(list_cpus().unwrap()), type_of(Vec::<CPU>::new()));
 
-        for x in list_cpus() {
+        for x in list_cpus().unwrap() {
             assert!(!x.name.is_empty());
             assert!(x.max_freq > 0);
             assert!(x.min_freq > 0);
@@ -537,9 +536,9 @@ microcode	: 0xea
     #[test]
     fn list_cpu_speeds_acs_test() -> Result<(), Error> {
         // Type check
-        assert_eq!(type_of(list_cpu_speeds()), type_of(Vec::<i32>::new()));
+        assert_eq!(type_of(list_cpu_speeds().unwrap()), type_of(Vec::<i32>::new()));
 
-        for x in list_cpu_speeds() {
+        for x in list_cpu_speeds().unwrap() {
             assert!(x > 0);
         }
         Ok(())
@@ -548,9 +547,9 @@ microcode	: 0xea
     #[test]
     fn list_cpu_temp_acs_test() {
         // Type check
-        assert_eq!(type_of(list_cpu_temp()), type_of(Vec::<i32>::new()));
+        assert_eq!(type_of(list_cpu_temp().unwrap()), type_of(Vec::<i32>::new()));
 
-        for x in list_cpu_temp() {
+        for x in list_cpu_temp().unwrap() {
             assert!(x > -100);
         }
     }
@@ -558,9 +557,9 @@ microcode	: 0xea
     #[test]
     fn list_cpu_governors_acs_test() {
         // Type check
-        assert_eq!(type_of(list_cpu_governors()), type_of(Vec::<String>::new()));
+        assert_eq!(type_of(list_cpu_governors().unwrap()), type_of(Vec::<String>::new()));
 
-        for x in list_cpu_governors() {
+        for x in list_cpu_governors().unwrap() {
             assert!(x == "powersave" || x == "performance" || x == "schedutil");
         }
     }

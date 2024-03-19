@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 //! The daemon handles the running auto clock speed instance
 //!
 //! # Modes
@@ -57,7 +58,6 @@ use crate::system::{
     check_available_governors, check_cpu_freq, check_cpu_temperature, check_cpu_usage,
     get_highest_temp, inside_docker, inside_wsl, list_cpus,
 };
-use crate::terminal::terminal_width;
 use crate::warn_user;
 
 /// Describes the state of the machine
@@ -447,7 +447,7 @@ impl Checker for Daemon {
             self.graph = self.grapher.update_one(&mut self.grapher.vals.clone());
         }
 
-        let term_width = terminal_width();
+        let (term_width, _term_height) = termion::terminal_size().unwrap();
 
         // Render two sections of the output
         // Rendering before screen is cleared reduces the time between clear and print
@@ -473,7 +473,12 @@ impl Checker for Daemon {
         // Print all pre-rendered items
         print!("{}", preprint);
 
-        print_turbo_status(cores, self.settings.animation, term_width, delay_in_millis);
+        print_turbo_status(
+            cores,
+            self.settings.animation,
+            term_width.into(),
+            delay_in_millis,
+        );
 
         // Print more pre-rendered items
         print!("{}", postprint);

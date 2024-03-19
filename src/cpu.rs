@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 use efcl::{bold, color, Color};
 use rand::Rng;
 use std::fmt;

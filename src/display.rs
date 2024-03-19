@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 use efcl::{color, Color};
 use std::fmt::Display;
 use std::thread;

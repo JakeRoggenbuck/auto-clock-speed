@@ -17,5 +17,4 @@ pub mod settings;
 pub mod setup;
 pub mod sysfs;
 pub mod system;
-pub mod terminal;
 pub mod thermal;

@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 use super::daemon::State;
 use super::{print_done, warn_user};
 use crate::print_error;

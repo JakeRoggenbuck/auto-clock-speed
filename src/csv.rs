@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 //! # CSV logging
 //! This file is reponsible for logging data about the running daemon.
 //! CSV Logging is by default disabled, however it can be enabled by passing a parameter to the

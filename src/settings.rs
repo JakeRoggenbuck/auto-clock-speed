@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 use super::graph::GraphType;
 use std::default::Default;
 

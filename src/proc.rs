@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 use std::fs::read_to_string;
 
 use crate::error::Error;

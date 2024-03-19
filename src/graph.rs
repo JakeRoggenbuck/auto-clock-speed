@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 use rasciigraph::{plot, Config};
 use std::default::Default;
 use std::fmt;

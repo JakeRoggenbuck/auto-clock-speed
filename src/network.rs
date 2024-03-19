@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 use serde::{Deserialize, Serialize};
 
 use crate::logger::Log;

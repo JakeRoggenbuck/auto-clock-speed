@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 use crate::network::{log_to_daemon, logger, Daemon, Packet};
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::net::UnixStream;

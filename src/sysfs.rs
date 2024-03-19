@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 use crate::error::Error;
 use globset::Glob;
 use std::fs;

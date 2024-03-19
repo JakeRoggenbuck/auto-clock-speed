@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 use crate::error::Error;
 use crate::sysfs;
 use std::any::Any;

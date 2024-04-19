@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 use std::{thread, time};
 use structopt::StructOpt;
 

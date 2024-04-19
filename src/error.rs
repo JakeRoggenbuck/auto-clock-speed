@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 use std::fmt;
 
 const BUG_REPORT: &str = "\nGive us a bug report by opening an issue at

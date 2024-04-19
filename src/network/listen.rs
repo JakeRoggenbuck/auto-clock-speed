@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 use crate::logger;
 use crate::logger::Interface;
 use crate::network::log_to_daemon;

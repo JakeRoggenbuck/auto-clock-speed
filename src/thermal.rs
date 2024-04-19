@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 use super::system::{read_int, read_str};
 use crate::error::Error;
 use efcl::{color, Color};

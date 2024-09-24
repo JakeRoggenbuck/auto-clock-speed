@@ -37,7 +37,10 @@ impl Grapher for Graph {
     fn plot(&self, nums: VecDeque<f64>) -> String {
         format!(
             "\n{}",
-            plot(nums.into(), Config::default().with_offset(10).with_height(10))
+            plot(
+                nums.into(),
+                Config::default().with_offset(10).with_height(10)
+            )
         )
     }
 

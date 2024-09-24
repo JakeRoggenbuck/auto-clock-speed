@@ -1,19 +1,20 @@
 #![forbid(unsafe_code)]
 use rasciigraph::{plot, Config};
+use std::collections::VecDeque;
 use std::default::Default;
 use std::fmt;
 
 pub trait Grapher {
     fn update_all(&mut self);
-    fn update_one(&self, vec: &mut Vec<f64>) -> String;
-    fn clear_before(&self, vec: &mut Vec<f64>);
-    fn plot(&self, nums: Vec<f64>) -> String;
+    fn update_one(&self, vec: &mut VecDeque<f64>) -> String;
+    fn clear_before(&self, vec: &mut VecDeque<f64>);
+    fn plot(&self, nums: VecDeque<f64>) -> String;
     fn new() -> Self;
 }
 
 pub struct Graph {
     /// The values that get graphed
-    pub vals: Vec<f64>,
+    pub vals: VecDeque<f64>,
     max: usize,
 }
 
@@ -22,27 +23,27 @@ impl Grapher for Graph {
         self.update_one(&mut self.vals.clone());
     }
 
-    fn update_one(&self, vec: &mut Vec<f64>) -> String {
+    fn update_one(&self, vec: &mut VecDeque<f64>) -> String {
         self.clear_before(vec);
         self.plot(vec.clone())
     }
 
-    fn clear_before(&self, vec: &mut Vec<f64>) {
+    fn clear_before(&self, vec: &mut VecDeque<f64>) {
         while vec.len() > self.max {
-            vec.remove(0);
+            vec.pop_front();
         }
     }
 
-    fn plot(&self, nums: Vec<f64>) -> String {
+    fn plot(&self, nums: VecDeque<f64>) -> String {
         format!(
             "\n{}",
-            plot(nums, Config::default().with_offset(10).with_height(10))
+            plot(nums.into(), Config::default().with_offset(10).with_height(10))
         )
     }
 
     fn new() -> Self {
         Graph {
-            vals: Vec::<f64>::new(),
+            vals: VecDeque::<f64>::new(),
             max: 40,
         }
     }

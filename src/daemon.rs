@@ -360,15 +360,15 @@ impl Checker for Daemon {
 
         // Update the data in the graph and render it
         if self.settings.graph == GraphType::Usage {
-            self.grapher.vals.push(check_cpu_usage(&self.cpus) as f64);
+            self.grapher.vals.push_back(check_cpu_usage(&self.cpus) as f64);
         }
         if self.settings.graph == GraphType::Frequency {
-            self.grapher.vals.push(check_cpu_freq(&self.cpus) as f64);
+            self.grapher.vals.push_back(check_cpu_freq(&self.cpus) as f64);
         }
         if self.settings.graph == GraphType::Temperature {
             self.grapher
                 .vals
-                .push((check_cpu_temperature(&self.cpus) / 1000.0) as f64);
+                .push_back((check_cpu_temperature(&self.cpus) / 1000.0) as f64);
         }
 
         Ok(())

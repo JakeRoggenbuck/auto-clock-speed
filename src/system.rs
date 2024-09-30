@@ -168,7 +168,6 @@ fn interpret_govs(governors_string: &mut String) -> Result<Vec<String>, Error> {
     let governors: Vec<String> = governors_string
         // Governors are in the file separated by a space
         .split(' ')
-        .into_iter()
         .map(|x| x.to_owned())
         .filter(|x| !x.is_empty())
         .collect();

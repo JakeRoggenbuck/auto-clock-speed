@@ -21,7 +21,10 @@ fn clear_before_benchmark(c: &mut Criterion) {
     let graph = Graph::new();
     let mut vec: VecDeque<f64> = vec![0.0; 100].into();
     c.bench_function("clear_before", |b| {
-        b.iter(|| black_box(graph.clear_before(&mut vec)))
+        b.iter(|| {
+            graph.clear_before(&mut vec);
+            black_box(())
+        })
     });
 }
 

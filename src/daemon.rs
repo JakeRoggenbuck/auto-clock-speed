@@ -447,7 +447,7 @@ impl Checker for Daemon {
             self.graph = self.grapher.update_one(&mut self.grapher.vals.clone());
         }
 
-        let (term_width, _term_height) = termion::terminal_size().unwrap();
+        let (term_width, _term_height) = termion::terminal_size().unwrap_or(80);
 
         // Render two sections of the output
         // Rendering before screen is cleared reduces the time between clear and print

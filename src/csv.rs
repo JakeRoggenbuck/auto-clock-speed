@@ -98,7 +98,7 @@ impl Writer for CSVWriter {
         let lines = writables.map(|c| c.to_csv()).collect::<String>();
 
         // Open file in append mode
-        let mut file = match OpenOptions::new().write(true).append(true).open(&self.path) {
+        let mut file = match OpenOptions::new().append(true).open(&self.path) {
             Ok(file) => file,
             Err(..) => {
                 logger.log("Could not open file for writing.", logger::Severity::Error);

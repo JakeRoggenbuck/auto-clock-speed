@@ -46,7 +46,7 @@ If you have cargo on your machine, skip to step 3
    sudo cp ~/.cargo/bin/acs /usr/bin/acs
    ```
    
-   Note: If you recieve error `linker 'cc' not found`, then you need to install a C compiler (gcc, cmake, etc.) first.
+   Note: If you receive error `linker 'cc' not found`, then you need to install a C compiler (gcc, cmake, etc.) first.
    
 <hr>
 

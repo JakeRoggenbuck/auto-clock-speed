@@ -13,6 +13,15 @@ If you encounter any issues or bugs, please refer to the [wiki](https://github.c
 
 ![acs](https://user-images.githubusercontent.com/35516367/199084229-aee15ac5-bd86-41e9-b7fc-22517e21e6f0.png)
 
+## Quickstart
+```
+cargo install autoclockspeed
+```
+
+Now you can run `acs monit`.
+
+View [#install-latest-release](https://github.com/JakeRoggenbuck/auto-clock-speed?tab=readme-ov-file#install-latest-release) for more info.
+
 ## Goals
 - First and foremost, this is a project to learn about Rust and Linux
 - Secondly, try to improve upon AdnanHodzic's already amazing [auto-cpufreq](https://github.com/AdnanHodzic/auto-cpufreq)

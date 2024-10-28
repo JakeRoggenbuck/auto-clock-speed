@@ -46,7 +46,7 @@ If you have cargo on your machine, skip to step 3
    sudo cp ~/.cargo/bin/acs /usr/bin/acs
    ```
    
-   Note: If you recieve error `linker 'cc' not found`, then you need to install a C compiler (gcc, cmake, etc.) first.
+   Note: If you receive error `linker 'cc' not found`, then you need to install a C compiler (gcc, cmake, etc.) first.
    
 <hr>
 
@@ -70,7 +70,7 @@ Auto clock speed has been tested to work on the following devices. If you have a
 | ----------- | ------------- | ----- |
 | Dell XPS 13 9360 | Working | |
 | Dell Latitude 7480 | Working | |
-| Steam Deck | Working | Edit mode not neccessary (use built in governor switcher) |
+| Steam Deck | Working | Edit mode not necessary (use built in governor switcher) |
 | Thinkpad T400 | Working | |
 | Thinkpad T460 | Working | |
 | Thinkpad X230 | Working | |

@@ -380,8 +380,12 @@ impl Checker for Daemon {
     fn preprint_render(&mut self) -> String {
         let message = format!("{}\n", self.message);
         let title = "Name\tMax\tMin\tFreq\tTemp\tUsage\tGovernor\n";
+
         // Render each line of cpu core
-        let cpus = &self.cpus.iter().map(|c| format!("{c}")).collect::<String>();
+        let mut cpus = String::new();
+        for c in &self.cpus {
+            cpus.push_str(&c.to_string());
+        }
 
         // Prints battery percent or N/A if not
         let battery_status = print_battery_status(&self.battery);

@@ -9,7 +9,7 @@ use super::daemon::daemon_init;
 use super::display::show_config;
 use super::graph::{get_graph_type, GraphType};
 use super::interactive::interactive;
-use super::interface::{DaemonControl, DaemonController, Get, Getter, Interface, Set, Setter};
+use super::interface::{DaemonControl, DaemonController, Get, Getter, CoreInterface, Set, Setter};
 use super::settings::Settings;
 use super::setup::check_config_dir_exists;
 use super::warn_user;
@@ -235,6 +235,10 @@ enum ACSCommand {
         #[structopt(short = "h", long = "--hook")]
         hook: bool,
 
+        /// Test a log message
+        #[structopt(long = "--testlog")]
+        testlog: bool,
+
         /// Graph "freq", "usage", or "temp"
         #[structopt(short = "g", long = "--graph")]
         graph_type: Option<String>,
@@ -256,7 +260,7 @@ enum ACSCommand {
 pub fn parse_args(config: config::Config) {
     let set_settings = Settings::default();
 
-    let int = Interface {
+    let int = CoreInterface {
         set: Set {},
         get: Get {},
         dec: DaemonControl {},
@@ -331,6 +335,7 @@ pub fn parse_args(config: config::Config) {
                 graph: parsed_graph_type,
                 commit,
                 testing: false,
+                testing_logging: false,
                 log_csv: csv_file.is_some(),
                 csv_file: csv_file.unwrap_or_else(|| "/tmp/acs/".to_string()),
                 log_size_cutoff,
@@ -348,6 +353,7 @@ pub fn parse_args(config: config::Config) {
             animation,
             graph_type,
             hook,
+            testlog,
             commit,
             csv_file,
             log_size_cutoff,
@@ -381,6 +387,7 @@ pub fn parse_args(config: config::Config) {
                 graph: parsed_graph_type,
                 commit,
                 testing: false,
+                testing_logging: testlog,
                 log_csv: csv_file.is_some(),
                 csv_file: csv_file.unwrap_or_else(|| "/tmp/acs/".to_string()),
                 log_size_cutoff,

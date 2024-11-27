@@ -1,6 +1,6 @@
 #![forbid(unsafe_code)]
 use super::config::{get_config, Config};
-use super::interface::{DaemonControl, DaemonController, Get, Getter, Interface, Set, Setter};
+use super::interface::{DaemonControl, DaemonController, Get, Getter, CoreInterface, Set, Setter};
 use super::settings::Settings;
 use efcl::{bold, color, Color};
 use std::io::{stdin, stdout, Write};
@@ -37,7 +37,7 @@ E.g. 'get cpus'
 }
 
 pub fn interactive() {
-    let int = Interface {
+    let int = CoreInterface {
         set: Set {},
         get: Get {},
         dec: DaemonControl {},

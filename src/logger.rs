@@ -4,11 +4,11 @@
 //!
 //! The log messages contain a timestamp, a severity level and the message. The logs are stored in a vector and are serializable and deserializable. The logs can also be displayed in a human-readable format.
 
+use chrono::{DateTime, Local};
 use efcl::{color, Color};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::time::SystemTime;
-use chrono::{DateTime, Local};
 
 #[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
 /// The Severity enum is used to represent the different levels of severity of a log message. It has three possible values:
@@ -45,7 +45,13 @@ impl fmt::Display for Log {
 
         let local_time: DateTime<Local> = DateTime::<Local>::from(self.timestamp);
 
-        write!(f, "{} {} -> {}", severity, local_time.format("%Y-%m-%d %H:%M:%S"), self.message)
+        write!(
+            f,
+            "{} {} -> {}",
+            severity,
+            local_time.format("%Y-%m-%d %H:%M:%S"),
+            self.message
+        )
     }
 }
 

@@ -1,6 +1,6 @@
 #![forbid(unsafe_code)]
 use super::config::{get_config, Config};
-use super::interface::{DaemonControl, DaemonController, Get, Getter, CoreInterface, Set, Setter};
+use super::interface::{CoreInterface, DaemonControl, DaemonController, Get, Getter, Set, Setter};
 use super::settings::Settings;
 use efcl::{bold, color, Color};
 use std::io::{stdin, stdout, Write};

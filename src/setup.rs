@@ -28,6 +28,7 @@ pub fn setup() {
 pub fn check_config_dir_exists() {
     if !config_dir_exists() {
         warn_user!("Config directory '/etc/acs' does not exist!");
+        // Give the user time to see the message
         thread::sleep(time::Duration::from_millis(5000));
     }
 }

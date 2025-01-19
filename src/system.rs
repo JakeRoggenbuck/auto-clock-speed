@@ -63,6 +63,7 @@ pub fn inside_docker() -> bool {
 
 /// Detects if being executed inside of windows subsystem for linux
 pub fn inside_wsl() -> bool {
+    // Check for a reference to microsoft or WSL in the osrelease and version files
     if Path::new("/proc/sys/kernel/osrelease").exists() {
         let o = fs::read_to_string("/proc/sys/kernel/osrelease").expect("Unable to read file");
         return o.contains("microsoft");
@@ -70,6 +71,7 @@ pub fn inside_wsl() -> bool {
         let v = fs::read_to_string("/proc/version").expect("Unable to read file");
         return v.contains("microsoft") || v.contains("WSL");
     }
+
     false
 }
 
@@ -108,8 +110,9 @@ pub fn get_cpu_percent(delay: Option<u64>) -> String {
 
     let millis = if let Some(d) = delay { d * 1000 } else { 1000 };
 
+    // Wait time between first and second read of /proc/stat
     thread::sleep(time::Duration::from_millis(millis));
-    proc = read_proc_stat_file().unwrap();
+    proc = read_proc_stat_file().expect("/proc/stat file should exist.");
 
     let avg_timing_2: &ProcStat = &parse_proc_file(proc)[0];
 

@@ -36,11 +36,14 @@ impl Display for ThermalZone {
         write!(
             f,
             "{} {}{} {}",
-            if self.enabled {
-                color!(Color::GREEN, &self.name)
-            } else {
-                color!(Color::RED, &self.name)
-            },
+            color!(
+                if self.enabled {
+                    Color::GREEN
+                } else {
+                    Color::RED
+                },
+                &self.name
+            ),
             color!(Color::YELLOW, (self.temp / 1000).to_string().as_str()),
             color!(Color::YELLOW, "C°"),
             self.path

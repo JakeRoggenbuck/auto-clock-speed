@@ -491,20 +491,26 @@ impl Checker for Daemon {
     fn set_govs(&mut self, gov: String) -> Result<(), Error> {
         if gov == *"performance" {
             return self.apply_to_cpus(&make_gov_performance);
-        } else if gov == *"powersave" {
+        }
+
+        if gov == *"powersave" {
             return self.apply_to_cpus(&make_gov_powersave);
-        } else if gov == *"schedutil" {
-            warn_user!("schedutil governor not officially supported");
+        }
+
+        if gov == *"schedutil" {
+            warn_user!("schedutil governor not officially supported.");
             return self.apply_to_cpus(&make_gov_schedutil);
-        } else if check_available_governors().is_ok() {
-            if check_available_governors().unwrap().contains(&gov) {
+        }
+
+        if let Ok(govs) = check_available_governors() {
+            if govs.contains(&gov) {
                 self.logger
                     .log("Other governors not supported yet", logger::Severity::Log);
             } else {
-                eprintln!("Governor not available",);
+                eprintln!("Governor not available.");
             }
         } else {
-            eprintln!("Error checking \"{}\" governor", gov);
+            eprintln!("Error checking \"{}\" governor.", gov);
         }
         Ok(())
     }

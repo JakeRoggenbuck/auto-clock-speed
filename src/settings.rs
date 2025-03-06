@@ -25,6 +25,7 @@ pub struct Settings {
     pub commit: bool,
     /// If the daemon is running in testing mode
     pub testing: bool,
+    pub testing_logging: bool,
     /// The output csv filepath
     pub csv_file: String,
     /// If ACS should log to a file
@@ -47,6 +48,7 @@ impl Default for Settings {
             graph: GraphType::default(),
             commit: false,
             testing: false,
+            testing_logging: false,
             csv_file: String::default(),
             log_csv: false,
             log_size_cutoff: 0,
@@ -67,6 +69,7 @@ impl DefaultTesting for Settings {
             graph: GraphType::Hidden,
             commit: false,
             testing: true,
+            testing_logging: false,
             csv_file: String::default(),
             log_csv: false,
             log_size_cutoff: 0,

@@ -262,7 +262,9 @@ impl Checker for Daemon {
             self.commit_hash = env!("GIT_HASH").to_string();
         }
 
+        // Set the timeout for when the device running ACS is on battery power
         self.timeout_battery = time::Duration::from_millis(self.settings.delay_battery);
+        // The timeout when the device is connected to a power source
         self.timeout = time::Duration::from_millis(self.settings.delay);
 
         self.csv_writer.init(&mut self.logger);
@@ -277,6 +279,7 @@ impl Checker for Daemon {
         }
     }
 
+    /// This function is run at the start of each iteration of ACS
     fn start_loop(&mut self) -> Result<(), Error> {
         // Update all the values for each cpu before they get used
         self.update_all()?;
@@ -293,6 +296,7 @@ impl Checker for Daemon {
         Ok(())
     }
 
+    /// This function is run at the end of each iteration of ACS
     fn end_loop(&mut self) {
         // Print the each cpu, each iteration
         if self.settings.verbose {
@@ -366,9 +370,11 @@ impl Checker for Daemon {
         if self.settings.graph == GraphType::Usage {
             self.grapher.vals.push(check_cpu_usage(&self.cpus) as f64);
         }
+
         if self.settings.graph == GraphType::Frequency {
             self.grapher.vals.push(check_cpu_freq(&self.cpus) as f64);
         }
+
         if self.settings.graph == GraphType::Temperature {
             self.grapher
                 .vals
@@ -493,22 +499,32 @@ impl Checker for Daemon {
     }
 
     fn set_govs(&mut self, gov: String) -> Result<(), Error> {
+        // Apply the governor provided, to the CPUs
         if gov == *"performance" {
             return self.apply_to_cpus(&make_gov_performance);
-        } else if gov == *"powersave" {
+        }
+
+        if gov == *"powersave" {
             return self.apply_to_cpus(&make_gov_powersave);
-        } else if gov == *"schedutil" {
-            warn_user!("schedutil governor not officially supported");
+        }
+
+        if gov == *"schedutil" {
+            warn_user!("schedutil governor not officially supported.");
             return self.apply_to_cpus(&make_gov_schedutil);
-        } else if check_available_governors().is_ok() {
-            if check_available_governors().unwrap().contains(&gov) {
+        }
+
+        if let Ok(govs) = check_available_governors() {
+            // If the coverner provided DOES exist for the machine, but is not supported, give a
+            // message saying it's not supported
+            if govs.contains(&gov) {
                 self.logger
                     .log("Other governors not supported yet", logger::Severity::Log);
             } else {
-                eprintln!("Governor not available",);
+                // The governor doesn't exist for the machine - cannot be set
+                warn_user!("Governor not available.");
             }
         } else {
-            eprintln!("Error checking \"{}\" governor", gov);
+            warn_user!(format!("Error checking \"{}\" governor.", gov));
         }
         Ok(())
     }
@@ -522,6 +538,15 @@ fn format_message(
     delay: u64,
     delay_battery: u64,
 ) -> String {
+    let message = if started_as_edit != edit {
+        color!(
+            Color::RED,
+            format!("\nForced to monitor mode because {}!", forced_reason).as_str()
+        )
+    } else {
+        "".to_string()
+    };
+
     // Format the original message with mode and delay, along with the forced message if it
     // was forced to switched modes
     format!(
@@ -533,7 +558,7 @@ fn format_message(
         },
         delay,
         delay_battery,
-        if started_as_edit != edit { color!(Color::RED, format!("\nForced to monitor mode because {}!", forced_reason).as_str()) } else { "".to_string() }
+        message,
     )
 }
 

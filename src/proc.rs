@@ -32,6 +32,7 @@ pub fn read_proc_stat_file() -> Result<String, Error> {
 pub fn parse_proc_file(proc: String) -> Vec<ProcStat> {
     let lines: Vec<_> = proc.lines().collect();
     let mut procs: Vec<ProcStat> = Vec::<ProcStat>::new();
+
     for l in lines {
         if l.starts_with("cpu") {
             let mut columns: Vec<_> = l.split(' ').collect();
@@ -44,7 +45,7 @@ pub fn parse_proc_file(proc: String) -> Vec<ProcStat> {
 
             let mut proc_struct: ProcStat = ProcStat {
                 cpu_name: columns[0].to_string(),
-                // fill in the rest of the values
+                // Fill in the rest of the values
                 ..Default::default()
             };
 
@@ -58,6 +59,7 @@ pub fn parse_proc_file(proc: String) -> Vec<ProcStat> {
             let num = columns[4]
                 .parse::<f32>()
                 .expect("Should have parsed float from /proc/stat file.");
+
             proc_struct.cpu_idle = num;
             procs.push(proc_struct);
         } else {

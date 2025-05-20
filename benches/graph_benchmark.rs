@@ -1,6 +1,6 @@
+use autoclockspeed::graph::{get_graph_type, GraphType};
 use autoclockspeed::graph::{Graph, Grapher};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use autoclockspeed::graph::{get_graph_type, GraphType};
 
 fn update_all_benchmark(c: &mut Criterion) {
     let mut graph = Graph::new();

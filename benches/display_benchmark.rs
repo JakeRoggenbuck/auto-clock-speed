@@ -1,6 +1,6 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use autoclockspeed::display::{print_battery_status, print_turbo};
 use autoclockspeed::power::battery::{Battery, BatteryStatus};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 fn print_battery_status_benchmark(c: &mut Criterion) {
     let battery = Battery {
@@ -19,5 +19,9 @@ fn print_turbo_benchmark(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, print_battery_status_benchmark, print_turbo_benchmark);
-criterion_main!(benches); 
+criterion_group!(
+    benches,
+    print_battery_status_benchmark,
+    print_turbo_benchmark
+);
+criterion_main!(benches);

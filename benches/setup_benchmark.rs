@@ -1,5 +1,5 @@
+use autoclockspeed::setup::{inside_docker_message, inside_wsl_message};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use autoclockspeed::setup::{inside_wsl_message, inside_docker_message};
 
 fn inside_wsl_message_benchmark(c: &mut Criterion) {
     c.bench_function("inside_wsl_message", |b| {
@@ -13,5 +13,9 @@ fn inside_docker_message_benchmark(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, inside_wsl_message_benchmark, inside_docker_message_benchmark);
-criterion_main!(benches); 
+criterion_group!(
+    benches,
+    inside_wsl_message_benchmark,
+    inside_docker_message_benchmark
+);
+criterion_main!(benches);

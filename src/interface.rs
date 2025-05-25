@@ -282,7 +282,7 @@ impl Setter for Set {
     }
 }
 
-pub struct Interface {
+pub struct CoreInterface {
     pub get: Get,
     pub set: Set,
     pub dec: DaemonControl,

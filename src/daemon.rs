@@ -46,7 +46,7 @@ use crate::error::Error;
 use crate::gov::Gov;
 use crate::graph::{Graph, GraphType, Grapher};
 use crate::logger;
-use crate::logger::Interface;
+use crate::logger::{Interface, Severity};
 use crate::network::{hook, listen};
 use crate::power::battery::{has_battery, Battery};
 use crate::power::lid::{Lid, LidRetriever, LidState};
@@ -253,6 +253,10 @@ impl Checker for Daemon {
 
     /// Things to be done only at the start of auto clock speed daemon
     fn init(&mut self) {
+        if self.settings.testing_logging {
+            self.logger.log("Log testing. Hello, ACS!", Severity::Log);
+        }
+
         // Get the commit hash from the compile time env variable
         if self.settings.commit {
             self.commit_hash = env!("GIT_HASH").to_string();
@@ -609,6 +613,7 @@ pub fn daemon_init(settings: Settings, config: Config) -> Arc<Mutex<Daemon>> {
         graph: settings.graph.clone(),
         commit: settings.commit,
         testing: settings.testing,
+        testing_logging: settings.testing_logging,
         csv_file: settings.csv_file.clone(),
         log_csv: settings.log_csv,
         log_size_cutoff: settings.log_size_cutoff,

@@ -1,0 +1,3 @@
+[submodule "auto-clock-speed.wiki"]
+	path = auto-clock-speed.wiki
+	url = https://github.com/JakeRoggenbuck/auto-clock-speed.wiki.git

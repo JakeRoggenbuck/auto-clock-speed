@@ -319,11 +319,8 @@ pub fn parse_args(config: config::Config) {
                 }
             }
 
-            let mut effective_delay_battery = delay_battery.unwrap_or(5000);
+            let effective_delay_battery = delay_battery.unwrap_or(5000);
             let regular_delay = delay.unwrap_or(1000);
-            if parsed_graph_type != GraphType::Hidden {
-                effective_delay_battery = regular_delay;
-            }
 
             let settings = Settings {
                 verbose: !quiet,
@@ -371,11 +368,8 @@ pub fn parse_args(config: config::Config) {
                 }
             }
 
-            let mut effective_delay_battery = delay_battery.unwrap_or(5000);
+            let effective_delay_battery = delay_battery.unwrap_or(5000);
             let regular_delay = delay.unwrap_or(1000);
-            if parsed_graph_type != GraphType::Hidden {
-                effective_delay_battery = regular_delay;
-            }
 
             let settings = Settings {
                 verbose: true,

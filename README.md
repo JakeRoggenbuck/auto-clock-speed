@@ -4,6 +4,8 @@
 [![Downloads](https://img.shields.io/crates/d/autoclockspeed?style=for-the-badge)](https://crates.io/crates/autoclockspeed)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/jakeroggenbuck/auto-clock-speed?style=for-the-badge)
 ![Commits since last release](https://img.shields.io/github/commits-since/jakeroggenbuck/auto-clock-speed/latest?style=for-the-badge)
+[![5 Year Anniversary](https://img.shields.io/badge/5_Year_Anniversary-red?style=for-the-badge)](#5-years-of-acs)
+
 
 #### [ACS Upstream](https://github.com/jakeroggenbuck/auto-clock-speed) - [autoclockspeed.org](https://autoclockspeed.org) - [Our crates.io](https://crates.io/crates/autoclockspeed) - [ACS Github Org](https://github.com/autoclockspeed)
 
@@ -220,6 +222,21 @@ SUBCOMMANDS:
     set            Set a specific value
     showconfig     Show the current config in use
 ```
+
+## 5 Years of ACS
+
+![5 Year Anniversary](https://img.shields.io/badge/5_Year_Anniversary-red?style=for-the-badge)
+
+Auto Clock Speed was started by three high school students to help them learn Rust and improve the battery life of their Arch Linux laptops, which consumed a lot of CPU resources even in idle, so they set out to fix the problem. Five years later, ACS is feature complete and still used on all of their devices. Now these three all attend university, studying computer science, robotics, and math in some form or another. Thank you everyone who sent in an issue or pull request, we appreciate your support!
+
+If you're local to the bay area and use ACS, we'd be happy to send you a sticker!
+
+<img width="221" height="294" alt="image" src="https://github.com/user-attachments/assets/92651b2d-53b9-4779-8bb9-2160ba6cd931" />
+
+Reflecting on the project; nothing is better for learning how to work with others and learning specific technologies than finding a problem among your friends and trying to solve it.
+
+Thanks!
+\- Jake
 
 <!--       _
        .__(.)< (qwak)
